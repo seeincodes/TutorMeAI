@@ -4,6 +4,45 @@ function sendToPlatform(type: string, correlationId: string, data: Record<string
   window.parent.postMessage({ type, correlationId, data }, '*')
 }
 
+// K-12 content filter — blocked words and definition scanner
+const BLOCKED_WORDS = new Set([
+  // Profanity
+  'fuck','shit','damn','ass','bitch','bastard','crap','dick','cock','pussy',
+  'asshole','bullshit','motherfucker','fag','faggot','nigger','nigga','cunt',
+  'whore','slut','piss','tits','boob','boobs','penis','vagina','anus',
+  // Drug-related
+  'cocaine','heroin','meth','methamphetamine','ecstasy','lsd',
+  // Violence
+  'murder','rape','molest','suicide','genocide',
+  // Sexual
+  'porn','pornography','sex','orgasm','erotic','fetish','hentai','masturbat',
+  // Common misspellings/variants
+  'fuk','fck','sht','btch','azz','d1ck','p0rn',
+])
+
+const FLAGGED_DEFINITION_TERMS = [
+  'sexual intercourse','vulgar','offensive slang','taboo','obscene',
+  'derogatory','racial slur','sexist','profanity',
+]
+
+function isWordBlocked(word: string): boolean {
+  const lower = word.toLowerCase().trim()
+  if (BLOCKED_WORDS.has(lower)) return true
+  // Check if any blocked word is a substring (catches plurals, verb forms)
+  for (const blocked of BLOCKED_WORDS) {
+    if (lower.includes(blocked) || blocked.includes(lower)) return true
+  }
+  return false
+}
+
+function isDefinitionSafe(entry: WordEntry): boolean {
+  const allText = entry.meanings
+    .flatMap(m => m.definitions.map(d => `${d.definition} ${d.example || ''}`))
+    .join(' ')
+    .toLowerCase()
+  return !FLAGGED_DEFINITION_TERMS.some(term => allText.includes(term))
+}
+
 interface WordEntry {
   word: string
   phonetic?: string
@@ -80,11 +119,28 @@ export default function DictionaryApp() {
     setLoading(true)
     setError(null)
     setResult(null)
+
+    // Pre-search filter
+    if (isWordBlocked(word)) {
+      setError("That word isn't available in the student dictionary. Try a different word!")
+      setLoading(false)
+      return
+    }
+
     try {
       const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`)
       if (!res.ok) throw new Error('Word not found')
       const data = await res.json()
-      setResult(data[0] as WordEntry)
+      const entry = data[0] as WordEntry
+
+      // Post-search content filter
+      if (!isDefinitionSafe(entry)) {
+        setError("That word's definition isn't appropriate for students. Try a different word!")
+        setLoading(false)
+        return
+      }
+
+      setResult(entry)
       setTab('search')
     } catch {
       setError(`Could not find "${word}". Check spelling and try again.`)
@@ -96,7 +152,7 @@ export default function DictionaryApp() {
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     if (!query.trim()) return
-    lookupWord(query.trim())
+    lookupWord(query.trim().toLowerCase())
   }
 
   function saveWord() {
