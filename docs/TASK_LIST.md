@@ -3,7 +3,7 @@
 ## Phase 1: MVP
 
 ### 1. Project Setup & Infrastructure [MVP1, MVP3]
-- [ ] Fork/clone base repo, set up pnpm workspace for `web/frontend/`, `web/backend/`, `apps/`
+- [x] Fork/clone base repo, set up pnpm workspace for `web/frontend/`, `web/backend/`, `apps/`
 - [ ] Initialize React Vite app in `web/frontend/` with TypeScript + Tailwind
 - [ ] Initialize FastAPI project in `web/backend/` with uvicorn
 - [ ] Set up PostgreSQL on Railway, configure `DATABASE_URL`
