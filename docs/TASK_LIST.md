@@ -58,13 +58,13 @@
 - [x] Verify context retention: chatbot references game results in follow-up turns
 
 ### 7. Multiple Apps [MVP11]
-- [ ] Build Math Calculator app (`apps/calculator/`) — math.js, single tool `calculate`
-- [ ] Build Dictionary app (`apps/dictionary/`) — Free Dictionary API, tool `define_word`
-- [ ] Build Weather app (`apps/weather/`) — OpenWeatherMap API via backend proxy, tool `get_weather`
-- [ ] Build Flashcard Quiz app (`apps/flashcards/`) — stateful multi-turn quiz, tools `start_quiz`, `submit_answer`, `get_score`
-- [ ] Build Life Skills Toolkit app (`apps/life-skills/`) — 5 tools: `plan_budget`, `calculate_interest`, `decision_matrix`, `plan_meals`, `optimize_schedule`
-- [ ] Seed all app registrations with tool schemas
-- [ ] Test multi-app routing: verify LLM correctly routes ambiguous queries
+- [x] Build Math Calculator app (`apps/calculator/`) — math.js, single tool `calculate`
+- [x] Build Dictionary app (`apps/dictionary/`) — Free Dictionary API, tool `define_word`
+- [x] Build Weather app (`apps/weather/`) — OpenWeatherMap API via backend proxy, tool `get_weather`
+- [x] Build Flashcard Quiz app (`apps/flashcards/`) — stateful multi-turn quiz, tools `start_quiz`, `submit_answer`, `get_score`
+- [x] Build Life Skills Toolkit app (`apps/life-skills/`) — 5 tools: `plan_budget`, `calculate_interest`, `decision_matrix`, `plan_meals`, `optimize_schedule`
+- [x] Seed all app registrations with tool schemas
+- [x] Test multi-app routing: verify LLM correctly routes ambiguous queries
 
 ### 8. Spotify OAuth Integration [MVP12]
 - [ ] Implement OAuth2 PKCE flow in FastAPI (`/api/oauth/spotify/authorize`, `/api/oauth/spotify/callback`)
