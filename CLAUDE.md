@@ -41,7 +41,8 @@ The following technology decisions are locked. Do not switch any without explici
 ## K-12 Safety Rules
 
 - Never send student PII (name, email, school) to iframe apps
-- Always use `sandbox="allow-scripts"` WITHOUT `allow-same-origin` for iframes
+- Use `sandbox="allow-scripts allow-same-origin"` for first-party apps (React needs same-origin for event handling)
+- For any future third-party apps, use `sandbox="allow-scripts"` WITHOUT `allow-same-origin`
 - All external API calls must go through the FastAPI backend, never directly from iframes
 - Content moderation: OpenAI filters + system prompt + tool result delimiters
 - OAuth tokens stored server-side only, encrypted, never exposed to client

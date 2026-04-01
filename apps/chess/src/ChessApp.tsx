@@ -6,12 +6,13 @@ function sendToPlatform(type: string, correlationId: string, data: Record<string
   window.parent.postMessage({ type, correlationId, data }, '*')
 }
 
-type Difficulty = 'beginner' | 'intermediate' | 'advanced'
+type Difficulty = 'beginner' | 'intermediate' | 'advanced' | 'grandmaster'
 
 const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; emoji: string; desc: string; depth: number; randomness: number }> = {
-  beginner:     { label: 'Beginner',     emoji: '🌱', desc: 'Ages 5-8 · Makes mistakes on purpose', depth: 1, randomness: 0.7 },
-  intermediate: { label: 'Intermediate', emoji: '⭐', desc: 'Ages 9-12 · Plays decent moves',       depth: 2, randomness: 0.3 },
-  advanced:     { label: 'Advanced',     emoji: '🔥', desc: 'Ages 13+ · Strong positional play',    depth: 3, randomness: 0.05 },
+  beginner:     { label: 'Beginner',     emoji: '🌱', desc: 'Makes mistakes on purpose',  depth: 1, randomness: 0.7 },
+  intermediate: { label: 'Intermediate', emoji: '⭐', desc: 'Plays decent moves',        depth: 2, randomness: 0.3 },
+  advanced:     { label: 'Advanced',     emoji: '🔥', desc: 'Strong positional play',    depth: 3, randomness: 0.05 },
+  grandmaster:  { label: 'Grandmaster',  emoji: '👑', desc: 'Best move every time',      depth: 4, randomness: 0 },
 }
 
 // Piece values for evaluation

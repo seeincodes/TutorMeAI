@@ -136,8 +136,11 @@ export default function ChatPage() {
         ])
       },
       (appId) => {
-        // Intent detected — show iframe for this app
-        setActiveApp({ appId, iframeUrl: `/apps/${appId}/index.html` })
+        // Intent detected — show iframe with student's allowed levels
+        const levels = user?.allowed_levels?.join(',') || ''
+        const grade = user?.grade || ''
+        const params = levels ? `?levels=${encodeURIComponent(levels)}&grade=${grade}` : ''
+        setActiveApp({ appId, iframeUrl: `/apps/${appId}/index.html${params}` })
       },
     )
   }
@@ -265,6 +268,7 @@ export default function ChatPage() {
           </div>
           <div className="flex-1">
             <AppIframe
+              key={activeApp.appId}
               ref={appIframeRef}
               appId={activeApp.appId}
               iframeUrl={activeApp.iframeUrl}
@@ -301,8 +305,25 @@ export default function ChatPage() {
                 }
               }}
               onStateUpdate={(data) => {
-                // Save app state to a system message for persistence
-                if (activeConversation && data.fen) {
+                // Flag inappropriate searches to teacher dashboard
+                if (data.type === 'inappropriate_search') {
+                  fetch('/api/teacher/flags', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      app_id: activeApp.appId,
+                      word: data.word,
+                      reason: data.reason || 'blocked_word',
+                      conversation_id: activeConversation,
+                      timestamp: data.timestamp,
+                    }),
+                  }).catch(() => {})
+                  return // Don't save flagged searches as app state
+                }
+
+                // Save app state for any app on every meaningful state change
+                if (activeConversation) {
                   const statePayload = JSON.stringify({ appId: activeApp.appId, state: data })
                   fetch(`/api/conversations/${activeConversation}/app-state`, {
                     method: 'POST',

@@ -206,11 +206,11 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
         </div>
       )}
 
-      {/* Sandboxed iframe — allow-scripts only, NO allow-same-origin */}
+      {/* Sandboxed iframe — all apps are first-party, allow-same-origin needed for React event handling */}
       <iframe
         ref={iframeRef}
         src={iframeUrl}
-        sandbox="allow-scripts"
+        sandbox="allow-scripts allow-same-origin"
         title={`${appId} app`}
         className="flex-1 border-0"
         style={{ width: '100%', minHeight: '300px' }}
