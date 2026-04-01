@@ -76,14 +76,14 @@
 - [x] Add kid-friendly OAuth consent language in chatbot prompts
 
 ### 9. K-12 Safety & Error Handling [MVP13, MVP14]
-- [ ] Verify no PII in any postMessage payload (inspect tool invocation params)
-- [ ] Test OpenAI content moderation — send harmful prompts, verify refusal
-- [ ] Add K-12 safety guidelines to LangGraph system prompt
-- [ ] Implement tool result delimiters to prevent prompt injection via app results
-- [ ] Implement iframe crash detection and recovery with retry option
-- [ ] Add rate limiting via slowapi (per-IP and per-user)
-- [ ] Verify `sandbox="allow-scripts"` blocks `window.parent.document` access
-- [ ] Test per-user data isolation — student2 cannot see student1 data
+- [x] Verify no PII in any postMessage payload (inspect tool invocation params)
+- [x] Test OpenAI content moderation — send harmful prompts, verify refusal
+- [x] Add K-12 safety guidelines to LangGraph system prompt
+- [x] Implement tool result delimiters to prevent prompt injection via app results
+- [x] Implement iframe crash detection and recovery with retry option
+- [x] Add rate limiting via slowapi (per-IP and per-user)
+- [x] Verify `sandbox="allow-scripts"` blocks `window.parent.document` access
+- [x] Test per-user data isolation — student2 cannot see student1 data
 
 ## Phase 2: Polish
 
