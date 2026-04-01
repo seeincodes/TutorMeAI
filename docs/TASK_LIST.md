@@ -11,7 +11,7 @@
 - [x] Set up Alembic with async engine, create initial migration
 - [x] Seed demo accounts via Alembic migration (admin, teacher1, student1, student2)
 - [x] Configure `.env` with all required environment variables
-- [ ] Set up Vite dev proxy to FastAPI backend
+- [x] Set up Vite dev proxy to FastAPI backend
 
 ### 2. Authentication System [MVP1]
 - [ ] Implement bcrypt password hashing with passlib
