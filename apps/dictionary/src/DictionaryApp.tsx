@@ -12,15 +12,24 @@ function isWordBlocked(word: string): boolean {
   return false
 }
 
+type GradeLevel = 'K-2' | '3-5' | '6-8' | '9-12'
+const GRADE_LABELS: Record<GradeLevel, string> = {
+  'K-2': 'Grades K-2',
+  '3-5': 'Grades 3-5',
+  '6-8': 'Grades 6-8',
+  '9-12': 'Grades 9-12',
+}
+
 interface Passage {
-  id: string; title: string; level: string; text: string
+  id: string; title: string; level: GradeLevel; text: string
   vocabulary: { word: string; definition: string }[]
   questions: { question: string; options: string[]; correct: number }[]
 }
 
 const PASSAGES: Passage[] = [
+  // --- GRADES K-2: Short sentences, familiar topics, simple vocabulary ---
   {
-    id: 'p1', title: 'The Brave Little Seed', level: 'Beginner',
+    id: 'k1', title: 'The Brave Little Seed', level: 'K-2',
     text: `A tiny seed fell into the dark soil. "It's so dark down here," the seed whispered. But soon, rain came and gave the seed water. The sun warmed the earth above.\n\nSlowly, a small green sprout pushed through the dirt. Day by day, it grew taller. Leaves unfolded like little green hands reaching for the sky.\n\nBy summer, the sprout had become a beautiful sunflower, standing tall and bright. Birds came to visit, and bees buzzed around its golden petals.\n\n"I was scared of the dark," the sunflower thought, "but it was exactly where I needed to be to grow."`,
     vocabulary: [
       { word: 'sprout', definition: 'A young plant that has just begun to grow from a seed' },
@@ -34,7 +43,7 @@ const PASSAGES: Passage[] = [
     ],
   },
   {
-    id: 'p2', title: "The Ocean's Secret", level: 'Beginner',
+    id: 'k2', title: "The Ocean's Secret", level: 'K-2',
     text: `Maya loved visiting the beach with her grandmother. One morning, they found a beautiful seashell half-buried in the sand.\n\n"Hold it to your ear," Grandma said with a smile. Maya pressed the shell against her ear and gasped. "I can hear the ocean!"\n\nGrandma laughed gently. "That's the sound of air moving inside the shell. But some people believe the ocean leaves a little bit of its song in every shell it touches."\n\nMaya kept the shell in her pocket all day. Every time she felt lonely at school, she would hold it and remember the waves, the sand, and her grandmother's warm smile.`,
     vocabulary: [
       { word: 'buried', definition: 'Hidden or covered under something, like sand or dirt' },
@@ -48,7 +57,23 @@ const PASSAGES: Passage[] = [
     ],
   },
   {
-    id: 'p3', title: 'The Water Cycle', level: 'Intermediate',
+    id: 'k3', title: 'Max and the Lost Kitten', level: 'K-2',
+    text: `Max was walking home from school when he heard a tiny sound. "Meow!" It came from under a bush.\n\nMax looked under the bush and saw a small orange kitten. It was shaking and looked scared. "Don't worry, little one," Max said softly.\n\nHe picked up the kitten and carried it home. His mom helped him give it warm milk and a cozy blanket. They put up signs around the neighborhood.\n\nThe next day, a little girl knocked on their door. "That's my kitten, Sunny!" she cried happily. Max felt good inside. Helping others always feels that way.`,
+    vocabulary: [
+      { word: 'tiny', definition: 'Very, very small' },
+      { word: 'shaking', definition: 'Moving back and forth quickly, often because of being cold or scared' },
+      { word: 'neighborhood', definition: 'The area where you live, with houses and people nearby' },
+    ],
+    questions: [
+      { question: 'Where did Max find the kitten?', options: ['At school', 'Under a bush', 'In his house', 'At the park'], correct: 1 },
+      { question: 'What color was the kitten?', options: ['Black', 'White', 'Orange', 'Gray'], correct: 2 },
+      { question: 'How did Max feel after helping?', options: ['Sad', 'Angry', 'Good inside', 'Tired'], correct: 2 },
+    ],
+  },
+
+  // --- GRADES 3-5: Longer paragraphs, informational text, richer vocabulary ---
+  {
+    id: 'm1', title: 'The Water Cycle', level: '3-5',
     text: `Water is always on the move. The journey of water through our environment is called the water cycle, and it has been happening for billions of years.\n\nIt begins with evaporation. The sun heats water in oceans, lakes, and rivers, turning it into water vapor — an invisible gas that rises into the atmosphere. Plants also release water vapor through transpiration.\n\nAs water vapor rises higher, it cools and transforms back into tiny water droplets. This is condensation, and it forms clouds. When droplets combine and become heavy enough, they fall as precipitation — rain, snow, sleet, or hail.\n\nThe water then collects in rivers, lakes, and oceans, or soaks into the ground as groundwater. And the cycle begins again.`,
     vocabulary: [
       { word: 'evaporation', definition: 'The process of liquid water changing into water vapor (gas) due to heat' },
@@ -63,7 +88,24 @@ const PASSAGES: Passage[] = [
     ],
   },
   {
-    id: 'p4', title: 'The Discovery of Penicillin', level: 'Advanced',
+    id: 'm2', title: 'How Volcanoes Work', level: '3-5',
+    text: `Deep beneath the Earth's surface, it is incredibly hot. Rock melts into a thick, glowing liquid called magma. This magma is lighter than the solid rock around it, so it slowly rises toward the surface.\n\nWhen magma finds a crack or weak spot in the Earth's crust, it can burst out. This is called an eruption. Once magma reaches the surface, it is called lava. Lava can flow down the sides of a volcano like a river of fire.\n\nVolcanoes also shoot out ash, rocks, and gases. The ash can travel for miles and even block out the sun. Over many eruptions, the lava cools and hardens, building the volcano higher and higher.\n\nNot all volcanoes are dangerous. Some erupt gently, while others can be explosive. Scientists called volcanologists study volcanoes to help keep people safe.`,
+    vocabulary: [
+      { word: 'magma', definition: 'Hot, melted rock found beneath the Earth\'s surface' },
+      { word: 'eruption', definition: 'When a volcano sends out lava, ash, and gases' },
+      { word: 'crust', definition: 'The hard, outer layer of the Earth' },
+      { word: 'volcanologist', definition: 'A scientist who studies volcanoes' },
+    ],
+    questions: [
+      { question: 'What is magma?', options: ['Cold water', 'Melted rock underground', 'A type of gas', 'Hardened lava'], correct: 1 },
+      { question: 'What is magma called when it reaches the surface?', options: ['Ash', 'Crust', 'Lava', 'Steam'], correct: 2 },
+      { question: 'What do volcanologists do?', options: ['Build volcanoes', 'Study volcanoes', 'Stop eruptions', 'Collect lava'], correct: 1 },
+    ],
+  },
+
+  // --- GRADES 6-8: Complex ideas, cause/effect, historical and scientific topics ---
+  {
+    id: 'h1', title: 'The Discovery of Penicillin', level: '6-8',
     text: `In 1928, Scottish scientist Alexander Fleming made one of the most important accidental discoveries in medical history. After returning from vacation, he noticed that a mold called Penicillium notatum had contaminated one of his petri dishes containing bacteria.\n\nThe bacteria near the mold had been destroyed, while bacteria farther away continued to thrive. Fleming hypothesized that the mold was producing a substance that killed bacteria. He called it "penicillin."\n\nIt wasn't until 1940 that Howard Florey and Ernst Boris Chain developed methods to mass-produce penicillin, just in time for World War II. Penicillin became the first widely used antibiotic, saving an estimated 200 million lives.\n\nToday, antibiotics face a new challenge: antibiotic resistance. Overuse has led to "superbugs" that no longer respond to treatment.`,
     vocabulary: [
       { word: 'contaminated', definition: 'Made impure by contact with something unclean or harmful' },
@@ -75,6 +117,58 @@ const PASSAGES: Passage[] = [
       { question: 'How was penicillin discovered?', options: ['Planned experiment', 'By accident', 'Computer simulation', 'Animal testing'], correct: 1 },
       { question: 'Who made penicillin usable for medicine?', options: ['Fleming alone', 'Florey and Chain', 'Nobel committee', 'Army doctors'], correct: 1 },
       { question: 'What modern problem do antibiotics face?', options: ['Too expensive', 'Antibiotic resistance', 'They taste bad', 'Not enough mold'], correct: 1 },
+    ],
+  },
+  {
+    id: 'h2', title: 'The Civil Rights Movement', level: '6-8',
+    text: `In the 1950s and 1960s, millions of Americans fought for equal rights for African Americans. This period is known as the Civil Rights Movement.\n\nFor decades, especially in the South, laws called "Jim Crow laws" kept Black and white people separated. Black people had to use different schools, restaurants, water fountains, and seats on buses. This separation was called segregation.\n\nBrave individuals stood up against injustice. In 1955, Rosa Parks refused to give up her bus seat to a white passenger in Montgomery, Alabama. Her arrest sparked a 381-day bus boycott led by Dr. Martin Luther King Jr.\n\nDr. King believed in nonviolent protest. His famous "I Have a Dream" speech at the 1963 March on Washington inspired the nation. In 1964, the Civil Rights Act was signed into law, making segregation illegal.\n\nThe movement showed that ordinary people, working together peacefully, can change unjust laws.`,
+    vocabulary: [
+      { word: 'segregation', definition: 'The practice of separating people based on race' },
+      { word: 'boycott', definition: 'Refusing to buy or use something as a form of protest' },
+      { word: 'nonviolent', definition: 'Achieving goals through peaceful methods, without using force' },
+      { word: 'injustice', definition: 'Unfair treatment of people; lack of fairness or justice' },
+    ],
+    questions: [
+      { question: 'What were Jim Crow laws?', options: ['Tax laws', 'Laws that enforced segregation', 'Traffic laws', 'School rules'], correct: 1 },
+      { question: 'What did Rosa Parks do?', options: ['Gave a speech', 'Refused to give up her bus seat', 'Wrote a book', 'Ran for office'], correct: 1 },
+      { question: 'What approach did Dr. King believe in?', options: ['Armed resistance', 'Nonviolent protest', 'Legal action only', 'Isolation'], correct: 1 },
+      { question: 'What did the Civil Rights Act of 1964 do?', options: ['Created new schools', 'Made segregation illegal', 'Elected a new president', 'Built new roads'], correct: 1 },
+    ],
+  },
+
+  // --- GRADES 9-12: Academic vocabulary, complex arguments, analysis-level questions ---
+  {
+    id: 's1', title: 'The Ethics of Artificial Intelligence', level: '9-12',
+    text: `Artificial intelligence is transforming nearly every aspect of modern life, from healthcare diagnostics to criminal justice. But as AI systems become more powerful, society faces profound ethical questions.\n\nOne major concern is algorithmic bias. AI systems learn from historical data, which often reflects existing prejudices. For example, hiring algorithms trained on past decisions may discriminate against women or minorities — not because they were programmed to, but because the training data contained those biases.\n\nAnother challenge is accountability. When an autonomous vehicle causes an accident, who is responsible — the manufacturer, the programmer, or the AI itself? Current legal frameworks struggle with this question.\n\nPrivacy is equally pressing. Facial recognition technology can identify individuals in crowds, raising concerns about surveillance and civil liberties. Several cities have already banned its use by law enforcement.\n\nProponents argue that AI can reduce human error and increase efficiency. Critics counter that without careful regulation, AI could deepen inequality and erode individual rights. The question is not whether AI will shape our future, but whether we will shape AI to reflect our values.`,
+    vocabulary: [
+      { word: 'algorithmic', definition: 'Relating to a set of rules or steps that a computer follows to solve a problem' },
+      { word: 'bias', definition: 'An unfair preference for or against something, often based on incomplete information' },
+      { word: 'accountability', definition: 'The obligation to explain and take responsibility for one\'s actions or decisions' },
+      { word: 'autonomous', definition: 'Operating independently, without human control' },
+      { word: 'surveillance', definition: 'Close observation of a person or group, especially by authorities' },
+    ],
+    questions: [
+      { question: 'Why might AI systems show bias?', options: ['They are poorly built', 'They learn from biased historical data', 'They choose to be unfair', 'They are too expensive'], correct: 1 },
+      { question: 'What ethical issue does autonomous driving raise?', options: ['Cost', 'Speed limits', 'Accountability for accidents', 'Fuel efficiency'], correct: 2 },
+      { question: 'Why have some cities banned facial recognition?', options: ['It is inaccurate', 'Privacy and civil liberty concerns', 'It is too expensive', 'People don\'t like cameras'], correct: 1 },
+      { question: 'What is the main argument of critics of AI?', options: ['AI is too slow', 'AI could deepen inequality without regulation', 'AI costs too much', 'AI replaces all jobs'], correct: 1 },
+    ],
+  },
+  {
+    id: 's2', title: 'Climate Change: Causes and Consequences', level: '9-12',
+    text: `Since the Industrial Revolution, human activities have released enormous quantities of greenhouse gases into the atmosphere. Carbon dioxide from burning fossil fuels, methane from agriculture, and nitrous oxide from industrial processes trap heat that would otherwise escape into space. This enhanced greenhouse effect is the primary driver of global climate change.\n\nThe consequences are already visible. Global average temperatures have risen approximately 1.1°C since pre-industrial times. Arctic ice is melting at unprecedented rates. Sea levels are rising, threatening coastal communities. Extreme weather events — hurricanes, droughts, wildfires — are becoming more frequent and severe.\n\nThe scientific consensus, supported by over 97% of climate scientists, is unambiguous: human activity is the dominant cause. The Intergovernmental Panel on Climate Change (IPCC) warns that without drastic reductions in emissions, temperatures could rise by 2.5-4.5°C by 2100.\n\nSolutions exist but require collective action: transitioning to renewable energy, improving energy efficiency, protecting forests, and developing carbon capture technologies. The challenge is not scientific but political and economic — mobilizing the will to act before irreversible tipping points are crossed.`,
+    vocabulary: [
+      { word: 'greenhouse gases', definition: 'Gases in the atmosphere that trap heat, including CO2 and methane' },
+      { word: 'unprecedented', definition: 'Never done or known before; having no equal' },
+      { word: 'consensus', definition: 'A general agreement among a group of people' },
+      { word: 'irreversible', definition: 'Impossible to undo or change back to a previous state' },
+      { word: 'emissions', definition: 'Substances (especially gases) released into the atmosphere' },
+    ],
+    questions: [
+      { question: 'What is the primary driver of climate change?', options: ['Solar activity', 'Enhanced greenhouse effect from human emissions', 'Volcanic eruptions', 'Ocean currents'], correct: 1 },
+      { question: 'How much have global temperatures risen since pre-industrial times?', options: ['0.1°C', '1.1°C', '5°C', '10°C'], correct: 1 },
+      { question: 'What percentage of climate scientists agree on human-caused climate change?', options: ['50%', '75%', 'Over 97%', '100%'], correct: 2 },
+      { question: 'What does the passage say is the main barrier to solving climate change?', options: ['Lack of technology', 'Political and economic will', 'Not enough scientists', 'Too many people'], correct: 1 },
     ],
   },
 ]
@@ -281,21 +375,34 @@ export default function DictionaryApp() {
       </div>
 
       {tab === 'read' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {PASSAGES.map(p => (
-            <button key={p.id} onClick={() => setSelectedPassage(p)} style={{
-              padding: '14px 16px', borderRadius: '10px', textAlign: 'left', cursor: 'pointer',
-              border: `2px solid ${completedPassages.has(p.id) ? '#bbf7d0' : '#e5e7eb'}`,
-              background: completedPassages.has(p.id) ? '#f0fdf4' : 'white',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <div style={{ fontWeight: 600, fontSize: '14px' }}>{p.title}</div>
-                {completedPassages.has(p.id) && <span>✅</span>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {(['K-2', '3-5', '6-8', '9-12'] as GradeLevel[]).map(level => {
+            const levelPassages = PASSAGES.filter(p => p.level === level)
+            const completedCount = levelPassages.filter(p => completedPassages.has(p.id)).length
+            return (
+              <div key={level}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#374151' }}>{GRADE_LABELS[level]}</div>
+                  <div style={{ fontSize: '11px', color: '#9ca3af' }}>{completedCount}/{levelPassages.length} complete</div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {levelPassages.map(p => (
+                    <button key={p.id} onClick={() => setSelectedPassage(p)} style={{
+                      padding: '12px 14px', borderRadius: '8px', textAlign: 'left', cursor: 'pointer',
+                      border: `2px solid ${completedPassages.has(p.id) ? '#bbf7d0' : '#e5e7eb'}`,
+                      background: completedPassages.has(p.id) ? '#f0fdf4' : 'white',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div style={{ fontWeight: 600, fontSize: '13px' }}>{p.title}</div>
+                        {completedPassages.has(p.id) && <span style={{ fontSize: '12px' }}>✅</span>}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>{p.vocabulary.length} words · {p.questions.length} questions</div>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div style={{ fontSize: '11px', color: '#3b82f6', fontWeight: 500, marginTop: '2px' }}>{p.level}</div>
-              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>{p.vocabulary.length} words · {p.questions.length} questions</div>
-            </button>
-          ))}
+            )
+          })}
         </div>
       )}
 
