@@ -9,7 +9,7 @@
 - [x] Set up PostgreSQL on Railway, configure `DATABASE_URL`
 - [x] Create SQLAlchemy async models for all 6 tables (users, conversations, messages, app_registrations, tool_invocations, oauth_tokens)
 - [x] Set up Alembic with async engine, create initial migration
-- [ ] Seed demo accounts via Alembic migration (admin, teacher1, student1, student2)
+- [x] Seed demo accounts via Alembic migration (admin, teacher1, student1, student2)
 - [ ] Configure `.env` with all required environment variables
 - [ ] Set up Vite dev proxy to FastAPI backend
 
