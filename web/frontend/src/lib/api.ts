@@ -67,6 +67,7 @@ export const api = {
     onToken: (token: string) => void,
     onDone: (messageId: string) => void,
     onError: (error: string) => void,
+    onIntent?: (appId: string) => void,
   ) => {
     const res = await fetch(`${BASE}/conversations/${conversationId}/messages`, {
       method: 'POST',
@@ -84,6 +85,7 @@ export const api = {
 
     const decoder = new TextDecoder()
     let buffer = ''
+    let currentEvent = ''
 
     while (true) {
       const { done, value } = await reader.read()
@@ -95,19 +97,26 @@ export const api = {
 
       for (const line of lines) {
         if (line.startsWith('event: ')) {
+          currentEvent = line.slice(7).trim()
           continue
         }
         if (line.startsWith('data: ')) {
           const data = line.slice(6)
           try {
             const parsed = JSON.parse(data)
-            // Determine event type from the data content
-            if ('content' in parsed) onToken(parsed.content)
-            else if ('message_id' in parsed) onDone(parsed.message_id)
-            else if ('detail' in parsed) onError(parsed.detail)
+            if (currentEvent === 'intent' && 'app_id' in parsed) {
+              onIntent?.(parsed.app_id)
+            } else if ('content' in parsed) {
+              onToken(parsed.content)
+            } else if ('message_id' in parsed) {
+              onDone(parsed.message_id)
+            } else if ('detail' in parsed) {
+              onError(parsed.detail)
+            }
           } catch {
             // ignore parse errors
           }
+          currentEvent = ''
         }
       }
     }

@@ -42,12 +42,12 @@
 - [x] Validate tool invocation params against registered Pydantic schemas
 
 ### 5. Iframe Embedding & PostMessage Protocol [MVP6, MVP7]
-- [ ] Build iframe container component with `sandbox="allow-scripts"` (no `allow-same-origin`)
-- [ ] Implement postMessage protocol: PlatformMessage and AppMessage interfaces
-- [ ] Add origin validation and correlation ID tracking on both sides
-- [ ] Implement `ui_ready` handshake — iframe signals ready before first tool invocation
-- [ ] Build 30s timeout handler with error banner display
-- [ ] Implement dual error display: inline banner + chatbot acknowledgment
+- [x] Build iframe container component with `sandbox="allow-scripts"` (no `allow-same-origin`)
+- [x] Implement postMessage protocol: PlatformMessage and AppMessage interfaces
+- [x] Add origin validation and correlation ID tracking on both sides
+- [x] Implement `ui_ready` handshake — iframe signals ready before first tool invocation
+- [x] Build 30s timeout handler with error banner display
+- [x] Implement dual error display: inline banner + chatbot acknowledgment
 
 ### 6. Chess App — Full Integration [MVP8, MVP9, MVP10]
 - [ ] Build Chess app in `apps/chess/` with chess.js + react-chessboard
