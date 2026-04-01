@@ -302,6 +302,23 @@ export default function ChatPage() {
                 }
               }}
               onStateUpdate={(data) => {
+                // Flag inappropriate searches to teacher dashboard
+                if (data.type === 'inappropriate_search') {
+                  fetch('/api/teacher/flags', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      app_id: activeApp.appId,
+                      word: data.word,
+                      reason: data.reason || 'blocked_word',
+                      conversation_id: activeConversation,
+                      timestamp: data.timestamp,
+                    }),
+                  }).catch(() => {})
+                  return // Don't save flagged searches as app state
+                }
+
                 // Save app state for any app on every meaningful state change
                 if (activeConversation) {
                   const statePayload = JSON.stringify({ appId: activeApp.appId, state: data })

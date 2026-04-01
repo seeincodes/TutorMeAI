@@ -2,9 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.dependencies import require_role
+from pydantic import BaseModel
+
+from app.auth.dependencies import get_current_user, require_role
 from app.database import get_db
-from app.models import AppRegistration, Conversation, Message, OAuthToken, ToolInvocation, User
+from app.models import AppRegistration, ContentFlag, Conversation, Message, OAuthToken, ToolInvocation, User
+
+
+class CreateFlagRequest(BaseModel):
+    app_id: str
+    word: str
+    reason: str = "blocked_word"
+    conversation_id: str | None = None
+    timestamp: str | None = None
 
 router = APIRouter(prefix="/api/teacher", tags=["teacher"])
 
@@ -66,6 +76,65 @@ async def dashboard(
         ],
         "oauth_connections": oauth_connections,
     }
+
+
+@router.post("/flags")
+async def create_flag(
+    body: CreateFlagRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    flag = ContentFlag(
+        user_id=current_user.id,
+        app_id=body.app_id,
+        flagged_content=body.word,
+        reason=body.reason,
+        conversation_id=body.conversation_id,
+    )
+    db.add(flag)
+    await db.commit()
+    return {"status": "flagged"}
+
+
+@router.get("/flags")
+async def get_flags(
+    current_user: User = Depends(require_role("teacher", "admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(ContentFlag, User.username, User.display_name)
+        .join(User, ContentFlag.user_id == User.id)
+        .order_by(ContentFlag.created_at.desc())
+        .limit(100)
+    )
+    flags = []
+    for flag, username, display_name in result.all():
+        flags.append({
+            "id": str(flag.id),
+            "username": username,
+            "display_name": display_name,
+            "app_id": flag.app_id,
+            "flagged_content": flag.flagged_content,
+            "reason": flag.reason,
+            "reviewed": flag.reviewed,
+            "created_at": flag.created_at.isoformat() if flag.created_at else None,
+        })
+    return flags
+
+
+@router.patch("/flags/{flag_id}/review")
+async def review_flag(
+    flag_id: str,
+    current_user: User = Depends(require_role("teacher", "admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(ContentFlag).where(ContentFlag.id == flag_id))
+    flag = result.scalar_one_or_none()
+    if not flag:
+        raise HTTPException(status_code=404, detail="Flag not found")
+    flag.reviewed = True
+    await db.commit()
+    return {"status": "reviewed"}
 
 
 @router.patch("/apps/{app_id}")

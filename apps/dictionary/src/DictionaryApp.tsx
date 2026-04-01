@@ -124,6 +124,12 @@ export default function DictionaryApp() {
     if (isWordBlocked(word)) {
       setError("That word isn't available in the student dictionary. Try a different word!")
       setLoading(false)
+      // Flag to platform for teacher review
+      sendToPlatform('state_update', '', {
+        type: 'inappropriate_search',
+        word,
+        timestamp: new Date().toISOString(),
+      })
       return
     }
 
@@ -137,6 +143,12 @@ export default function DictionaryApp() {
       if (!isDefinitionSafe(entry)) {
         setError("That word's definition isn't appropriate for students. Try a different word!")
         setLoading(false)
+        sendToPlatform('state_update', '', {
+          type: 'inappropriate_search',
+          word,
+          reason: 'definition_flagged',
+          timestamp: new Date().toISOString(),
+        })
         return
       }
 
