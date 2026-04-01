@@ -4,7 +4,7 @@
 
 ### 1. Project Setup & Infrastructure [MVP1, MVP3]
 - [x] Fork/clone base repo, set up pnpm workspace for `web/frontend/`, `web/backend/`, `apps/`
-- [ ] Initialize React Vite app in `web/frontend/` with TypeScript + Tailwind
+- [x] Initialize React Vite app in `web/frontend/` with TypeScript + Tailwind
 - [ ] Initialize FastAPI project in `web/backend/` with uvicorn
 - [ ] Set up PostgreSQL on Railway, configure `DATABASE_URL`
 - [ ] Create SQLAlchemy async models for all 6 tables (users, conversations, messages, app_registrations, tool_invocations, oauth_tokens)
