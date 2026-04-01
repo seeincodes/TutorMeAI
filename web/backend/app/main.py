@@ -1,6 +1,10 @@
+import os
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -45,3 +49,26 @@ app.include_router(teacher_router)
 @limiter.limit("60/minute")
 async def health_check(request: Request):
     return {"status": "ok"}
+
+
+# Serve frontend static files in production
+# In dev, Vite proxy handles this; in production, FastAPI serves the built files
+_frontend_dist = Path(__file__).parent.parent.parent.parent / "web" / "frontend" / "dist"
+_apps_dirs = {
+    "chess": Path(__file__).parent.parent.parent.parent / "apps" / "chess" / "dist",
+    "calculator": Path(__file__).parent.parent.parent.parent / "apps" / "calculator" / "dist",
+    "dictionary": Path(__file__).parent.parent.parent.parent / "apps" / "dictionary" / "dist",
+    "weather": Path(__file__).parent.parent.parent.parent / "apps" / "weather" / "dist",
+    "flashcards": Path(__file__).parent.parent.parent.parent / "apps" / "flashcards" / "dist",
+    "life-skills": Path(__file__).parent.parent.parent.parent / "apps" / "life-skills" / "dist",
+    "spotify": Path(__file__).parent.parent.parent.parent / "apps" / "spotify" / "dist",
+}
+
+# Mount app static dirs
+for app_name, app_dir in _apps_dirs.items():
+    if app_dir.exists():
+        app.mount(f"/apps/{app_name}", StaticFiles(directory=str(app_dir), html=True), name=f"app-{app_name}")
+
+# Mount frontend last (catch-all for SPA routing)
+if _frontend_dist.exists():
+    app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="frontend")

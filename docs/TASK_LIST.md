@@ -113,12 +113,12 @@
 ## Phase 3: Final
 
 ### 13. Deployment & Production Readiness
-- [ ] Deploy FastAPI backend to Railway
-- [ ] Deploy frontend (Vite build) — static hosting or Railway
-- [ ] Configure production environment variables on Railway
-- [ ] Verify CORS configuration for production domains
-- [ ] Test full flow on deployed environment with seed accounts
-- [ ] Verify SSE streaming works through Railway's proxy
+- [x] Deploy FastAPI backend to Railway
+- [x] Deploy frontend (Vite build) — static hosting or Railway
+- [x] Configure production environment variables on Railway
+- [x] Verify CORS configuration for production domains
+- [x] Test full flow on deployed environment with seed accounts
+- [x] Verify SSE streaming works through Railway's proxy
 
 ### 14. Documentation & Submission
 - [ ] Record demo video showing full user journey (login → chess → multi-app → Spotify OAuth)
