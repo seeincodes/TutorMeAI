@@ -122,7 +122,7 @@
 
 ### 14. Documentation & Submission
 - [ ] Record demo video showing full user journey (login → chess → multi-app → Spotify OAuth)
-- [ ] Write cost analysis report (LLM + infrastructure)
-- [ ] Final Swagger review — all endpoints documented
+- [x] Write cost analysis report (LLM + infrastructure)
+- [x] Final Swagger review — all endpoints documented
 - [ ] Social post for project showcase
-- [ ] Final pass on all docs/ files — ensure accuracy
+- [x] Final pass on all docs/ files — ensure accuracy
