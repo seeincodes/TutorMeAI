@@ -39,7 +39,7 @@
 - [x] Create `/api/apps` endpoints (list, register, update status)
 - [x] Implement dynamic tool schema injection in LangGraph — two-phase routing (intent → schema load)
 - [x] Seed Chess app registration with tool schemas (new_game, make_move, get_board_state, analyze_position)
-- [ ] Validate tool invocation params against registered Pydantic schemas
+- [x] Validate tool invocation params against registered Pydantic schemas
 
 ### 5. Iframe Embedding & PostMessage Protocol [MVP6, MVP7]
 - [ ] Build iframe container component with `sandbox="allow-scripts"` (no `allow-same-origin`)
