@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '@/lib/AuthContext'
 import { api, type Conversation, type Message } from '@/lib/api'
+import AppIframe from '@/components/AppIframe'
 
 export default function ChatPage() {
   const { user, logout } = useAuth()
@@ -10,6 +11,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
+  const [activeApp, setActiveApp] = useState<{ appId: string; iframeUrl: string } | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = useCallback(() => {
@@ -95,6 +97,10 @@ export default function ChatPage() {
           },
         ])
       },
+      (appId) => {
+        // Intent detected — show iframe for this app
+        setActiveApp({ appId, iframeUrl: `/apps/${appId}/index.html` })
+      },
     )
   }
 
@@ -145,7 +151,7 @@ export default function ChatPage() {
       </aside>
 
       {/* Chat area */}
-      <main className="flex flex-1 flex-col">
+      <main className={`flex flex-1 flex-col ${activeApp ? 'max-w-[50%]' : ''}`}>
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
           <div className="mx-auto max-w-2xl space-y-4">
@@ -205,6 +211,55 @@ export default function ChatPage() {
           </form>
         </div>
       </main>
+
+      {/* App panel */}
+      {activeApp && (
+        <aside className="flex w-1/2 flex-col border-l border-gray-200 bg-white">
+          <div className="flex items-center justify-between border-b border-gray-200 px-3 py-2">
+            <span className="text-sm font-medium text-gray-700">{activeApp.appId}</span>
+            <button
+              onClick={() => setActiveApp(null)}
+              className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+              aria-label="Close app"
+            >
+              &times;
+            </button>
+          </div>
+          <div className="flex-1">
+            <AppIframe
+              appId={activeApp.appId}
+              iframeUrl={activeApp.iframeUrl}
+              onError={(err) => {
+                // Dual error display: chatbot acknowledges the error
+                setMessages(prev => [
+                  ...prev,
+                  {
+                    id: crypto.randomUUID(),
+                    role: 'assistant',
+                    content: `The ${activeApp.appId} app encountered an error: ${err}. You can try again or ask me something else.`,
+                    tool_call_id: null,
+                    tool_name: null,
+                    created_at: new Date().toISOString(),
+                  },
+                ])
+              }}
+              onCompletion={(data) => {
+                setMessages(prev => [
+                  ...prev,
+                  {
+                    id: crypto.randomUUID(),
+                    role: 'assistant',
+                    content: `The ${activeApp.appId} app has completed. ${data.summary || ''}`,
+                    tool_call_id: null,
+                    tool_name: null,
+                    created_at: new Date().toISOString(),
+                  },
+                ])
+              }}
+            />
+          </div>
+        </aside>
+      )}
     </div>
   )
 }
