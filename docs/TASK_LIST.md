@@ -67,13 +67,13 @@
 - [x] Test multi-app routing: verify LLM correctly routes ambiguous queries
 
 ### 8. Spotify OAuth Integration [MVP12]
-- [ ] Implement OAuth2 PKCE flow in FastAPI (`/api/oauth/spotify/authorize`, `/api/oauth/spotify/callback`)
-- [ ] Build popup window OAuth flow (not iframe — sandbox blocks redirects)
-- [ ] Encrypt and store tokens in PostgreSQL oauth_tokens table
-- [ ] Implement auto-refresh on token expiry
-- [ ] Build Spotify app (`apps/spotify/`) with embedded player
-- [ ] Implement tools: `create_playlist`, `search_tracks`, `get_playlists`
-- [ ] Add kid-friendly OAuth consent language in chatbot prompts
+- [x] Implement OAuth2 PKCE flow in FastAPI (`/api/oauth/spotify/authorize`, `/api/oauth/spotify/callback`)
+- [x] Build popup window OAuth flow (not iframe — sandbox blocks redirects)
+- [x] Encrypt and store tokens in PostgreSQL oauth_tokens table
+- [x] Implement auto-refresh on token expiry
+- [x] Build Spotify app (`apps/spotify/`) with embedded player
+- [x] Implement tools: `create_playlist`, `search_tracks`, `get_playlists`
+- [x] Add kid-friendly OAuth consent language in chatbot prompts
 
 ### 9. K-12 Safety & Error Handling [MVP13, MVP14]
 - [ ] Verify no PII in any postMessage payload (inspect tool invocation params)
