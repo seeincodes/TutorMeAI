@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  frontend:
+    name: Frontend (typecheck + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: web/frontend/pnpm-lock.yaml
+
+      - run: pnpm install
+      - run: pnpm run build
+
+  apps:
+    name: Apps (build)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [calculator, chess, dictionary, flashcards, life-skills, spotify, weather]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build app
+        run: cd apps/${{ matrix.app }} && pnpm install && pnpm run build
+
+  backend:
+    name: Backend (lint + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web/backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -e ".[dev]"
+
+      - run: python -m py_compile app/main.py
+      - run: python -m py_compile app/config.py
+      - run: python -m py_compile app/database.py
+      - run: python -m py_compile app/models.py
+
+      # Uncomment when tests are added:
+      # - run: pytest -v

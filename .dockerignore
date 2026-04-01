@@ -1,0 +1,13 @@
+.git
+.env
+node_modules
+src/
+release/
+docs/
+.github/
+__pycache__
+*.pyc
+.pytest_cache
+.vscode
+.idea
+patches/
