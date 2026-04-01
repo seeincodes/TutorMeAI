@@ -50,12 +50,12 @@
 - [x] Implement dual error display: inline banner + chatbot acknowledgment
 
 ### 6. Chess App — Full Integration [MVP8, MVP9, MVP10]
-- [ ] Build Chess app in `apps/chess/` with chess.js + react-chessboard
-- [ ] Implement tools: `new_game`, `make_move`, `get_board_state`, `analyze_position`
-- [ ] Wire postMessage communication: platform sends moves, app validates and returns FEN
-- [ ] Implement LLM mid-game analysis — chatbot reads FEN and suggests moves
-- [ ] Implement hybrid completion signaling: checkmate → `completion` message + polling fallback
-- [ ] Verify context retention: chatbot references game results in follow-up turns
+- [x] Build Chess app in `apps/chess/` with chess.js + react-chessboard
+- [x] Implement tools: `new_game`, `make_move`, `get_board_state`, `analyze_position`
+- [x] Wire postMessage communication: platform sends moves, app validates and returns FEN
+- [x] Implement LLM mid-game analysis — chatbot reads FEN and suggests moves
+- [x] Implement hybrid completion signaling: checkmate → `completion` message + polling fallback
+- [x] Verify context retention: chatbot references game results in follow-up turns
 
 ### 7. Multiple Apps [MVP11]
 - [ ] Build Math Calculator app (`apps/calculator/`) — math.js, single tool `calculate`
