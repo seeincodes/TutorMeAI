@@ -7,7 +7,7 @@
 - [x] Initialize React Vite app in `web/frontend/` with TypeScript + Tailwind
 - [x] Initialize FastAPI project in `web/backend/` with uvicorn
 - [x] Set up PostgreSQL on Railway, configure `DATABASE_URL`
-- [ ] Create SQLAlchemy async models for all 6 tables (users, conversations, messages, app_registrations, tool_invocations, oauth_tokens)
+- [x] Create SQLAlchemy async models for all 6 tables (users, conversations, messages, app_registrations, tool_invocations, oauth_tokens)
 - [ ] Set up Alembic with async engine, create initial migration
 - [ ] Seed demo accounts via Alembic migration (admin, teacher1, student1, student2)
 - [ ] Configure `.env` with all required environment variables
