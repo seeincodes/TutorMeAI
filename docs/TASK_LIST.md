@@ -21,7 +21,7 @@
 - [x] Create `/api/auth/logout` endpoint — invalidate session
 - [x] Implement role-based middleware (student/teacher/admin)
 - [x] Create `/api/users/me` endpoint
-- [ ] Build login page with seed credential hints
+- [x] Build login page with seed credential hints
 - [ ] Implement frontend auth state management and route guards
 
 ### 3. Chat Interface & Streaming [MVP2, MVP3]
