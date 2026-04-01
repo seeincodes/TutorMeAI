@@ -36,7 +36,7 @@
 
 ### 4. App Registration & Tool Schema System [MVP4, MVP5]
 - [x] Create Pydantic models for app registration and tool schemas
-- [ ] Create `/api/apps` endpoints (list, register, update status)
+- [x] Create `/api/apps` endpoints (list, register, update status)
 - [ ] Implement dynamic tool schema injection in LangGraph — two-phase routing (intent → schema load)
 - [ ] Seed Chess app registration with tool schemas (new_game, make_move, get_board_state, analyze_position)
 - [ ] Validate tool invocation params against registered Pydantic schemas
