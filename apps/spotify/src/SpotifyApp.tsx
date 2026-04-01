@@ -24,6 +24,14 @@ export default function SpotifyApp() {
       const { correlationId, tool, params } = msg
 
       switch (tool) {
+        case 'restore_state': {
+          const saved = params as Record<string, unknown>
+          if (saved.playlist) setPlaylist(saved.playlist as Playlist)
+          if (saved.message) setMessage(saved.message as string)
+          sendToPlatform('tool_result', correlationId, { tool: 'restore_state', message: 'Restored' })
+          break
+        }
+
         case 'create_playlist': {
           const name = (params?.name as string) || 'My Study Playlist'
           const description = (params?.description as string) || 'Created by ChatBridge'

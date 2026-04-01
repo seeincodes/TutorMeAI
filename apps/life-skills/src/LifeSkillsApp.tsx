@@ -12,12 +12,25 @@ export default function LifeSkillsApp() {
   useEffect(() => { sendToPlatform('ui_ready', '', {}) }, [])
 
   useEffect(() => {
+    if (lastResult) {
+      sendToPlatform('state_update', '', { type: 'life_skills_result', lastResult })
+    }
+  }, [lastResult])
+
+  useEffect(() => {
     function handleMessage(event: MessageEvent) {
       const msg = event.data
       if (!msg || msg.type !== 'tool_invoke') return
       const { correlationId, tool, params } = msg
 
       switch (tool) {
+        case 'restore_state': {
+          const saved = params as Record<string, unknown>
+          if (saved.lastResult) setLastResult(saved.lastResult as ToolResult)
+          sendToPlatform('tool_result', correlationId, { tool: 'restore_state', message: 'Restored' })
+          break
+        }
+
         case 'plan_budget': {
           const income = Number(params?.income) || 0
           const expenses = (params?.expenses as Record<string, number>) || {}

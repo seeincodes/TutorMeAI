@@ -29,6 +29,24 @@ export default function FlashcardsApp() {
       const { correlationId, tool, params } = msg
 
       switch (tool) {
+        case 'restore_state': {
+          const saved = params as Record<string, unknown>
+          if (saved.cards) {
+            const state: QuizState = {
+              cards: saved.cards as Card[],
+              currentIndex: (saved.currentIndex as number) || 0,
+              score: (saved.score as number) || 0,
+              total: (saved.total as number) || (saved.cards as Card[]).length,
+              finished: (saved.finished as boolean) || false,
+            }
+            setQuiz(state)
+            setShowAnswer(false)
+            setUserAnswer('')
+          }
+          sendToPlatform('tool_result', correlationId, { tool: 'restore_state', message: 'Quiz restored' })
+          break
+        }
+
         case 'start_quiz': {
           const cards = (params?.cards as Card[]) || [
             { question: 'What is the capital of France?', answer: 'Paris' },
@@ -115,9 +133,18 @@ export default function FlashcardsApp() {
     const finished = nextIndex >= quiz.cards.length
     setShowAnswer(true)
     setTimeout(() => {
-      setQuiz({ ...quiz, score: newScore, currentIndex: nextIndex, finished })
+      const newQuiz = { ...quiz, score: newScore, currentIndex: nextIndex, finished }
+      setQuiz(newQuiz)
       setShowAnswer(false)
       setUserAnswer('')
+      sendToPlatform('state_update', '', {
+        type: 'quiz_progress',
+        cards: newQuiz.cards,
+        currentIndex: newQuiz.currentIndex,
+        score: newQuiz.score,
+        total: newQuiz.total,
+        finished: newQuiz.finished,
+      })
     }, 1500)
   }
 

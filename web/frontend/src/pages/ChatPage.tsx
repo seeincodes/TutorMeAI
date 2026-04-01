@@ -301,8 +301,8 @@ export default function ChatPage() {
                 }
               }}
               onStateUpdate={(data) => {
-                // Save app state to a system message for persistence
-                if (activeConversation && data.fen) {
+                // Save app state for any app on every meaningful state change
+                if (activeConversation) {
                   const statePayload = JSON.stringify({ appId: activeApp.appId, state: data })
                   fetch(`/api/conversations/${activeConversation}/app-state`, {
                     method: 'POST',
