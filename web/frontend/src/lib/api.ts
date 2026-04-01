@@ -63,6 +63,12 @@ export const api = {
   getMessages: (conversationId: string) =>
     request<Message[]>(`/conversations/${conversationId}/messages`),
 
+  submitToolResult: (conversationId: string, correlationId: string, result: Record<string, unknown>) =>
+    request<{ status: string }>(`/conversations/${conversationId}/tool-result`, {
+      method: 'POST',
+      body: JSON.stringify({ correlation_id: correlationId, result }),
+    }),
+
   sendMessage: async (
     conversationId: string,
     content: string,
@@ -70,6 +76,7 @@ export const api = {
     onDone: (messageId: string) => void,
     onError: (error: string) => void,
     onIntent?: (appId: string) => void,
+    onToolCall?: (appId: string, tool: string, params: Record<string, unknown>, correlationId: string) => void,
   ) => {
     const res = await fetch(`${BASE}/conversations/${conversationId}/messages`, {
       method: 'POST',
@@ -108,6 +115,8 @@ export const api = {
             const parsed = JSON.parse(data)
             if (currentEvent === 'intent' && 'app_id' in parsed) {
               onIntent?.(parsed.app_id)
+            } else if (currentEvent === 'tool_call' && 'tool' in parsed) {
+              onToolCall?.(parsed.app_id, parsed.tool, parsed.params, parsed.correlation_id)
             } else if ('content' in parsed) {
               onToken(parsed.content)
             } else if ('message_id' in parsed) {

@@ -171,6 +171,104 @@ const PASSAGES: Passage[] = [
       { question: 'What does the passage say is the main barrier to solving climate change?', options: ['Lack of technology', 'Political and economic will', 'Not enough scientists', 'Too many people'], correct: 1 },
     ],
   },
+
+  // --- Additional K-2 passages ---
+  {
+    id: 'k4', title: 'The Rainy Day Parade', level: 'K-2',
+    text: `It was raining on the day of the school parade. All the children looked sad. "We can't march outside!" said Lily.\n\nMs. Chen smiled. "Who says a parade needs to be outside?" She opened the gym doors wide. "Everyone line up!"\n\nThe children grabbed their instruments. Drums went boom boom. Bells went ding ding. They marched in big circles around the gym, laughing and singing.\n\nParents watched from the bleachers and clapped along. "This is the best parade ever!" Lily shouted. Sometimes the best plans are the ones you didn't expect.`,
+    vocabulary: [
+      { word: 'parade', definition: 'A group of people walking together to celebrate something' },
+      { word: 'instruments', definition: 'Things you use to make music, like drums and bells' },
+      { word: 'bleachers', definition: 'Rows of seats where people sit to watch events' },
+    ],
+    questions: [
+      { question: 'Why were the children sad?', options: ['School was canceled', 'It was raining', 'They lost a game', 'The teacher was sick'], correct: 1 },
+      { question: 'Where did they have the parade?', options: ['Outside', 'In the classroom', 'In the gym', 'In the cafeteria'], correct: 2 },
+      { question: 'What is the lesson?', options: ['Rain is bad', 'Unexpected plans can be great', 'Parades are loud', 'Gyms are big'], correct: 1 },
+    ],
+  },
+  {
+    id: 'k5', title: 'The Sharing Tree', level: 'K-2',
+    text: `In the park, there was a big apple tree. Every fall, it grew more apples than anyone could count.\n\nOne day, a squirrel took an apple. A bird pecked at another. Two children filled a basket. An old man picked one for his lunch.\n\n"Don't you mind sharing?" a little girl asked the tree.\n\nThe wind blew through the branches, and more apples fell to the ground. It was like the tree was saying, "I have plenty for everyone."\n\nThe girl picked up an apple and gave it to her friend. Sharing felt just as good as receiving.`,
+    vocabulary: [
+      { word: 'pecked', definition: 'When a bird uses its beak to pick at food' },
+      { word: 'branches', definition: 'The parts of a tree that grow out from the trunk and hold leaves' },
+      { word: 'receiving', definition: 'Getting something from someone else' },
+    ],
+    questions: [
+      { question: 'What kind of tree was in the park?', options: ['Oak', 'Pine', 'Apple', 'Maple'], correct: 2 },
+      { question: 'Who took apples from the tree?', options: ['Only children', 'Only animals', 'Animals, children, and a man', 'Nobody'], correct: 2 },
+      { question: 'What did the girl learn?', options: ['Trees are tall', 'Sharing feels good', 'Apples are tasty', 'Parks are fun'], correct: 1 },
+    ],
+  },
+
+  // --- Additional 3-5 passages ---
+  {
+    id: 'm3', title: 'How Animals Survive Winter', level: '3-5',
+    text: `When winter arrives, animals face a big challenge: how to survive the cold with less food available.\n\nSome animals hibernate. Bears eat as much as possible in autumn, building up fat reserves. Then they find a den and sleep for months, their heart rate dropping from 40 beats per minute to just 8. Their body lives off the stored fat until spring.\n\nOther animals migrate. Monarch butterflies travel up to 3,000 miles from Canada to Mexico, following the same routes their great-grandparents used. Arctic terns fly even farther — from the Arctic to Antarctica and back, a round trip of 44,000 miles.\n\nSome animals adapt in place. Snowshoe hares turn white to blend in with snow. Red foxes grow thicker fur. Beavers store branches underwater near their lodges to eat all winter.`,
+    vocabulary: [
+      { word: 'hibernate', definition: 'To spend the winter in a deep sleep-like state to save energy' },
+      { word: 'migrate', definition: 'To move from one place to another, usually with the seasons' },
+      { word: 'adapt', definition: 'To change in order to survive in different conditions' },
+      { word: 'reserves', definition: 'Extra supplies stored for future use' },
+    ],
+    questions: [
+      { question: 'What happens to a bear\'s heart rate during hibernation?', options: ['It speeds up', 'It drops from 40 to 8 beats/min', 'It stays the same', 'It stops'], correct: 1 },
+      { question: 'How far do monarch butterflies travel?', options: ['100 miles', '500 miles', 'Up to 3,000 miles', '44,000 miles'], correct: 2 },
+      { question: 'How do snowshoe hares adapt to winter?', options: ['They hibernate', 'They migrate south', 'They turn white', 'They grow bigger'], correct: 2 },
+    ],
+  },
+  {
+    id: 'm4', title: 'The Solar System', level: '3-5',
+    text: `Our solar system is like a giant neighborhood in space, with the Sun at the center.\n\nThe four inner planets — Mercury, Venus, Earth, and Mars — are small and rocky. Mercury is closest to the Sun and has no atmosphere, so it swings between scorching 800°F days and freezing -290°F nights. Venus is the hottest planet because thick clouds trap heat. Earth is the only planet with liquid water on its surface. Mars, the "Red Planet," has the tallest volcano in the solar system: Olympus Mons, nearly three times the height of Mount Everest.\n\nBeyond Mars lies the asteroid belt, and then the four outer planets: Jupiter, Saturn, Uranus, and Neptune. These are gas giants made mostly of hydrogen and helium. Jupiter alone is so massive that 1,300 Earths could fit inside it. Saturn's famous rings are made of ice and rock particles ranging from tiny grains to chunks the size of houses.`,
+    vocabulary: [
+      { word: 'atmosphere', definition: 'The layer of gases surrounding a planet' },
+      { word: 'scorching', definition: 'Extremely hot, enough to burn' },
+      { word: 'massive', definition: 'Extremely large and heavy' },
+      { word: 'particles', definition: 'Very small pieces or bits of something' },
+    ],
+    questions: [
+      { question: 'Which planet is the hottest?', options: ['Mercury', 'Venus', 'Mars', 'Jupiter'], correct: 1 },
+      { question: 'What is special about Olympus Mons?', options: ['Deepest ocean', 'Tallest volcano in the solar system', 'Largest crater', 'Longest river'], correct: 1 },
+      { question: 'What are Saturn\'s rings made of?', options: ['Gas', 'Dust only', 'Ice and rock particles', 'Liquid metal'], correct: 2 },
+    ],
+  },
+
+  // --- Additional 6-8 passage ---
+  {
+    id: 'h3', title: 'The Science of Sleep', level: '6-8',
+    text: `Sleep is not simply "turning off" — it is one of the most active and essential processes in the human body.\n\nDuring sleep, the brain cycles through stages. Light sleep transitions into deep sleep, where the body repairs muscles, strengthens the immune system, and releases growth hormones. Then comes REM (Rapid Eye Movement) sleep, when the brain is nearly as active as when awake. This is when most dreaming occurs, and it plays a crucial role in memory consolidation — the process of converting short-term memories into long-term ones.\n\nTeenagers need 8-10 hours of sleep, but biological changes during puberty shift their internal clock later. This means teens naturally feel alert later at night and sleepy later in the morning — which conflicts directly with early school start times.\n\nResearch consistently shows that sleep deprivation impairs concentration, emotional regulation, and academic performance as much as mild intoxication. Some school districts have responded by pushing start times later, with measurable improvements in grades and mental health.`,
+    vocabulary: [
+      { word: 'consolidation', definition: 'The process of making something stronger or more solid; combining memories for long-term storage' },
+      { word: 'deprivation', definition: 'The state of not having enough of something essential' },
+      { word: 'puberty', definition: 'The period when a child\'s body changes into an adult body' },
+      { word: 'impairs', definition: 'Weakens or damages the quality or strength of something' },
+    ],
+    questions: [
+      { question: 'When does memory consolidation mainly occur?', options: ['Light sleep', 'Deep sleep', 'REM sleep', 'While awake'], correct: 2 },
+      { question: 'Why do teenagers tend to stay up late?', options: ['They watch TV', 'Biological clock shifts during puberty', 'They drink caffeine', 'They are not tired'], correct: 1 },
+      { question: 'What has helped improve teen grades and mental health?', options: ['More homework', 'Later school start times', 'Less sleep', 'Shorter classes'], correct: 1 },
+    ],
+  },
+
+  // --- Additional 9-12 passage ---
+  {
+    id: 's3', title: 'The Psychology of Decision Making', level: '9-12',
+    text: `Humans are not the rational decision-makers economists once assumed. Decades of research in behavioral psychology have revealed systematic biases that predictably distort our choices.\n\nAnchoring bias causes people to rely too heavily on the first piece of information they encounter. In negotiations, the first number mentioned disproportionately influences the final outcome, even when it is arbitrary. Confirmation bias leads people to seek out information that supports their existing beliefs while ignoring contradictory evidence.\n\nPerhaps most consequential is loss aversion, identified by Daniel Kahneman and Amos Tversky. Their research demonstrated that people feel the pain of losing something approximately twice as strongly as the pleasure of gaining something of equal value. This explains why investors hold losing stocks too long and sell winners too early.\n\nThe availability heuristic causes people to overestimate the probability of events that are easily recalled — typically dramatic or recent events. After seeing news coverage of a plane crash, people significantly overestimate the danger of flying relative to driving, despite driving being statistically far more dangerous.\n\nUnderstanding these biases does not eliminate them, but awareness provides a framework for better decision-making: slowing down, seeking disconfirming evidence, and quantifying risks rather than relying on intuition.`,
+    vocabulary: [
+      { word: 'systematic', definition: 'Following a fixed plan or pattern; happening regularly and predictably' },
+      { word: 'arbitrary', definition: 'Based on random choice rather than reason or logic' },
+      { word: 'heuristic', definition: 'A mental shortcut that allows quick judgments, sometimes at the cost of accuracy' },
+      { word: 'disconfirming', definition: 'Evidence that proves something is not true; contradicting a belief' },
+      { word: 'aversion', definition: 'A strong feeling of dislike or unwillingness toward something' },
+    ],
+    questions: [
+      { question: 'What is anchoring bias?', options: ['Preferring familiar options', 'Over-relying on the first information encountered', 'Fearing losses more than valuing gains', 'Overestimating dramatic events'], correct: 1 },
+      { question: 'According to Kahneman and Tversky, how much stronger is the pain of loss vs gain?', options: ['Equal', 'About twice as strong', 'Three times', 'Ten times'], correct: 1 },
+      { question: 'What does the passage suggest helps counter cognitive biases?', options: ['Trust your gut', 'Avoid all decisions', 'Seek disconfirming evidence and slow down', 'Only use logic'], correct: 2 },
+      { question: 'Why do people overestimate the danger of flying?', options: ['Planes are dangerous', 'Availability heuristic from dramatic news', 'Confirmation bias', 'Loss aversion'], correct: 1 },
+    ],
+  },
 ]
 
 type Tab = 'read' | 'words' | 'quiz'

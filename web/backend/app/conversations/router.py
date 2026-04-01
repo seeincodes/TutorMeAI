@@ -1,11 +1,12 @@
 import json
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
 
-from app.agent.graph import classify_intent, stream_chat_response
+from app.agent.graph import classify_intent, stream_chat_with_tools, submit_tool_result
 from app.auth.dependencies import get_current_user
 from app.conversations.schemas import (
     ConversationResponse,
@@ -99,7 +100,7 @@ async def send_message(
         .where(Message.conversation_id == conversation.id)
         .order_by(Message.created_at.asc())
     )
-    history = [{"role": m.role, "content": m.content} for m in result.scalars().all()]
+    history = [{"role": m.role, "content": m.content, "tool_call_id": m.tool_call_id} for m in result.scalars().all()]
 
     # Load available apps
     apps_result = await db.execute(
@@ -115,13 +116,13 @@ async def send_message(
         for a in apps_result.scalars().all()
     ]
 
-    # Phase 1: Intent classification (lightweight, determines which app's schemas to inject)
+    # Phase 1: Intent classification
     target_app_id = None
     if available_apps:
         try:
             target_app_id = await classify_intent(body.content, available_apps)
         except Exception:
-            pass  # Fall back to no-app mode if classification fails
+            pass
 
     async def event_generator():
         full_response = ""
@@ -131,15 +132,32 @@ async def send_message(
             yield {"event": "intent", "data": json.dumps({"app_id": target_app_id})}
 
         try:
-            # Phase 2: Stream with only the target app's schemas injected
-            async for token in stream_chat_response(history, available_apps, target_app_id):
-                full_response += token
-                yield {"event": "token", "data": json.dumps({"content": token})}
+            async for event in stream_chat_with_tools(history, available_apps, target_app_id):
+                if event["type"] == "token":
+                    full_response += event["content"]
+                    yield {"event": "token", "data": json.dumps({"content": event["content"]})}
+
+                elif event["type"] == "tool_call":
+                    # Send tool call to frontend for iframe execution
+                    yield {"event": "tool_call", "data": json.dumps({
+                        "app_id": event["app_id"],
+                        "tool": event["tool"],
+                        "params": event["params"],
+                        "correlation_id": event["correlation_id"],
+                    })}
+
+                elif event["type"] == "done":
+                    full_response = event.get("full_content", full_response)
+
+                elif event["type"] == "error":
+                    yield {"event": "error", "data": json.dumps({"detail": event["detail"]})}
+                    return
+
         except Exception as e:
             yield {"event": "error", "data": json.dumps({"detail": str(e)})}
             return
 
-        # Save assistant message with a fresh session (original session may be stale in SSE generator)
+        # Save assistant message
         try:
             session_factory = get_session_factory()
             async with session_factory() as save_db:
@@ -152,10 +170,26 @@ async def send_message(
                 await save_db.commit()
                 await save_db.refresh(assistant_msg)
                 yield {"event": "done", "data": json.dumps({"message_id": str(assistant_msg.id)})}
-        except Exception as e:
+        except Exception:
             yield {"event": "done", "data": json.dumps({"message_id": ""})}
 
     return EventSourceResponse(event_generator())
+
+
+class ToolResultRequest(BaseModel):
+    correlation_id: str
+    result: dict
+
+
+@router.post("/{conversation_id}/tool-result")
+async def post_tool_result(
+    conversation_id: str,
+    body: ToolResultRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Frontend POSTs tool results here after iframe execution. Unblocks the SSE generator."""
+    submit_tool_result(body.correlation_id, body.result)
+    return {"status": "received"}
 
 
 @router.post("/{conversation_id}/app-state")
@@ -167,7 +201,6 @@ async def save_app_state(
 ):
     conversation = await _get_user_conversation(conversation_id, current_user, db)
 
-    # Upsert: find existing app_state system message or create new one
     result = await db.execute(
         select(Message).where(
             Message.conversation_id == conversation.id,
