@@ -40,7 +40,8 @@ async def test_me_authenticated(student1_client):
 async def test_logout(student1_client):
     resp = await student1_client.post("/api/auth/logout")
     assert resp.status_code == 200
-    # After logout, /me should fail
+    # After logout, /me should fail (clear cookies to simulate browser behavior)
+    student1_client.cookies.clear()
     resp2 = await student1_client.get("/api/users/me")
     assert resp2.status_code == 401
 

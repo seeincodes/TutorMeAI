@@ -16,7 +16,7 @@ from app.conversations.router import router as conversations_router
 from app.oauth.router import router as oauth_router
 from app.teacher.router import router as teacher_router
 
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_remote_address, enabled=not os.environ.get("TESTING"))
 
 app = FastAPI(
     title="ChatBridge API",
@@ -29,24 +29,39 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
-@app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    response = await call_next(request)
-    # Strict CSP for iframe apps — prevents access to parent cookies/storage
-    if request.url.path.startswith("/apps/"):
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-            "connect-src 'self' https://api.dictionaryapi.dev https://wttr.in; "
-            "img-src 'self' data:; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-            "style-src 'self' 'unsafe-inline'; "
-            # Block access to parent document cookies from iframe scripts
-            "sandbox allow-scripts allow-same-origin allow-forms;"
-        )
-    # Prevent clickjacking on main app
-    if not request.url.path.startswith("/apps/"):
-        response.headers["X-Frame-Options"] = "DENY"
-    return response
+class SecurityHeadersMiddleware:
+    """Pure ASGI middleware for security headers. Avoids BaseHTTPMiddleware task conflicts."""
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        path = scope.get("path", "")
+
+        async def send_with_headers(message):
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                if path.startswith("/apps/"):
+                    csp = (
+                        b"default-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                        b"connect-src 'self' https://api.dictionaryapi.dev https://wttr.in; "
+                        b"img-src 'self' data:; "
+                        b"script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                        b"style-src 'self' 'unsafe-inline'"
+                    )
+                    headers.append((b"content-security-policy", csp))
+                else:
+                    headers.append((b"x-frame-options", b"DENY"))
+                message = {**message, "headers": headers}
+            await send(message)
+
+        await self.app(scope, receive, send_with_headers)
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
