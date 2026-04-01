@@ -142,6 +142,36 @@ export default function ChatPage() {
         const params = levels ? `?levels=${encodeURIComponent(levels)}&grade=${grade}` : ''
         setActiveApp({ appId, iframeUrl: `/apps/${appId}/index.html${params}` })
       },
+      async (appId, tool, params, correlationId) => {
+        // LLM made a real tool call — dispatch to iframe and return result
+        if (!appIframeRef.current) {
+          // If iframe not open yet, open it first
+          const levels = user?.allowed_levels?.join(',') || ''
+          const grade = user?.grade || ''
+          const qp = levels ? `?levels=${encodeURIComponent(levels)}&grade=${grade}` : ''
+          setActiveApp({ appId, iframeUrl: `/apps/${appId}/index.html${qp}` })
+          // Wait a bit for iframe to load
+          await new Promise(r => setTimeout(r, 2000))
+        }
+
+        try {
+          let result: Record<string, unknown> = { status: 'no_iframe' }
+          if (appIframeRef.current) {
+            result = await appIframeRef.current.invokeTool(tool, params)
+          }
+          // POST result back to backend to unblock the LLM
+          if (activeConversation) {
+            await api.submitToolResult(activeConversation, correlationId, result)
+          }
+        } catch (err) {
+          // Send error result so LLM can handle gracefully
+          if (activeConversation) {
+            await api.submitToolResult(activeConversation, correlationId, {
+              error: err instanceof Error ? err.message : 'Tool execution failed',
+            })
+          }
+        }
+      },
     )
   }
 
