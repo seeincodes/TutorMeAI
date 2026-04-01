@@ -15,7 +15,7 @@
 
 ### 2. Authentication System [MVP1]
 - [x] Implement bcrypt password hashing with passlib
-- [ ] Implement JWT generation (access + refresh tokens) with python-jose
+- [x] Implement JWT generation (access + refresh tokens) with python-jose
 - [ ] Create `/api/auth/login` endpoint — bcrypt verify → JWT in httpOnly/Secure/SameSite=Strict cookie
 - [ ] Create `/api/auth/refresh` endpoint — server-side refresh token rotation
 - [ ] Create `/api/auth/logout` endpoint — invalidate session
