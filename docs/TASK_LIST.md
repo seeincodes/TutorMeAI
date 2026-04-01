@@ -29,9 +29,9 @@
 - [x] Create `/api/conversations/{id}/messages` POST endpoint with SSE streaming
 - [x] Set up LangGraph agent with GPT-4.1-mini and K-12 system prompt
 - [x] Implement SSE streaming from LangGraph to frontend via sse-starlette
-- [ ] Build chat UI: message list, input box, streaming token display
-- [ ] Build conversation sidebar with history list
-- [ ] Implement `aria-live="polite"` on streaming messages
+- [x] Build chat UI: message list, input box, streaming token display
+- [x] Build conversation sidebar with history list
+- [x] Implement `aria-live="polite"` on streaming messages
 - [ ] Configure LangSmith tracing
 
 ### 4. App Registration & Tool Schema System [MVP4, MVP5]
