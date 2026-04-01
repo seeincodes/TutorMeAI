@@ -265,6 +265,7 @@ export default function ChatPage() {
           </div>
           <div className="flex-1">
             <AppIframe
+              key={activeApp.appId}
               ref={appIframeRef}
               appId={activeApp.appId}
               iframeUrl={activeApp.iframeUrl}
