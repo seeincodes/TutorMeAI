@@ -3,36 +3,36 @@
 ## Phase 1: MVP
 
 ### 1. Project Setup & Infrastructure [MVP1, MVP3]
-- [ ] Fork/clone base repo, set up pnpm workspace for `web/frontend/`, `web/backend/`, `apps/`
-- [ ] Initialize React Vite app in `web/frontend/` with TypeScript + Tailwind
-- [ ] Initialize FastAPI project in `web/backend/` with uvicorn
-- [ ] Set up PostgreSQL on Railway, configure `DATABASE_URL`
-- [ ] Create SQLAlchemy async models for all 6 tables (users, conversations, messages, app_registrations, tool_invocations, oauth_tokens)
-- [ ] Set up Alembic with async engine, create initial migration
-- [ ] Seed demo accounts via Alembic migration (admin, teacher1, student1, student2)
-- [ ] Configure `.env` with all required environment variables
-- [ ] Set up Vite dev proxy to FastAPI backend
+- [x] Fork/clone base repo, set up pnpm workspace for `web/frontend/`, `web/backend/`, `apps/`
+- [x] Initialize React Vite app in `web/frontend/` with TypeScript + Tailwind
+- [x] Initialize FastAPI project in `web/backend/` with uvicorn
+- [x] Set up PostgreSQL on Railway, configure `DATABASE_URL`
+- [x] Create SQLAlchemy async models for all 6 tables (users, conversations, messages, app_registrations, tool_invocations, oauth_tokens)
+- [x] Set up Alembic with async engine, create initial migration
+- [x] Seed demo accounts via Alembic migration (admin, teacher1, student1, student2)
+- [x] Configure `.env` with all required environment variables
+- [x] Set up Vite dev proxy to FastAPI backend
 
 ### 2. Authentication System [MVP1]
-- [ ] Implement bcrypt password hashing with passlib
-- [ ] Implement JWT generation (access + refresh tokens) with python-jose
-- [ ] Create `/api/auth/login` endpoint — bcrypt verify → JWT in httpOnly/Secure/SameSite=Strict cookie
-- [ ] Create `/api/auth/refresh` endpoint — server-side refresh token rotation
-- [ ] Create `/api/auth/logout` endpoint — invalidate session
-- [ ] Implement role-based middleware (student/teacher/admin)
-- [ ] Create `/api/users/me` endpoint
-- [ ] Build login page with seed credential hints
-- [ ] Implement frontend auth state management and route guards
+- [x] Implement bcrypt password hashing with passlib
+- [x] Implement JWT generation (access + refresh tokens) with python-jose
+- [x] Create `/api/auth/login` endpoint — bcrypt verify → JWT in httpOnly/Secure/SameSite=Strict cookie
+- [x] Create `/api/auth/refresh` endpoint — server-side refresh token rotation
+- [x] Create `/api/auth/logout` endpoint — invalidate session
+- [x] Implement role-based middleware (student/teacher/admin)
+- [x] Create `/api/users/me` endpoint
+- [x] Build login page with seed credential hints
+- [x] Implement frontend auth state management and route guards
 
 ### 3. Chat Interface & Streaming [MVP2, MVP3]
-- [ ] Create `/api/conversations` CRUD endpoints with per-user data isolation
-- [ ] Create `/api/conversations/{id}/messages` POST endpoint with SSE streaming
-- [ ] Set up LangGraph agent with GPT-4.1-mini and K-12 system prompt
-- [ ] Implement SSE streaming from LangGraph to frontend via sse-starlette
-- [ ] Build chat UI: message list, input box, streaming token display
-- [ ] Build conversation sidebar with history list
-- [ ] Implement `aria-live="polite"` on streaming messages
-- [ ] Configure LangSmith tracing
+- [x] Create `/api/conversations` CRUD endpoints with per-user data isolation
+- [x] Create `/api/conversations/{id}/messages` POST endpoint with SSE streaming
+- [x] Set up LangGraph agent with GPT-4.1-mini and K-12 system prompt
+- [x] Implement SSE streaming from LangGraph to frontend via sse-starlette
+- [x] Build chat UI: message list, input box, streaming token display
+- [x] Build conversation sidebar with history list
+- [x] Implement `aria-live="polite"` on streaming messages
+- [x] Configure LangSmith tracing
 
 ### 4. App Registration & Tool Schema System [MVP4, MVP5]
 - [ ] Create Pydantic models for app registration and tool schemas

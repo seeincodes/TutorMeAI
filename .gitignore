@@ -188,3 +188,9 @@ storybook-static
 .gstack/
 .worktrees/
 .claude/worktrees/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
