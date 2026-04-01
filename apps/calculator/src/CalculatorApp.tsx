@@ -5,7 +5,7 @@ function sendToPlatform(type: string, correlationId: string, data: Record<string
   window.parent.postMessage({ type, correlationId, data }, '*')
 }
 
-type Grade = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
+type Grade = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 
 interface Lesson {
   id: string
@@ -149,11 +149,76 @@ const CURRICULUM: Record<Grade, Lesson[]> = {
       { question: 'y = 4x - 2, when x=2, y = ?', answer: 6 },
     ]},
   ],
+  9: [
+    { id: '9a', title: 'Quadratic Equations', description: 'Solve ax² + bx + c = 0', problems: [
+      { question: 'x² = 25, x = ? (positive)', answer: 5, hint: 'What number squared is 25?' },
+      { question: 'x² - 9 = 0, x = ? (positive)', answer: 3 },
+      { question: 'x² + 2x = 0 has roots 0 and ?', answer: -2, hint: 'Factor: x(x+2) = 0' },
+      { question: '(x-3)(x+1) = 0, larger root = ?', answer: 3 },
+      { question: 'x² - 5x + 6 = 0, larger root = ?', answer: 3, hint: 'Factor into (x-?)(x-?)' },
+    ]},
+    { id: '9b', title: 'Inequalities & Absolute Value', description: 'Working with ranges', problems: [
+      { question: '|−7| = ?', answer: 7, hint: 'Absolute value = distance from zero' },
+      { question: '|3 − 10| = ?', answer: 7 },
+      { question: 'If 2x > 10, minimum integer x = ?', answer: 6 },
+      { question: 'If x + 3 ≤ 8, maximum integer x = ?', answer: 5 },
+      { question: '|x| = 4, positive x = ?', answer: 4 },
+    ]},
+  ],
+  10: [
+    { id: '10a', title: 'Geometry Foundations', description: 'Area, perimeter, angles', problems: [
+      { question: 'Area of triangle: base=10, height=6 → ?', answer: 30, hint: '½ × base × height' },
+      { question: 'Circle area: radius=5, answer in terms of units (round π×25)', answer: 79, hint: 'π × r² ≈ 3.14 × 25' },
+      { question: 'Sum of angles in a triangle = ?°', answer: 180 },
+      { question: 'Perimeter of rectangle: length=8, width=3 → ?', answer: 22 },
+      { question: 'Hypotenuse: legs 3 and 4 → ?', answer: 5, hint: 'Pythagorean theorem: 3² + 4² = ?' },
+    ]},
+    { id: '10b', title: 'Functions', description: 'Domain, range, composition', problems: [
+      { question: 'f(x) = x² − 1, f(4) = ?', answer: 15 },
+      { question: 'f(x) = 2x + 3, f(−1) = ?', answer: 1 },
+      { question: 'f(x) = x², g(x) = x+1, f(g(2)) = ?', answer: 9, hint: 'g(2)=3, then f(3)=9' },
+      { question: 'f(x) = 3x, f(f(2)) = ?', answer: 18 },
+      { question: 'f(x) = x² + x, f(3) = ?', answer: 12 },
+    ]},
+  ],
+  11: [
+    { id: '11a', title: 'Trigonometry Basics', description: 'SOH-CAH-TOA', problems: [
+      { question: 'sin(30°) = ? (as decimal)', answer: 0.5, hint: 'sin(30°) = 1/2' },
+      { question: 'cos(60°) = ? (as decimal)', answer: 0.5 },
+      { question: 'tan(45°) = ?', answer: 1, hint: 'sin(45°)/cos(45°) = 1' },
+      { question: 'sin²(30°) + cos²(30°) = ?', answer: 1, hint: 'Pythagorean identity!' },
+      { question: 'Right triangle: opposite=5, hypotenuse=10, sin(θ) = ? (decimal)', answer: 0.5 },
+    ]},
+    { id: '11b', title: 'Logarithms', description: 'Inverse of exponents', problems: [
+      { question: 'log₁₀(100) = ?', answer: 2, hint: '10 to what power = 100?' },
+      { question: 'log₂(8) = ?', answer: 3, hint: '2³ = 8' },
+      { question: 'log₁₀(1000) = ?', answer: 3 },
+      { question: 'ln(e) = ?', answer: 1, hint: 'Natural log of e is always 1' },
+      { question: 'log₂(16) = ?', answer: 4 },
+    ]},
+  ],
+  12: [
+    { id: '12a', title: 'Limits & Derivatives', description: 'Introduction to calculus', problems: [
+      { question: 'lim(x→2) of x² = ?', answer: 4, hint: 'Just plug in x=2' },
+      { question: 'Derivative of x² = 2x. At x=3, value = ?', answer: 6 },
+      { question: 'Derivative of 5x = ?', answer: 5, hint: 'Derivative of ax = a' },
+      { question: 'Derivative of x³ at x=2 → 3x² → ?', answer: 12 },
+      { question: 'lim(x→0) of (x²+3) = ?', answer: 3 },
+    ]},
+    { id: '12b', title: 'Sequences & Series', description: 'Patterns in numbers', problems: [
+      { question: 'Arithmetic: 2, 5, 8, 11, next = ?', answer: 14, hint: 'Common difference = 3' },
+      { question: 'Geometric: 3, 6, 12, 24, next = ?', answer: 48, hint: 'Common ratio = 2' },
+      { question: 'Sum of first 5 terms: 1+2+3+4+5 = ?', answer: 15 },
+      { question: 'Arithmetic: first=1, d=3, 10th term = ?', answer: 28, hint: 'a + (n-1)d = 1 + 9×3' },
+      { question: 'Geometric: first=2, r=3, 4th term = ?', answer: 54, hint: 'a × r^(n-1) = 2 × 3³' },
+    ]},
+  ],
 }
 
 const GRADE_LABELS: Record<Grade, string> = {
   1: '1st Grade', 2: '2nd Grade', 3: '3rd Grade', 4: '4th Grade',
   5: '5th Grade', 6: '6th Grade', 7: '7th Grade', 8: '8th Grade',
+  9: '9th Grade', 10: '10th Grade', 11: '11th Grade', 12: '12th Grade',
 }
 
 interface Progress {
@@ -263,7 +328,7 @@ export default function CalculatorApp() {
       const gradeNum = parseInt(activeLesson.id[0]) as Grade
       const gradeLessons = CURRICULUM[gradeNum]
       const allComplete = gradeLessons.every(l => newCompleted.has(l.id))
-      const newUnlocked = (allComplete && gradeNum < 8 ? Math.max(progress.unlockedGrade, gradeNum + 1) : progress.unlockedGrade) as Grade
+      const newUnlocked = (allComplete && gradeNum < 12 ? Math.max(progress.unlockedGrade, gradeNum + 1) : progress.unlockedGrade) as Grade
 
       const newStars = { ...progress.stars, [activeLesson.id]: Math.max(stars, progress.stars[activeLesson.id] || 0) }
       const newProgress = { completedLessons: newCompleted, unlockedGrade: newUnlocked, stars: newStars }
@@ -411,7 +476,7 @@ export default function CalculatorApp() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-        {([1,2,3,4,5,6,7,8] as Grade[]).map(grade => {
+        {([1,2,3,4,5,6,7,8,9,10,11,12] as Grade[]).map(grade => {
           const lessons = CURRICULUM[grade]
           const completed = lessons.filter(l => progress.completedLessons.has(l.id)).length
           const isLocked = grade > progress.unlockedGrade
