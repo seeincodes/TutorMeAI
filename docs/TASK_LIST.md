@@ -22,7 +22,7 @@
 - [x] Implement role-based middleware (student/teacher/admin)
 - [x] Create `/api/users/me` endpoint
 - [x] Build login page with seed credential hints
-- [ ] Implement frontend auth state management and route guards
+- [x] Implement frontend auth state management and route guards
 
 ### 3. Chat Interface & Streaming [MVP2, MVP3]
 - [ ] Create `/api/conversations` CRUD endpoints with per-user data isolation

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { api } from '@/lib/api'
+import { useAuth } from '@/lib/AuthContext'
 
 const DEMO_ACCOUNTS = [
   { username: 'admin', password: 'admin123', role: 'Admin' },
@@ -8,11 +8,8 @@ const DEMO_ACCOUNTS = [
   { username: 'student2', password: 'student234', role: 'Student' },
 ]
 
-interface LoginPageProps {
-  onLogin: () => void
-}
-
-export default function LoginPage({ onLogin }: LoginPageProps) {
+export default function LoginPage() {
+  const { login } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -23,8 +20,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setError('')
     setLoading(true)
     try {
-      await api.login(username, password)
-      onLogin()
+      await login(username, password)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
