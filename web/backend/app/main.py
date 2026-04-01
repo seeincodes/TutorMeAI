@@ -28,6 +28,26 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    # Strict CSP for iframe apps — prevents access to parent cookies/storage
+    if request.url.path.startswith("/apps/"):
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "connect-src 'self' https://api.dictionaryapi.dev https://wttr.in; "
+            "img-src 'self' data:; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline'; "
+            # Block access to parent document cookies from iframe scripts
+            "sandbox allow-scripts allow-same-origin allow-forms;"
+        )
+    # Prevent clickjacking on main app
+    if not request.url.path.startswith("/apps/"):
+        response.headers["X-Frame-Options"] = "DENY"
+    return response
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
