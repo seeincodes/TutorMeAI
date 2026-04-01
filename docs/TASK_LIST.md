@@ -95,14 +95,14 @@
 - [x] Show OAuth connection status for students
 
 ### 11. Accessibility & UX
-- [ ] Semantic HTML throughout (`<main>`, `<form>`, `<button>`)
-- [ ] ARIA labels on all chat elements and interactive controls
-- [ ] Keyboard navigation: Tab/Enter/Escape for all workflows
-- [ ] WCAG AA color contrast verification
-- [ ] Visible focus rings on all interactive elements
-- [ ] Iframe `title` attributes for screen readers
-- [ ] Session timeout with "Not you? Sign out" UI
-- [ ] No client-side storage of sensitive data
+- [x] Semantic HTML throughout (`<main>`, `<form>`, `<button>`)
+- [x] ARIA labels on all chat elements and interactive controls
+- [x] Keyboard navigation: Tab/Enter/Escape for all workflows
+- [x] WCAG AA color contrast verification
+- [x] Visible focus rings on all interactive elements
+- [x] Iframe `title` attributes for screen readers
+- [x] Session timeout with "Not you? Sign out" UI
+- [x] No client-side storage of sensitive data
 
 ### 12. API Documentation & Observability
 - [ ] Enable FastAPI auto-generated Swagger/OpenAPI docs

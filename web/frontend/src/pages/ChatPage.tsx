@@ -18,6 +18,17 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
+  // Keyboard: Escape closes app panel
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && activeApp) {
+        setActiveApp(null)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [activeApp])
+
   useEffect(() => { scrollToBottom() }, [messages, streamingContent, scrollToBottom])
 
   useEffect(() => {
@@ -138,13 +149,13 @@ export default function ChatPage() {
         <div className="border-t border-gray-200 px-4 py-3">
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-500">
-              {user?.username} ({user?.role})
+              {user?.display_name || user?.username}
             </span>
             <button
               onClick={logout}
-              className="text-xs text-gray-400 hover:text-gray-600"
+              className="rounded px-2 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50"
             >
-              Sign out
+              Not you? Sign out
             </button>
           </div>
         </div>

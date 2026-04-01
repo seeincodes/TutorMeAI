@@ -30,6 +30,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchUser()
   }, [fetchUser])
 
+  // Session timeout: periodically check auth status and auto-logout on expiry
+  useEffect(() => {
+    if (!user) return
+    const interval = setInterval(async () => {
+      try {
+        await api.me()
+      } catch {
+        // Token expired — try refresh, then logout if that fails
+        try {
+          await api.refresh()
+        } catch {
+          setUser(null)
+        }
+      }
+    }, 5 * 60 * 1000) // Check every 5 minutes
+    return () => clearInterval(interval)
+  }, [user])
+
   const login = async (username: string, password: string) => {
     const { user } = await api.login(username, password)
     setUser(user)
