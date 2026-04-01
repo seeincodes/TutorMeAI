@@ -9,9 +9,11 @@ function sendToPlatform(type: string, correlationId: string, data: Record<string
 
 export default function ChessApp() {
   const [game, setGame] = useState<Chess>(new Chess())
-  const [gameStarted, setGameStarted] = useState(false)
+  const [gameStarted, setGameStarted] = useState(true)
   const [playerColor, setPlayerColor] = useState<'white' | 'black'>('white')
-  const [status, setStatus] = useState('Waiting for game to start...')
+  const [status, setStatus] = useState('White to move — click a piece, then click where to move')
+  const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
+  const [highlightSquares, setHighlightSquares] = useState<Record<string, React.CSSProperties>>({})
 
   const updateStatus = useCallback((g: Chess) => {
     if (g.isCheckmate()) {
@@ -44,6 +46,31 @@ export default function ChessApp() {
       const { correlationId, tool, params } = msg
 
       switch (tool) {
+        case 'restore_state': {
+          const fen = params?.fen as string
+          if (!fen) {
+            sendToPlatform('error', correlationId, { message: 'No FEN provided' })
+            return
+          }
+          try {
+            const restored = new Chess(fen)
+            setGame(restored)
+            setGameStarted(true)
+            setPlayerColor((params?.playerColor as 'white' | 'black') || 'white')
+            updateStatus(restored)
+            setSelectedSquare(null)
+            setHighlightSquares({})
+            sendToPlatform('tool_result', correlationId, {
+              tool: 'restore_state',
+              fen: restored.fen(),
+              message: 'Game restored.',
+            })
+          } catch {
+            sendToPlatform('error', correlationId, { message: 'Invalid FEN string' })
+          }
+          break
+        }
+
         case 'new_game': {
           const color = params?.color || 'white'
           const newGame = new Chess()
@@ -159,34 +186,21 @@ export default function ChessApp() {
     sendToPlatform('ui_ready', '', {})
   }, [])
 
-  // Handle player moves on the board
-  function onDrop(sourceSquare: string, targetSquare: string): boolean {
-    if (!gameStarted) return false
-
-    // Only allow moves on player's turn
-    const isPlayerTurn =
-      (playerColor === 'white' && game.turn() === 'w') ||
-      (playerColor === 'black' && game.turn() === 'b')
-    if (!isPlayerTurn) return false
-
+  function makeMove(from: string, to: string) {
     try {
       const gameCopy = new Chess(game.fen())
-      const move = gameCopy.move({
-        from: sourceSquare as Square,
-        to: targetSquare as Square,
-        promotion: 'q',
-      })
+      const move = gameCopy.move({ from: from as Square, to: to as Square, promotion: 'q' })
       if (!move) return false
 
       setGame(gameCopy)
+      setSelectedSquare(null)
+      setHighlightSquares({})
       const isOver = updateStatus(gameCopy)
 
-      // Notify platform of the player's move via state_update
       sendToPlatform('state_update', '', {
         type: 'player_move',
         move: move.san,
-        from: sourceSquare,
-        to: targetSquare,
+        from, to,
         fen: gameCopy.fen(),
         turn: gameCopy.turn() === 'w' ? 'white' : 'black',
         isGameOver: isOver,
@@ -198,10 +212,47 @@ export default function ChessApp() {
           fen: gameCopy.fen(),
         })
       }
-
       return true
     } catch {
       return false
+    }
+  }
+
+  function onDrop(sourceSquare: string, targetSquare: string): boolean {
+    if (!gameStarted) return false
+    return makeMove(sourceSquare, targetSquare)
+  }
+
+  function onSquareClick(square: string) {
+    if (!gameStarted) return
+
+    // If a piece is already selected, try to move there
+    if (selectedSquare) {
+      const moved = makeMove(selectedSquare, square)
+      if (moved) return
+      // If move failed, check if clicking own piece to reselect
+    }
+
+    // Select the clicked square if it has a piece of the current player's color
+    const piece = game.get(square as Square)
+    if (piece && ((piece.color === 'w' && playerColor === 'white') || (piece.color === 'b' && playerColor === 'black'))) {
+      setSelectedSquare(square)
+      // Highlight legal moves
+      const moves = game.moves({ square: square as Square, verbose: true })
+      const highlights: Record<string, React.CSSProperties> = {
+        [square]: { background: 'rgba(255, 255, 0, 0.4)' },
+      }
+      moves.forEach(m => {
+        highlights[m.to] = {
+          background: m.captured
+            ? 'radial-gradient(circle, rgba(255,0,0,0.3) 60%, transparent 60%)'
+            : 'radial-gradient(circle, rgba(0,0,0,0.15) 25%, transparent 25%)',
+        }
+      })
+      setHighlightSquares(highlights)
+    } else {
+      setSelectedSquare(null)
+      setHighlightSquares({})
     }
   }
 
@@ -213,15 +264,12 @@ export default function ChessApp() {
       <Chessboard
         position={game.fen()}
         onPieceDrop={onDrop}
+        onSquareClick={onSquareClick}
         boardOrientation={playerColor}
         boardWidth={360}
         arePiecesDraggable={gameStarted}
+        customSquareStyles={highlightSquares}
       />
-      {!gameStarted && (
-        <div style={{ fontSize: '12px', color: '#6b7280' }}>
-          Ask the chatbot to start a chess game
-        </div>
-      )}
     </div>
   )
 }

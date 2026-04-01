@@ -13,7 +13,7 @@ from app.conversations.schemas import (
     MessageResponse,
     SendMessageRequest,
 )
-from app.database import get_db
+from app.database import get_db, get_session_factory
 from app.models import AppRegistration, Conversation, Message, User
 
 router = APIRouter(prefix="/api/conversations", tags=["conversations"])
@@ -139,18 +139,59 @@ async def send_message(
             yield {"event": "error", "data": json.dumps({"detail": str(e)})}
             return
 
-        # Save assistant message
-        async with db.begin():
-            assistant_msg = Message(
-                conversation_id=conversation.id,
-                role="assistant",
-                content=full_response,
-            )
-            db.add(assistant_msg)
-
-        yield {"event": "done", "data": json.dumps({"message_id": str(assistant_msg.id)})}
+        # Save assistant message with a fresh session (original session may be stale in SSE generator)
+        try:
+            session_factory = get_session_factory()
+            async with session_factory() as save_db:
+                assistant_msg = Message(
+                    conversation_id=conversation.id,
+                    role="assistant",
+                    content=full_response,
+                )
+                save_db.add(assistant_msg)
+                await save_db.commit()
+                await save_db.refresh(assistant_msg)
+                yield {"event": "done", "data": json.dumps({"message_id": str(assistant_msg.id)})}
+        except Exception as e:
+            yield {"event": "done", "data": json.dumps({"message_id": ""})}
 
     return EventSourceResponse(event_generator())
+
+
+@router.post("/{conversation_id}/app-state")
+async def save_app_state(
+    conversation_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    body: dict = {},
+):
+    conversation = await _get_user_conversation(conversation_id, current_user, db)
+
+    # Upsert: find existing app_state system message or create new one
+    result = await db.execute(
+        select(Message).where(
+            Message.conversation_id == conversation.id,
+            Message.role == "system",
+            Message.tool_name == "app_state",
+        )
+    )
+    existing = result.scalar_one_or_none()
+
+    state_json = json.dumps(body)
+
+    if existing:
+        existing.content = state_json
+    else:
+        msg = Message(
+            conversation_id=conversation.id,
+            role="system",
+            content=state_json,
+            tool_name="app_state",
+        )
+        db.add(msg)
+
+    await db.commit()
+    return {"status": "saved"}
 
 
 async def _get_user_conversation(

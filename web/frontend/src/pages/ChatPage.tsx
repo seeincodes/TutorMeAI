@@ -1,7 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '@/lib/AuthContext'
 import { api, type Conversation, type Message } from '@/lib/api'
-import AppIframe from '@/components/AppIframe'
+import AppIframe, { type AppIframeHandle } from '@/components/AppIframe'
+
+interface AppState {
+  appId: string
+  iframeUrl: string
+  state?: Record<string, unknown> // e.g. { fen: "...", playerColor: "white" }
+}
 
 export default function ChatPage() {
   const { user, logout } = useAuth()
@@ -11,8 +17,10 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
-  const [activeApp, setActiveApp] = useState<{ appId: string; iframeUrl: string } | null>(null)
+  const [activeApp, setActiveApp] = useState<AppState | null>(null)
+  const [pendingRestore, setPendingRestore] = useState<Record<string, unknown> | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const appIframeRef = useRef<AppIframeHandle>(null)
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -37,9 +45,28 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (activeConversation) {
-      api.getMessages(activeConversation).then(setMessages).catch(() => {})
+      api.getMessages(activeConversation).then(msgs => {
+        setMessages(msgs)
+
+        // Check for saved app state in system messages (most recent one wins)
+        const appStateMsg = [...msgs].reverse().find(
+          m => m.role === 'system' && m.tool_name === 'app_state'
+        )
+        if (appStateMsg?.content) {
+          try {
+            const saved = JSON.parse(appStateMsg.content) as { appId: string; state: Record<string, unknown> }
+            setActiveApp({ appId: saved.appId, iframeUrl: `/apps/${saved.appId}/index.html`, state: saved.state })
+            setPendingRestore(saved.state)
+          } catch { /* ignore */ }
+        } else {
+          setActiveApp(null)
+          setPendingRestore(null)
+        }
+      }).catch(() => {})
     } else {
       setMessages([])
+      setActiveApp(null)
+      setPendingRestore(null)
     }
   }, [activeConversation])
 
@@ -166,7 +193,7 @@ export default function ChatPage() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
           <div className="mx-auto max-w-2xl space-y-4">
-            {messages.map(msg => (
+            {messages.filter(m => m.role !== 'system').map(msg => (
               <div
                 key={msg.id}
                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -238,10 +265,10 @@ export default function ChatPage() {
           </div>
           <div className="flex-1">
             <AppIframe
+              ref={appIframeRef}
               appId={activeApp.appId}
               iframeUrl={activeApp.iframeUrl}
               onError={(err) => {
-                // Dual error display: chatbot acknowledges the error
                 setMessages(prev => [
                   ...prev,
                   {
@@ -266,6 +293,24 @@ export default function ChatPage() {
                     created_at: new Date().toISOString(),
                   },
                 ])
+              }}
+              onReady={() => {
+                if (pendingRestore && appIframeRef.current) {
+                  appIframeRef.current.invokeTool('restore_state', pendingRestore).catch(() => {})
+                  setPendingRestore(null)
+                }
+              }}
+              onStateUpdate={(data) => {
+                // Save app state to a system message for persistence
+                if (activeConversation && data.fen) {
+                  const statePayload = JSON.stringify({ appId: activeApp.appId, state: data })
+                  fetch(`/api/conversations/${activeConversation}/app-state`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: statePayload,
+                  }).catch(() => {})
+                }
               }}
             />
           </div>

@@ -6,5 +6,13 @@ export default defineConfig({
   base: '/apps/chess/',
   build: {
     outDir: 'dist',
+    modulePreload: false,
+    rollupOptions: {
+      output: {
+        format: 'iife',
+        entryFileNames: 'assets/[name].js',
+        inlineDynamicImports: true,
+      },
+    },
   },
 })

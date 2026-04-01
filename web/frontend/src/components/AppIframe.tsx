@@ -22,6 +22,7 @@ interface AppIframeProps {
   onCompletion?: (data: Record<string, unknown>) => void
   onError?: (error: string) => void
   onStateUpdate?: (data: Record<string, unknown>) => void
+  onReady?: () => void
 }
 
 export type AppIframeHandle = {
@@ -35,6 +36,7 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
   onCompletion,
   onError,
   onStateUpdate,
+  onReady,
 }, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [ready, setReady] = useState(false)
@@ -57,6 +59,7 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
           setReady(true)
           setLoading(false)
           setError(null)
+          onReady?.()
           break
 
         case 'tool_result': {
@@ -93,7 +96,7 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
           break
       }
     },
-    [onToolResult, onCompletion, onError, onStateUpdate],
+    [onToolResult, onCompletion, onError, onStateUpdate, onReady],
   )
 
   useEffect(() => {
