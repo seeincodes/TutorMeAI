@@ -176,7 +176,15 @@ const PASSAGES: Passage[] = [
 type Tab = 'read' | 'words' | 'quiz'
 interface SavedWord { word: string; definition: string; fromPassage?: string }
 
+function getAllowedLevels(): GradeLevel[] {
+  const params = new URLSearchParams(window.location.search)
+  const levels = params.get('levels')
+  if (!levels) return ['K-2', '3-5', '6-8', '9-12'] // show all if no restriction
+  return levels.split(',').filter(l => ['K-2', '3-5', '6-8', '9-12'].includes(l)) as GradeLevel[]
+}
+
 export default function DictionaryApp() {
+  const allowedLevels = getAllowedLevels()
   const [tab, setTab] = useState<Tab>('read')
   const [selectedPassage, setSelectedPassage] = useState<Passage | null>(null)
   const [savedWords, setSavedWords] = useState<SavedWord[]>([])
@@ -376,7 +384,7 @@ export default function DictionaryApp() {
 
       {tab === 'read' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {(['K-2', '3-5', '6-8', '9-12'] as GradeLevel[]).map(level => {
+          {allowedLevels.map(level => {
             const levelPassages = PASSAGES.filter(p => p.level === level)
             const completedCount = levelPassages.filter(p => completedPassages.has(p.id)).length
             return (

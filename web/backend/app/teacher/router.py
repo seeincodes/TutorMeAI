@@ -16,6 +16,11 @@ class CreateFlagRequest(BaseModel):
     conversation_id: str | None = None
     timestamp: str | None = None
 
+
+class UpdateStudentRequest(BaseModel):
+    grade: int | None = None
+    allowed_levels: list[str] | None = None
+
 router = APIRouter(prefix="/api/teacher", tags=["teacher"])
 
 
@@ -60,6 +65,8 @@ async def dashboard(
                 "id": str(s.id),
                 "username": s.username,
                 "display_name": s.display_name,
+                "grade": s.grade,
+                "allowed_levels": s.allowed_levels or [],
                 "conversations": conv_map.get(s.id, 0),
             }
             for s in students
@@ -135,6 +142,25 @@ async def review_flag(
     flag.reviewed = True
     await db.commit()
     return {"status": "reviewed"}
+
+
+@router.patch("/students/{student_id}")
+async def update_student(
+    student_id: str,
+    body: UpdateStudentRequest,
+    current_user: User = Depends(require_role("teacher", "admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(User).where(User.id == student_id, User.role == "student"))
+    student = result.scalar_one_or_none()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    if body.grade is not None:
+        student.grade = body.grade
+    if body.allowed_levels is not None:
+        student.allowed_levels = body.allowed_levels
+    await db.commit()
+    return {"id": str(student.id), "grade": student.grade, "allowed_levels": student.allowed_levels}
 
 
 @router.patch("/apps/{app_id}")

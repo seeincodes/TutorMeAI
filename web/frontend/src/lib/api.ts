@@ -18,6 +18,8 @@ export interface User {
   username: string
   display_name: string | null
   role: 'student' | 'teacher' | 'admin'
+  grade: number | null
+  allowed_levels: string[] | null
 }
 
 export interface Conversation {

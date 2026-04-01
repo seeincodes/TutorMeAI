@@ -136,8 +136,11 @@ export default function ChatPage() {
         ])
       },
       (appId) => {
-        // Intent detected — show iframe for this app
-        setActiveApp({ appId, iframeUrl: `/apps/${appId}/index.html` })
+        // Intent detected — show iframe with student's allowed levels
+        const levels = user?.allowed_levels?.join(',') || ''
+        const grade = user?.grade || ''
+        const params = levels ? `?levels=${encodeURIComponent(levels)}&grade=${grade}` : ''
+        setActiveApp({ appId, iframeUrl: `/apps/${appId}/index.html${params}` })
       },
     )
   }
