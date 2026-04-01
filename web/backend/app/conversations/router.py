@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
 
-from app.agent.graph import stream_chat_response
+from app.agent.graph import classify_intent, stream_chat_response
 from app.auth.dependencies import get_current_user
 from app.conversations.schemas import (
     ConversationResponse,
@@ -14,7 +14,7 @@ from app.conversations.schemas import (
     SendMessageRequest,
 )
 from app.database import get_db
-from app.models import Conversation, Message, User
+from app.models import AppRegistration, Conversation, Message, User
 
 router = APIRouter(prefix="/api/conversations", tags=["conversations"])
 
@@ -101,10 +101,38 @@ async def send_message(
     )
     history = [{"role": m.role, "content": m.content} for m in result.scalars().all()]
 
+    # Load available apps
+    apps_result = await db.execute(
+        select(AppRegistration).where(AppRegistration.is_active == True)  # noqa: E712
+    )
+    available_apps = [
+        {
+            "app_id": a.app_id,
+            "name": a.name,
+            "description": a.description,
+            "tool_schemas": a.tool_schemas,
+        }
+        for a in apps_result.scalars().all()
+    ]
+
+    # Phase 1: Intent classification (lightweight, determines which app's schemas to inject)
+    target_app_id = None
+    if available_apps:
+        try:
+            target_app_id = await classify_intent(body.content, available_apps)
+        except Exception:
+            pass  # Fall back to no-app mode if classification fails
+
     async def event_generator():
         full_response = ""
+
+        # Send intent classification result to frontend
+        if target_app_id:
+            yield {"event": "intent", "data": json.dumps({"app_id": target_app_id})}
+
         try:
-            async for token in stream_chat_response(history):
+            # Phase 2: Stream with only the target app's schemas injected
+            async for token in stream_chat_response(history, available_apps, target_app_id):
                 full_response += token
                 yield {"event": "token", "data": json.dumps({"content": token})}
         except Exception as e:
