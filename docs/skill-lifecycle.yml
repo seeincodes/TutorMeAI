@@ -1,0 +1,17 @@
+observe:
+  auto: true
+  fields: [task, skill, skill_version, success, critical, timestamp, duration_seconds, tokens_used, error, user_feedback, files_touched]
+
+inspect:
+  failure_threshold: 3
+  critical_immediate: true
+  lookback_window: 20
+
+amend:
+  branch_prefix: "skill-amend/"
+  branch_base: "main"
+  auto_apply: true
+
+evaluate:
+  min_runs_after_amend: 5
+  improvement_threshold: 0.3
