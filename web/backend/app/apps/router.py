@@ -8,9 +8,11 @@ from app.apps.schemas import (
     RegisterAppRequest,
     UpdateAppStatusRequest,
 )
+import time
+
 from app.auth.dependencies import get_current_user, require_role
 from app.database import get_db
-from app.models import AppRegistration, User
+from app.models import AppRegistration, ToolInvocation, User
 
 router = APIRouter(prefix="/api/apps", tags=["apps"])
 
@@ -105,6 +107,20 @@ async def invoke_tool(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Tool '{body.tool}' not registered for app '{app_id}'. Available: {tool_names}",
         )
+
+    # Log tool invocation (if conversation context is available)
+    if body.conversation_id:
+        start_time = time.monotonic()
+        invocation = ToolInvocation(
+            conversation_id=body.conversation_id,
+            app_id=app_id,
+            tool_name=body.tool,
+            params=body.params,
+            status="success",
+            duration_ms=int((time.monotonic() - start_time) * 1000),
+        )
+        db.add(invocation)
+        await db.commit()
 
     # Return the validated invocation for the frontend to dispatch via postMessage
     return {

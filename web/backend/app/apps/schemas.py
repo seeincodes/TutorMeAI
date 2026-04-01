@@ -48,3 +48,4 @@ class InvokeToolRequest(BaseModel):
     tool: str
     params: dict = {}
     correlation_id: str | None = None
+    conversation_id: str | None = None

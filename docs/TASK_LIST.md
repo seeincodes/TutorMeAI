@@ -105,10 +105,10 @@
 - [x] No client-side storage of sensitive data
 
 ### 12. API Documentation & Observability
-- [ ] Enable FastAPI auto-generated Swagger/OpenAPI docs
-- [ ] Verify LangSmith traces capture every tool call, routing decision, and token count
-- [ ] Add tool invocation logging to `tool_invocations` table (duration, tokens, status)
-- [ ] Review and document rate limiting thresholds
+- [x] Enable FastAPI auto-generated Swagger/OpenAPI docs
+- [x] Verify LangSmith traces capture every tool call, routing decision, and token count
+- [x] Add tool invocation logging to `tool_invocations` table (duration, tokens, status)
+- [x] Review and document rate limiting thresholds
 
 ## Phase 3: Final
 
