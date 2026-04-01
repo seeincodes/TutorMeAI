@@ -1,12 +1,17 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sse_starlette.sse import EventSourceResponse
 
+from app.agent.graph import stream_chat_response
 from app.auth.dependencies import get_current_user
 from app.conversations.schemas import (
     ConversationResponse,
     CreateConversationRequest,
     MessageResponse,
+    SendMessageRequest,
 )
 from app.database import get_db
 from app.models import Conversation, Message, User
@@ -68,6 +73,56 @@ async def get_messages(
     )
     messages = result.scalars().all()
     return [MessageResponse.model_validate(m) for m in messages]
+
+
+@router.post("/{conversation_id}/messages")
+async def send_message(
+    conversation_id: str,
+    body: SendMessageRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    conversation = await _get_user_conversation(conversation_id, current_user, db)
+
+    # Save user message
+    user_msg = Message(
+        conversation_id=conversation.id,
+        role="user",
+        content=body.content,
+    )
+    db.add(user_msg)
+    await db.commit()
+
+    # Load conversation history
+    result = await db.execute(
+        select(Message)
+        .where(Message.conversation_id == conversation.id)
+        .order_by(Message.created_at.asc())
+    )
+    history = [{"role": m.role, "content": m.content} for m in result.scalars().all()]
+
+    async def event_generator():
+        full_response = ""
+        try:
+            async for token in stream_chat_response(history):
+                full_response += token
+                yield {"event": "token", "data": json.dumps({"content": token})}
+        except Exception as e:
+            yield {"event": "error", "data": json.dumps({"detail": str(e)})}
+            return
+
+        # Save assistant message
+        async with db.begin():
+            assistant_msg = Message(
+                conversation_id=conversation.id,
+                role="assistant",
+                content=full_response,
+            )
+            db.add(assistant_msg)
+
+        yield {"event": "done", "data": json.dumps({"message_id": str(assistant_msg.id)})}
+
+    return EventSourceResponse(event_generator())
 
 
 async def _get_user_conversation(

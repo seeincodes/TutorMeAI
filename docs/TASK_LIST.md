@@ -26,9 +26,9 @@
 
 ### 3. Chat Interface & Streaming [MVP2, MVP3]
 - [x] Create `/api/conversations` CRUD endpoints with per-user data isolation
-- [ ] Create `/api/conversations/{id}/messages` POST endpoint with SSE streaming
-- [ ] Set up LangGraph agent with GPT-4.1-mini and K-12 system prompt
-- [ ] Implement SSE streaming from LangGraph to frontend via sse-starlette
+- [x] Create `/api/conversations/{id}/messages` POST endpoint with SSE streaming
+- [x] Set up LangGraph agent with GPT-4.1-mini and K-12 system prompt
+- [x] Implement SSE streaming from LangGraph to frontend via sse-starlette
 - [ ] Build chat UI: message list, input box, streaming token display
 - [ ] Build conversation sidebar with history list
 - [ ] Implement `aria-live="polite"` on streaming messages
