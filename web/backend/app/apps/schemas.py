@@ -1,3 +1,5 @@
+import uuid
+
 from pydantic import BaseModel
 
 
@@ -30,7 +32,7 @@ class UpdateAppStatusRequest(BaseModel):
 
 
 class AppResponse(BaseModel):
-    id: str
+    id: uuid.UUID
     app_id: str
     name: str
     description: str

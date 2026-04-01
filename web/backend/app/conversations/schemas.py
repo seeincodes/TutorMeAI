@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -8,7 +9,7 @@ class CreateConversationRequest(BaseModel):
 
 
 class ConversationResponse(BaseModel):
-    id: str
+    id: uuid.UUID
     title: str | None
     active_app_id: str | None
     created_at: datetime
@@ -18,7 +19,7 @@ class ConversationResponse(BaseModel):
 
 
 class MessageResponse(BaseModel):
-    id: str
+    id: uuid.UUID
     role: str
     content: str | None
     tool_call_id: str | None

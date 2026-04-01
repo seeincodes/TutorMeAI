@@ -5,11 +5,11 @@ Revises: 1db865cd7eb6
 Create Date: 2026-04-01 00:24:27.416915
 
 """
-import json
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 revision: str = '331d4b60059d'
 down_revision: Union[str, Sequence[str], None] = '1db865cd7eb6'
@@ -23,7 +23,7 @@ APPS = [
         "description": "Safe math expression evaluator. Calculate arithmetic, algebra, and more.",
         "auth_type": "none",
         "iframe_url": "/apps/calculator/index.html",
-        "tool_schemas": json.dumps([
+        "tool_schemas": ([
             {"name": "calculate", "description": "Evaluate a math expression safely.", "parameters": [
                 {"name": "expression", "type": "string", "description": "Math expression to evaluate (e.g., '2 + 3 * 4')", "required": True}
             ]},
@@ -35,7 +35,7 @@ APPS = [
         "description": "Look up word definitions using the Free Dictionary API. Great for vocabulary building.",
         "auth_type": "none",
         "iframe_url": "/apps/dictionary/index.html",
-        "tool_schemas": json.dumps([
+        "tool_schemas": ([
             {"name": "define_word", "description": "Look up the definition of a word.", "parameters": [
                 {"name": "word", "type": "string", "description": "The word to define", "required": True}
             ]},
@@ -47,7 +47,7 @@ APPS = [
         "description": "Get current weather conditions for any city via OpenWeatherMap.",
         "auth_type": "none",
         "iframe_url": "/apps/weather/index.html",
-        "tool_schemas": json.dumps([
+        "tool_schemas": ([
             {"name": "get_weather", "description": "Get current weather for a city.", "parameters": [
                 {"name": "city", "type": "string", "description": "City name (e.g., 'Tokyo', 'New York')", "required": True}
             ]},
@@ -59,7 +59,7 @@ APPS = [
         "description": "Interactive flashcard quiz for studying. Start a quiz, submit answers, track your score.",
         "auth_type": "none",
         "iframe_url": "/apps/flashcards/index.html",
-        "tool_schemas": json.dumps([
+        "tool_schemas": ([
             {"name": "start_quiz", "description": "Start a new flashcard quiz.", "parameters": [
                 {"name": "cards", "type": "array", "description": "Array of {question, answer} objects. Uses defaults if empty.", "required": False}
             ]},
@@ -75,7 +75,7 @@ APPS = [
         "description": "Practical life skills tools: budget planner, compound interest calculator, decision matrix, meal planner, schedule optimizer.",
         "auth_type": "none",
         "iframe_url": "/apps/life-skills/index.html",
-        "tool_schemas": json.dumps([
+        "tool_schemas": ([
             {"name": "plan_budget", "description": "Create a budget from income and expenses.", "parameters": [
                 {"name": "income", "type": "number", "description": "Monthly income", "required": True},
                 {"name": "expenses", "type": "object", "description": "Object of expense categories and amounts", "required": True},
@@ -111,7 +111,7 @@ def upgrade() -> None:
         sa.column("description", sa.Text),
         sa.column("auth_type", sa.Text),
         sa.column("iframe_url", sa.Text),
-        sa.column("tool_schemas", sa.Text),
+        sa.column("tool_schemas", postgresql.JSONB),
         sa.column("status", sa.Text),
         sa.column("age_rating", sa.Text),
         sa.column("is_active", sa.Boolean),

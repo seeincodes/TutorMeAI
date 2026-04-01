@@ -5,11 +5,11 @@ Revises: 331d4b60059d
 Create Date: 2026-04-01 00:30:47.232720
 
 """
-import json
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 revision: str = '29be9890ff89'
 down_revision: Union[str, Sequence[str], None] = '331d4b60059d'
@@ -33,7 +33,7 @@ def upgrade() -> None:
         "app_registrations",
         sa.column("app_id", sa.Text), sa.column("name", sa.Text),
         sa.column("description", sa.Text), sa.column("auth_type", sa.Text),
-        sa.column("iframe_url", sa.Text), sa.column("tool_schemas", sa.Text),
+        sa.column("iframe_url", sa.Text), sa.column("tool_schemas", postgresql.JSONB),
         sa.column("status", sa.Text), sa.column("age_rating", sa.Text),
         sa.column("is_active", sa.Boolean),
     )
@@ -43,7 +43,7 @@ def upgrade() -> None:
         "description": "Create playlists, search tracks, and play music via Spotify. Requires Spotify account connection.",
         "auth_type": "oauth2",
         "iframe_url": "/apps/spotify/index.html",
-        "tool_schemas": json.dumps(SPOTIFY_TOOLS),
+        "tool_schemas": SPOTIFY_TOOLS,
         "status": "active",
         "age_rating": "all",
         "is_active": True,

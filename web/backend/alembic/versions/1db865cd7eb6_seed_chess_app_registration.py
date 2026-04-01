@@ -5,11 +5,11 @@ Revises: d1b032b9cb2f
 Create Date: 2026-03-31 23:59:04.366021
 
 """
-import json
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -57,7 +57,7 @@ def upgrade() -> None:
         sa.column("description", sa.Text),
         sa.column("auth_type", sa.Text),
         sa.column("iframe_url", sa.Text),
-        sa.column("tool_schemas", sa.Text),
+        sa.column("tool_schemas", postgresql.JSONB),
         sa.column("status", sa.Text),
         sa.column("age_rating", sa.Text),
         sa.column("is_active", sa.Boolean),
@@ -69,7 +69,7 @@ def upgrade() -> None:
             "description": "Interactive chess board with AI analysis. Play chess games, make moves, and get position analysis.",
             "auth_type": "none",
             "iframe_url": "/apps/chess/index.html",
-            "tool_schemas": json.dumps(CHESS_TOOL_SCHEMAS),
+            "tool_schemas": CHESS_TOOL_SCHEMAS,
             "status": "active",
             "age_rating": "all",
             "is_active": True,
