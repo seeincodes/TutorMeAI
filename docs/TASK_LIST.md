@@ -32,7 +32,7 @@
 - [x] Build chat UI: message list, input box, streaming token display
 - [x] Build conversation sidebar with history list
 - [x] Implement `aria-live="polite"` on streaming messages
-- [ ] Configure LangSmith tracing
+- [x] Configure LangSmith tracing
 
 ### 4. App Registration & Tool Schema System [MVP4, MVP5]
 - [ ] Create Pydantic models for app registration and tool schemas
