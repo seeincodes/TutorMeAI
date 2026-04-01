@@ -10,6 +10,7 @@ from app.auth.router import router as auth_router, users_router
 from app.config import settings
 from app.conversations.router import router as conversations_router
 from app.oauth.router import router as oauth_router
+from app.teacher.router import router as teacher_router
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -37,6 +38,7 @@ app.include_router(users_router)
 app.include_router(conversations_router)
 app.include_router(apps_router)
 app.include_router(oauth_router)
+app.include_router(teacher_router)
 
 
 @app.get("/api/health")

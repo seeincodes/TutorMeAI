@@ -88,11 +88,11 @@
 ## Phase 2: Polish
 
 ### 10. Teacher Dashboard
-- [ ] Build teacher dashboard page with role-based route guard
-- [ ] Implement app whitelist toggles per classroom
-- [ ] Show conversation summaries (apps used, session duration, quiz outcomes)
-- [ ] Add app suspension button
-- [ ] Show OAuth connection status for students
+- [x] Build teacher dashboard page with role-based route guard
+- [x] Implement app whitelist toggles per classroom
+- [x] Show conversation summaries (apps used, session duration, quiz outcomes)
+- [x] Add app suspension button
+- [x] Show OAuth connection status for students
 
 ### 11. Accessibility & UX
 - [ ] Semantic HTML throughout (`<main>`, `<form>`, `<button>`)
