@@ -267,14 +267,18 @@ TIER_ALLOWED_TOOLS: dict[int, list[str]] = {
     2: [
         "life_skills__start_scenario", "life_skills__make_choice", "life_skills__get_recap",
         "calculator__calculate",
+        "google-classroom__list_courses", "google-classroom__list_assignments", "google-classroom__get_assignment",
     ],
     3: [
         "life_skills__start_scenario", "life_skills__make_choice", "life_skills__get_recap",
         "calculator__calculate", "dictionary__lookup",
+        "google-classroom__list_courses", "google-classroom__list_assignments", "google-classroom__get_assignment",
     ],
     4: [
         "life_skills__start_scenario", "life_skills__make_choice", "life_skills__get_recap",
         "calculator__calculate", "dictionary__lookup", "weather__get_forecast",
+        "google-classroom__list_courses", "google-classroom__list_assignments", "google-classroom__get_assignment",
+        "google-classroom__list_submissions", "google-classroom__create_assignment",
     ],
 }
 
