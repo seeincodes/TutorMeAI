@@ -8,6 +8,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from app.agent.graph import classify_intent, stream_chat_with_tools, submit_tool_result
 from app.auth.dependencies import get_current_user
+from app.oauth.router import get_oauth_token
 from app.conversations.schemas import (
     ConversationResponse,
     CreateConversationRequest,
@@ -124,8 +125,29 @@ async def send_message(
         except Exception:
             pass
 
+    # Check if target app needs OAuth and user isn't connected
+    oauth_needed = None
+    if target_app_id:
+        target_app = next((a for a in available_apps if a["app_id"] == target_app_id), None)
+        if target_app:
+            app_reg = await db.execute(
+                select(AppRegistration).where(AppRegistration.app_id == target_app_id)
+            )
+            app_obj = app_reg.scalar_one_or_none()
+            if app_obj and app_obj.auth_type == "oauth2":
+                token = await get_oauth_token(str(current_user.id), target_app_id, db)
+                if not token:
+                    oauth_needed = target_app_id
+
     async def event_generator():
         full_response = ""
+
+        # If OAuth is needed, send prompt and skip tool calls
+        if oauth_needed:
+            yield {"event": "oauth_prompt", "data": json.dumps({
+                "app_id": oauth_needed,
+                "message": f"Connect your Google Classroom account to access your courses and assignments.",
+            })}
 
         # Send intent classification result to frontend
         if target_app_id:
