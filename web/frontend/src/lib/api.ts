@@ -69,6 +69,11 @@ export const api = {
       body: JSON.stringify({ correlation_id: correlationId, result }),
     }),
 
+  getLevelUpScenarios: () =>
+    request<{ tier: number; scenarios: { id: string; title: string; domain: string; icon: string; description: string }[] }>(
+      '/conversations/level-up-life/scenarios'
+    ),
+
   sendLevelUpAction: async (
     conversationId: string,
     action: {

@@ -401,6 +401,17 @@ export default function ChatPage() {
               appIframeRef.current.invokeTool('restore_state', pendingRestore).catch(() => {})
               setPendingRestore(null)
             }
+            // Level Up Life: send scenario list when iframe is ready
+            if (activeApp.appId === 'life-skills' && appIframeRef.current) {
+              api.getLevelUpScenarios().then(({ tier, scenarios }) => {
+                appIframeRef.current?.sendLevelUpMessage({
+                  type: 'scenario_start',
+                  correlationId: '',
+                  tier,
+                  scenarios,
+                })
+              }).catch(() => {})
+            }
           }}
           onScenarioSelected={handleScenarioSelected}
           onChoiceMade={handleChoiceMade}

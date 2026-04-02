@@ -241,6 +241,28 @@ class LevelUpLifeAction(BaseModel):
     field: str | None = None
 
 
+@router.get("/level-up-life/scenarios")
+async def get_level_up_scenarios(
+    current_user: User = Depends(get_current_user),
+):
+    """Return available scenarios for the current user's tier."""
+    tier = current_user.age_tier
+    scenarios = get_scenarios_for_tier(tier)
+    return {
+        "tier": tier,
+        "scenarios": [
+            {
+                "id": s.id,
+                "title": s.title,
+                "domain": s.domain,
+                "icon": s.icon,
+                "description": s.learning_objectives[0] if s.learning_objectives else s.title,
+            }
+            for s in scenarios
+        ],
+    }
+
+
 @router.post("/{conversation_id}/level-up-life")
 async def level_up_life_action(
     conversation_id: str,
