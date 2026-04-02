@@ -79,6 +79,7 @@ app.include_router(conversations_router)
 app.include_router(apps_router)
 app.include_router(oauth_router)
 app.include_router(teacher_router)
+app.include_router(classroom_router)
 
 
 @app.get("/api/health")
