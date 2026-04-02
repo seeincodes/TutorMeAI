@@ -1,0 +1,60 @@
+[
+  {
+    "id": "tier1_plan_a_picnic",
+    "title": "Plan a Picnic",
+    "tier": 1,
+    "domain": "combo",
+    "icon": "🧺",
+    "learning_objectives": [
+      "Pick foods that give you energy",
+      "Share with friends",
+      "Spend coins wisely",
+      "Decide what to do in order"
+    ],
+    "initial_state": {
+      "wallet": 5.0,
+      "currency": "coins",
+      "friends": 2,
+      "food_items": 0,
+      "location": "park"
+    },
+    "events": [
+      {
+        "description": "You're planning a picnic in the park with 2 friends! You have 5 coins. First, let's pick some food. What do you want to bring?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "fruit_basket", "label": "A basket of fruit", "icon": "🍎", "cost": 2, "effect": "A basket of fruit for everyone! So colorful and full of energy!"},
+          {"id": "sandwiches", "label": "Sandwiches for everyone", "icon": "🥪", "cost": 3, "effect": "Yummy sandwiches! Everyone gets one!"}
+        ]
+      },
+      {
+        "description": "Your friends are here! One friend wants to play tag and the other wants to eat first. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "eat_first", "label": "Eat first, then play!", "icon": "🍽️", "cost": null, "effect": "Great plan! Now everyone has energy to play after eating!"},
+          {"id": "play_first", "label": "Play first, then eat!", "icon": "🏃", "cost": null, "effect": "So much fun running around! Now everyone is hungry for the picnic!"}
+        ]
+      },
+      {
+        "description": "There's a drink stand nearby! Juice costs 2 coins. Do you have enough coins left?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "buy_juice", "label": "Buy juice to share", "icon": "🧃", "cost": 2, "effect": "Juice for the group! What a kind thing to share!"},
+          {"id": "drink_water", "label": "Drink water from the fountain", "icon": "💧", "cost": 0, "effect": "Water is refreshing and free! Smart choice!"}
+        ]
+      }
+    ],
+    "recap_template": "You planned an amazing picnic! You picked food, decided when to eat and play, shared with friends, and used your coins wisely. What a great day!",
+    "positive_framing_rules": [
+      "Never say the student spent too much or made a mistake",
+      "Celebrate sharing and planning equally",
+      "Frame all food choices as giving energy"
+    ],
+    "ai_variation_allowed": [
+      "Change the park setting details",
+      "Add a surprise like a butterfly or a rainbow",
+      "Vary the friend reactions to choices"
+    ],
+    "max_turns": 10
+  }
+]

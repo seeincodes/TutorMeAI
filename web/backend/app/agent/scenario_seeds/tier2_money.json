@@ -1,0 +1,253 @@
+[
+  {
+    "id": "tier2_weekly_allowance",
+    "title": "Weekly Allowance",
+    "tier": 2,
+    "domain": "money",
+    "icon": "💵",
+    "learning_objectives": [
+      "Plan spending over multiple weeks",
+      "Track a recurring budget",
+      "Decide between spending now and saving for later"
+    ],
+    "initial_state": {
+      "wallet": 10,
+      "currency": "dollars",
+      "week": 1,
+      "total_weeks": 4,
+      "savings": 0
+    },
+    "events": [
+      {
+        "description": "It's Week 1! You get $10 allowance. Your friend invites you to the movies ($8) and there's a book fair at school ($5). What do you want to do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "movies", "label": "Go to the movies", "icon": "🎬", "cost": 8, "effect": "You saw an awesome movie! You have $2 left this week."},
+          {"id": "book_fair", "label": "Shop at the book fair", "icon": "📚", "cost": 5, "effect": "You got a great book! You have $5 left this week."},
+          {"id": "save_all", "label": "Save it all", "icon": "🐷", "cost": 0, "effect": "You put $10 in your savings! Great patience!"}
+        ]
+      },
+      {
+        "description": "Week 2! Another $10 allowance. There's a cool toy you've been wanting for $20. You also need art supplies for school ($6).",
+        "event_type": "choice",
+        "choices": [
+          {"id": "art_supplies", "label": "Buy art supplies", "icon": "🎨", "cost": 6, "effect": "You got everything you need for art class! Nice planning!"},
+          {"id": "save_for_toy", "label": "Save toward the toy", "icon": "🧸", "cost": 0, "effect": "You're getting closer to that toy! Great saving!"},
+          {"id": "split", "label": "Buy supplies and save the rest", "icon": "⚖️", "cost": 6, "effect": "Supplies bought and $4 saved! You're balancing needs and wants!"}
+        ]
+      },
+      {
+        "description": "Week 3! Another $10. A friend is having a birthday and you want to get them a gift ($7). There's also a bake sale ($3).",
+        "event_type": "choice",
+        "choices": [
+          {"id": "gift", "label": "Buy a birthday gift", "icon": "🎁", "cost": 7, "effect": "Your friend will love this gift! You have $3 left."},
+          {"id": "gift_and_bake", "label": "Gift ($7) and bake sale ($3)", "icon": "🎂", "cost": 10, "effect": "Gift AND cupcakes! You spent your whole allowance but made great memories!"},
+          {"id": "homemade_gift", "label": "Make a homemade gift, save money", "icon": "✂️", "cost": 0, "effect": "A handmade gift from the heart! And you saved all $10!"}
+        ]
+      },
+      {
+        "description": "Week 4! Last week of the month. Let's count up your savings and see what you've accomplished!",
+        "event_type": "choice",
+        "choices": [
+          {"id": "treat_yourself", "label": "Buy something fun with savings", "icon": "🎉", "cost": null, "effect": "You earned a treat! Saving up feels rewarding!"},
+          {"id": "keep_saving", "label": "Keep saving for next month", "icon": "💰", "cost": 0, "effect": "Look at those savings grow! You're building great habits!"}
+        ]
+      }
+    ],
+    "recap_template": "You managed your allowance for a whole month! You practiced deciding between spending, saving, and giving. Every choice taught you something about budgeting.",
+    "positive_framing_rules": [
+      "Never say the student wasted money",
+      "Celebrate both spending and saving as valid strategies",
+      "Frame gift-giving as a positive use of money"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific items available to buy",
+      "Add surprise deals or sales",
+      "Vary friend reactions to gifts"
+    ],
+    "max_turns": 12
+  },
+  {
+    "id": "tier2_bake_sale",
+    "title": "Bake Sale Business",
+    "tier": 2,
+    "domain": "money",
+    "icon": "🧁",
+    "learning_objectives": [
+      "Understand that making things costs money",
+      "Set prices for items you sell",
+      "Track money coming in and going out"
+    ],
+    "initial_state": {
+      "wallet": 20,
+      "currency": "dollars",
+      "inventory": {},
+      "earnings": 0
+    },
+    "events": [
+      {
+        "description": "You're running a bake sale! You have $20 to buy ingredients. Cupcake mix costs $8 (makes 12 cupcakes) and cookie dough costs $5 (makes 20 cookies). What do you buy?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "both", "label": "Cupcakes ($8) and cookies ($5)", "icon": "🧁🍪", "cost": 13, "effect": "Great variety! You spent $13 and have $7 left. You have 12 cupcakes and 20 cookies to sell!"},
+          {"id": "cupcakes_only", "label": "Two batches of cupcakes ($16)", "icon": "🧁🧁", "cost": 16, "effect": "24 cupcakes ready to sell! You spent $16 and have $4 left."},
+          {"id": "cookies_only", "label": "Four batches of cookies ($20)", "icon": "🍪🍪", "cost": 20, "effect": "80 cookies! That's a LOT of cookies to sell! You spent all $20."}
+        ]
+      },
+      {
+        "description": "Time to set your prices! How much will you charge?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "price_low", "label": "$1 each — sell a lot!", "icon": "💲", "cost": null, "effect": "Low prices attract lots of customers! Nearly everything sold!"},
+          {"id": "price_medium", "label": "$2 each — balanced", "icon": "💲💲", "cost": null, "effect": "Good price! Most items sold and you earned more per item!"},
+          {"id": "price_high", "label": "$3 each — earn more per item", "icon": "💲💲💲", "cost": null, "effect": "Higher prices! Fewer people bought, but you earned more from each sale!"}
+        ]
+      },
+      {
+        "description": "The bake sale is going great! A teacher asks if you can donate some for the school raffle. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "donate_some", "label": "Donate 5 items", "icon": "🎁", "cost": null, "effect": "That's so generous! The teacher thanks you and tells everyone about your stand!"},
+          {"id": "sell_all", "label": "Keep selling everything", "icon": "💰", "cost": null, "effect": "You focus on your business and earn more money! Smart business thinking!"}
+        ]
+      }
+    ],
+    "recap_template": "You ran a bake sale business! You learned about buying ingredients, setting prices, and making decisions about your earnings. Great job, entrepreneur!",
+    "positive_framing_rules": [
+      "Never say the student priced things wrong",
+      "Celebrate both generous and business-minded choices",
+      "Frame all outcomes as learning experiences"
+    ],
+    "ai_variation_allowed": [
+      "Change the baked goods available",
+      "Add weather or surprise customer events",
+      "Vary the number of customers"
+    ],
+    "max_turns": 12
+  },
+  {
+    "id": "tier2_pet_care_budget",
+    "title": "Pet Care Budget",
+    "tier": 2,
+    "domain": "money",
+    "icon": "🐕",
+    "learning_objectives": [
+      "Understand ongoing costs vs one-time costs",
+      "Plan a budget for taking care of a pet",
+      "Make choices about wants vs needs for a pet"
+    ],
+    "initial_state": {
+      "wallet": 50,
+      "currency": "dollars",
+      "pet": "puppy",
+      "supplies": []
+    },
+    "events": [
+      {
+        "description": "You're adopting a puppy! You have $50 to get started. First, your puppy needs food and a bowl. Dog food is $15 and a bowl is $5. What else do you want to get?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "food_bowl_toy", "label": "Food ($15) + Bowl ($5) + Toy ($8)", "icon": "🦴", "cost": 28, "effect": "Food, bowl, and a squeaky toy! Your puppy is so happy! $22 left."},
+          {"id": "food_bowl_bed", "label": "Food ($15) + Bowl ($5) + Bed ($20)", "icon": "🛏️", "cost": 40, "effect": "Food, bowl, and a cozy bed! Your puppy has a place to sleep! $10 left."},
+          {"id": "basics_only", "label": "Just food ($15) + Bowl ($5)", "icon": "🍽️", "cost": 20, "effect": "The essentials are covered! You have $30 left for other things!"}
+        ]
+      },
+      {
+        "description": "Your puppy needs a vet visit for a checkup. It costs $25. Do you have enough?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "vet_yes", "label": "Take puppy to the vet", "icon": "🏥", "cost": 25, "effect": "Your puppy got a clean bill of health! Taking care of your pet is important!"},
+          {"id": "vet_save", "label": "Save up more first", "icon": "🐷", "cost": 0, "effect": "You'll save up for the vet visit. Let's plan when you can go!"}
+        ]
+      },
+      {
+        "description": "Your puppy chewed up their toy! A new toy costs $8, but your friend has a gently used one for $3.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "new_toy", "label": "Buy a brand new toy", "icon": "🆕", "cost": 8, "effect": "A shiny new toy! Your puppy loves it!"},
+          {"id": "used_toy", "label": "Get the used toy from your friend", "icon": "♻️", "cost": 3, "effect": "Your puppy doesn't care if it's used — they love it! And you saved $5!"},
+          {"id": "diy_toy", "label": "Make a toy from old socks", "icon": "🧦", "cost": 0, "effect": "Your puppy thinks the sock toy is the best thing ever! Creative and free!"}
+        ]
+      }
+    ],
+    "recap_template": "You learned how to budget for a pet! Pets need food, vet visits, and toys — some costs happen once and others come back again and again.",
+    "positive_framing_rules": [
+      "Never say the student is unable to care for their pet",
+      "Frame budget limits as planning opportunities",
+      "Celebrate creative solutions like DIY toys"
+    ],
+    "ai_variation_allowed": [
+      "Change the type of pet",
+      "Add surprise puppy moments",
+      "Vary the specific supply options"
+    ],
+    "max_turns": 12
+  },
+  {
+    "id": "tier2_garage_sale",
+    "title": "Garage Sale",
+    "tier": 2,
+    "domain": "money",
+    "icon": "🏷️",
+    "learning_objectives": [
+      "Decide what things are worth",
+      "Set fair prices for items",
+      "Track earnings from sales"
+    ],
+    "initial_state": {
+      "wallet": 0,
+      "currency": "dollars",
+      "items_to_sell": 8,
+      "earnings": 0
+    },
+    "events": [
+      {
+        "description": "You're having a garage sale! You found old toys, books, and games to sell. First, you need to set prices. How do you price your old board game?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "game_high", "label": "$5 — it's in great shape!", "icon": "🎲", "cost": null, "effect": "A fair price! It takes a while but someone buys it for $5!"},
+          {"id": "game_low", "label": "$2 — sell it fast!", "icon": "💨", "cost": null, "effect": "It sold right away! Quick sale for $2!"},
+          {"id": "game_negotiate", "label": "$4 but willing to go lower", "icon": "🤝", "cost": null, "effect": "A customer offers $3 and you agree! Nice negotiating!"}
+        ]
+      },
+      {
+        "description": "A kid your age comes by and really wants your old bike. You were thinking $15. They only have $10.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "sell_10", "label": "Sell it for $10", "icon": "🚲", "cost": null, "effect": "The kid is thrilled! $10 is still great earnings!"},
+          {"id": "hold_price", "label": "Wait for someone who'll pay $15", "icon": "⏳", "cost": null, "effect": "Later, an adult buys it for $15! Patience paid off!"},
+          {"id": "trade", "label": "Trade for their skateboard + $5", "icon": "🛹", "cost": null, "effect": "A trade and some cash! Creative deal-making!"}
+        ]
+      },
+      {
+        "description": "The sale is almost over. You have a few items left. A neighbor offers to buy everything remaining for $8 total.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "bulk_deal", "label": "Take the $8 deal", "icon": "💰", "cost": null, "effect": "Everything sold! Your table is clear and you earned $8 more!"},
+          {"id": "donate", "label": "Donate the rest", "icon": "🎁", "cost": null, "effect": "You donate the leftovers to a charity shop. So generous!"}
+        ]
+      },
+      {
+        "description": "Time to count your earnings! What do you want to do with the money you made?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "save_half", "label": "Save half, spend half", "icon": "⚖️", "cost": null, "effect": "A balanced plan! Some for fun now and some for later!"},
+          {"id": "save_all", "label": "Save it all for something big", "icon": "🐷", "cost": null, "effect": "All saved! You're on your way to something awesome!"},
+          {"id": "spend_now", "label": "Buy something fun right away", "icon": "🎉", "cost": null, "effect": "You treated yourself! You earned it!"}
+        ]
+      }
+    ],
+    "recap_template": "You ran a garage sale! You set prices, negotiated with customers, and decided what to do with your earnings. Great business skills!",
+    "positive_framing_rules": [
+      "Never say the student priced things wrong",
+      "Celebrate negotiation and generosity equally",
+      "Frame all earning outcomes positively"
+    ],
+    "ai_variation_allowed": [
+      "Change the items being sold",
+      "Add different types of customers",
+      "Vary the negotiation scenarios"
+    ],
+    "max_turns": 12
+  }
+]

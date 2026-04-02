@@ -1,0 +1,165 @@
+[
+  {
+    "id": "tier1_sharing_fair",
+    "title": "Sharing Fair",
+    "tier": 1,
+    "domain": "social",
+    "icon": "🤝",
+    "learning_objectives": [
+      "Practice sharing with a friend",
+      "Think about fairness",
+      "Learn that sharing can be fun"
+    ],
+    "initial_state": {
+      "toys": 6,
+      "friends": 1,
+      "location": "playroom"
+    },
+    "events": [
+      {
+        "description": "Your friend came over to play! You have 6 toys. How do you want to share?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "share_equal", "label": "3 toys each — split evenly!", "icon": "⚖️", "cost": null, "effect": "You each get 3 toys! That feels really fair!"},
+          {"id": "share_favorite", "label": "Give your friend their favorite toy", "icon": "🎁", "cost": null, "effect": "Your friend is so happy you picked their favorite! What a kind thing to do!"}
+        ]
+      },
+      {
+        "description": "You're both playing and your friend wants to try the toy you're using. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "take_turns", "label": "Take turns!", "icon": "🔄", "cost": null, "effect": "Taking turns means everyone gets a chance! Great idea!"},
+          {"id": "trade", "label": "Trade for a different toy", "icon": "🔀", "cost": null, "effect": "You swapped toys and both found something fun! Nice trading!"}
+        ]
+      },
+      {
+        "description": "It's almost time for your friend to go home. There's one toy left to play with together!",
+        "event_type": "choice",
+        "choices": [
+          {"id": "play_together", "label": "Play with it together", "icon": "👫", "cost": null, "effect": "You played together and had twice the fun!"},
+          {"id": "let_friend", "label": "Let your friend have the last turn", "icon": "💝", "cost": null, "effect": "Your friend loved the last turn! You're such a kind friend!"}
+        ]
+      }
+    ],
+    "recap_template": "You practiced sharing with a friend today! You learned that sharing and taking turns makes playtime more fun for everyone.",
+    "positive_framing_rules": [
+      "Never say a sharing choice was selfish or wrong",
+      "Celebrate both equal sharing and generous choices",
+      "Frame all outcomes as positive for the friendship"
+    ],
+    "ai_variation_allowed": [
+      "Change the types of toys being shared",
+      "Add reactions from the friend",
+      "Describe the fun games they play together"
+    ],
+    "max_turns": 8
+  },
+  {
+    "id": "tier1_how_does_that_feel",
+    "title": "How Does That Feel?",
+    "tier": 1,
+    "domain": "social",
+    "icon": "😊",
+    "learning_objectives": [
+      "Recognize different emotions",
+      "Connect situations to feelings",
+      "Practice naming how you feel"
+    ],
+    "initial_state": {
+      "emotions_identified": 0,
+      "location": "school"
+    },
+    "events": [
+      {
+        "description": "Your friend draws you a picture and gives it to you. How does that make you feel?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "happy", "label": "Happy!", "icon": "😊", "cost": null, "effect": "That's right! Getting a gift from a friend can make us feel happy and warm inside!"},
+          {"id": "surprised", "label": "Surprised!", "icon": "😲", "cost": null, "effect": "Yes! Surprises can feel exciting and fun!"}
+        ]
+      },
+      {
+        "description": "Oh no, you drop your ice cream on the ground. How might you feel?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "sad", "label": "Sad", "icon": "😢", "cost": null, "effect": "It's okay to feel sad when something doesn't go the way we hoped. Feelings pass!"},
+          {"id": "frustrated", "label": "Frustrated", "icon": "😤", "cost": null, "effect": "It's okay to feel frustrated! That happens to everyone sometimes."}
+        ]
+      },
+      {
+        "description": "Your teacher says you did a great job on your drawing! How does that feel?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "proud", "label": "Proud!", "icon": "🌟", "cost": null, "effect": "Feeling proud means you know you tried your best! That's wonderful!"},
+          {"id": "excited", "label": "Excited!", "icon": "🎉", "cost": null, "effect": "Getting praise can make us feel excited and eager to do more!"}
+        ]
+      }
+    ],
+    "recap_template": "You did a great job naming feelings today! Knowing how we feel helps us understand ourselves and be kind to others.",
+    "positive_framing_rules": [
+      "Never say an emotion is wrong or bad",
+      "Validate all feelings as normal and okay",
+      "Use simple, warm language to describe emotions"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific scenarios that trigger emotions",
+      "Add more emotion vocabulary naturally",
+      "Describe how the body might feel with each emotion"
+    ],
+    "max_turns": 8
+  },
+  {
+    "id": "tier1_making_friends",
+    "title": "Making Friends",
+    "tier": 1,
+    "domain": "social",
+    "icon": "💛",
+    "learning_objectives": [
+      "Practice kind responses",
+      "Learn what makes a good friend",
+      "Think about how words make others feel"
+    ],
+    "initial_state": {
+      "friends_made": 0,
+      "location": "playground"
+    },
+    "events": [
+      {
+        "description": "A new kid is sitting alone at the playground. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "say_hi", "label": "Say hi and ask to play", "icon": "👋", "cost": null, "effect": "You said hi! The new kid smiles and wants to play! Great job reaching out!"},
+          {"id": "share_toy", "label": "Share your toy with them", "icon": "🎾", "cost": null, "effect": "You shared your toy! The new kid's face lights up! So kind!"}
+        ]
+      },
+      {
+        "description": "Your new friend trips and falls down. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "help_up", "label": "Help them up", "icon": "🤝", "cost": null, "effect": "You helped them up and asked if they were okay. That's what friends do!"},
+          {"id": "get_teacher", "label": "Get a teacher to help", "icon": "👩‍🏫", "cost": null, "effect": "You got a grown-up to help! That was smart and caring!"}
+        ]
+      },
+      {
+        "description": "Your new friend wants to play a different game than you. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "try_their_game", "label": "Try their game first", "icon": "🎮", "cost": null, "effect": "You tried something new and it was really fun! Being open to new things is great!"},
+          {"id": "take_turns", "label": "Play both games, take turns", "icon": "🔄", "cost": null, "effect": "Great idea! You each got to play your favorite game! Everyone wins!"}
+        ]
+      }
+    ],
+    "recap_template": "You practiced being a kind friend today! You learned that saying hi, helping others, and being flexible makes friendships grow.",
+    "positive_framing_rules": [
+      "Never present unkind options as choices",
+      "Celebrate every kind action the student takes",
+      "Frame all social situations as opportunities to connect"
+    ],
+    "ai_variation_allowed": [
+      "Change the playground activities",
+      "Add dialogue from the new friend",
+      "Describe the games they play together"
+    ],
+    "max_turns": 8
+  }
+]

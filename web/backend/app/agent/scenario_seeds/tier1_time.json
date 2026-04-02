@@ -1,0 +1,167 @@
+[
+  {
+    "id": "tier1_morning_routine",
+    "title": "Morning Routine Builder",
+    "tier": 1,
+    "domain": "time",
+    "icon": "🌅",
+    "learning_objectives": [
+      "Learn the order of morning tasks",
+      "Practice sequencing activities",
+      "Build a routine that works"
+    ],
+    "initial_state": {
+      "tasks_completed": 0,
+      "total_tasks": 3,
+      "location": "bedroom"
+    },
+    "events": [
+      {
+        "description": "Good morning! It's time to get ready for school. What do you want to do first?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "brush_teeth", "label": "Brush your teeth", "icon": "🪥", "cost": null, "effect": "Sparkly clean teeth! Great start to the day!"},
+          {"id": "get_dressed", "label": "Get dressed", "icon": "👕", "cost": null, "effect": "You picked out a great outfit! Looking good!"}
+        ]
+      },
+      {
+        "description": "One thing done! What's next on your morning routine?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "eat_breakfast", "label": "Eat breakfast", "icon": "🥣", "cost": null, "effect": "Yummy cereal! Now you have energy for the day!"},
+          {"id": "pack_bag", "label": "Pack your backpack", "icon": "🎒", "cost": null, "effect": "Your backpack is all ready to go!"}
+        ]
+      },
+      {
+        "description": "Almost ready! One more thing before the bus comes!",
+        "event_type": "choice",
+        "choices": [
+          {"id": "put_shoes", "label": "Put on your shoes", "icon": "👟", "cost": null, "effect": "Shoes on and tied! You're ready to go!"},
+          {"id": "hug_goodbye", "label": "Give a goodbye hug", "icon": "🤗", "cost": null, "effect": "What a sweet goodbye! Have a great day!"}
+        ]
+      }
+    ],
+    "recap_template": "Today you built your very own morning routine! You practiced putting tasks in order to get ready for school.",
+    "positive_framing_rules": [
+      "Never say the student picked the wrong order",
+      "Celebrate each completed task as progress",
+      "Frame all routines as equally good choices"
+    ],
+    "ai_variation_allowed": [
+      "Add fun descriptions of breakfast options",
+      "Describe the weather outside",
+      "Add a pet greeting the student in the morning"
+    ],
+    "max_turns": 8
+  },
+  {
+    "id": "tier1_getting_ready_race",
+    "title": "Getting Ready Race",
+    "tier": 1,
+    "domain": "time",
+    "icon": "⏰",
+    "learning_objectives": [
+      "Learn to pick what to do first",
+      "Practice making quick decisions",
+      "Understand that some tasks come before others"
+    ],
+    "initial_state": {
+      "tasks_completed": 0,
+      "total_tasks": 3,
+      "location": "home"
+    },
+    "events": [
+      {
+        "description": "Oh! You just woke up and the school bus is coming soon! Let's figure out a plan. What should you do first?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "get_dressed_first", "label": "Get dressed quickly", "icon": "👕", "cost": null, "effect": "Smart thinking! You got dressed right away!"},
+          {"id": "eat_first", "label": "Eat a quick breakfast", "icon": "🍎", "cost": null, "effect": "An apple gives you energy! Good choice!"}
+        ]
+      },
+      {
+        "description": "Great job! Now what's the next important thing?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "grab_bag", "label": "Grab your backpack", "icon": "🎒", "cost": null, "effect": "You remembered your backpack! All your homework is inside!"},
+          {"id": "brush_teeth", "label": "Brush your teeth", "icon": "🪥", "cost": null, "effect": "Fresh and clean! Your smile is sparkling!"}
+        ]
+      },
+      {
+        "description": "The bus is almost here! One last thing!",
+        "event_type": "choice",
+        "choices": [
+          {"id": "wave_bye", "label": "Wave goodbye", "icon": "👋", "cost": null, "effect": "You waved goodbye and ran to the bus! Made it!"},
+          {"id": "check_bag", "label": "Double-check your bag", "icon": "✅", "cost": null, "effect": "Everything is there! You're so organized!"}
+        ]
+      }
+    ],
+    "recap_template": "You figured out a great plan to get ready! You practiced picking what to do first when there's a lot to do.",
+    "positive_framing_rules": [
+      "Never say the student is running out of time",
+      "Celebrate each step as a win",
+      "Frame the situation as an exciting adventure, not stressful"
+    ],
+    "ai_variation_allowed": [
+      "Add a silly pet following the student around",
+      "Vary the weather outside",
+      "Add encouraging narration between steps"
+    ],
+    "max_turns": 8
+  },
+  {
+    "id": "tier1_bedtime_countdown",
+    "title": "Bedtime Countdown",
+    "tier": 1,
+    "domain": "time",
+    "icon": "🌙",
+    "learning_objectives": [
+      "Learn to sequence bedtime activities",
+      "Practice winding down before sleep",
+      "Understand that routines help us feel ready"
+    ],
+    "initial_state": {
+      "tasks_completed": 0,
+      "total_tasks": 3,
+      "location": "home"
+    },
+    "events": [
+      {
+        "description": "It's almost bedtime! You have time for 3 activities before you go to sleep. What do you want to do first?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "bath", "label": "Take a warm bath", "icon": "🛁", "cost": null, "effect": "Splish splash! You feel warm and cozy!"},
+          {"id": "story", "label": "Read a story", "icon": "📖", "cost": null, "effect": "What a fun story! Your imagination is amazing!"}
+        ]
+      },
+      {
+        "description": "That was nice! What do you want to do next?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "brush_teeth", "label": "Brush your teeth", "icon": "🪥", "cost": null, "effect": "Sparkly teeth! The tooth fairy would be proud!"},
+          {"id": "pajamas", "label": "Put on pajamas", "icon": "🌟", "cost": null, "effect": "Your cozy pajamas feel so soft and warm!"}
+        ]
+      },
+      {
+        "description": "One more thing before lights out!",
+        "event_type": "choice",
+        "choices": [
+          {"id": "goodnight_hug", "label": "Goodnight hugs", "icon": "🤗", "cost": null, "effect": "The best hugs! Sweet dreams!"},
+          {"id": "stuffed_animal", "label": "Pick a stuffed friend", "icon": "🧸", "cost": null, "effect": "Your stuffed friend is ready to sleep with you!"}
+        ]
+      }
+    ],
+    "recap_template": "You built a wonderful bedtime routine! Getting ready for bed in a good order helps you feel calm and cozy.",
+    "positive_framing_rules": [
+      "Never mention staying up too late or being in trouble",
+      "Frame bedtime as a cozy, positive experience",
+      "Celebrate each step of the routine"
+    ],
+    "ai_variation_allowed": [
+      "Add descriptions of a favorite stuffed animal",
+      "Vary the bedtime story topic",
+      "Add a lullaby or calming description"
+    ],
+    "max_turns": 8
+  }
+]
