@@ -98,6 +98,9 @@ class AppRegistration(Base):
     auth_type: Mapped[str] = mapped_column(Text, nullable=False)
     iframe_url: Mapped[str] = mapped_column(Text, nullable=False)
     tool_schemas: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    oauth_config: Mapped[dict | None] = mapped_column(JSONB)
+    platform_status: Mapped[str] = mapped_column(Text, default="allowed")
+    requires_admin_approval: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[str] = mapped_column(Text, default="pending_review")
     age_rating: Mapped[str] = mapped_column(Text, default="all")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -105,6 +108,7 @@ class AppRegistration(Base):
 
     __table_args__ = (
         CheckConstraint("auth_type IN ('none', 'api_key', 'oauth2')", name="ck_app_registrations_auth_type"),
+        CheckConstraint("platform_status IN ('allowed', 'blocked', 'pending_review')", name="ck_app_registrations_platform_status"),
     )
 
 
