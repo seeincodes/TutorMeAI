@@ -28,10 +28,26 @@ class User(Base):
     grade: Mapped[int | None] = mapped_column(Integer)
     allowed_levels: Mapped[list | None] = mapped_column(JSONB)  # e.g. ["K-2", "3-5"]
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    capability_tier_override: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     conversations: Mapped[list["Conversation"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     oauth_tokens: Mapped[list["OAuthToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
+    @property
+    def age_tier(self) -> int:
+        """Return the capability tier: override if set, else derived from grade."""
+        if self.capability_tier_override is not None:
+            return self.capability_tier_override
+        if self.grade is None:
+            return 1
+        if self.grade <= 2:
+            return 1
+        if self.grade <= 5:
+            return 2
+        if self.grade <= 8:
+            return 3
+        return 4
 
     __table_args__ = (
         CheckConstraint("role IN ('student', 'teacher', 'admin')", name="ck_users_role"),
