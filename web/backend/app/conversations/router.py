@@ -142,12 +142,30 @@ async def send_message(
     async def event_generator():
         full_response = ""
 
-        # If OAuth is needed, send prompt and skip tool calls
+        # If OAuth is needed, send prompt and skip tool calls entirely
         if oauth_needed:
             yield {"event": "oauth_prompt", "data": json.dumps({
                 "app_id": oauth_needed,
-                "message": f"Connect your Google Classroom account to access your courses and assignments.",
+                "message": "Connect your Google Classroom account to access your courses and assignments.",
             })}
+            connect_msg = "I can help with that! First, you'll need to connect your Google Classroom account. Click the button above to get started."
+            yield {"event": "token", "data": json.dumps({"content": connect_msg})}
+            # Save assistant message
+            try:
+                session_factory = get_session_factory()
+                async with session_factory() as save_db:
+                    assistant_msg = Message(
+                        conversation_id=conversation.id,
+                        role="assistant",
+                        content=connect_msg,
+                    )
+                    save_db.add(assistant_msg)
+                    await save_db.commit()
+                    await save_db.refresh(assistant_msg)
+                    yield {"event": "done", "data": json.dumps({"message_id": str(assistant_msg.id)})}
+            except Exception:
+                yield {"event": "done", "data": json.dumps({"message_id": ""})}
+            return
 
         # Send intent classification result to frontend
         if target_app_id:
