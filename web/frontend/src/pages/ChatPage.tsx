@@ -154,108 +154,6 @@ export default function ChatPage() {
     )
   }
 
-  // ── Level Up Life handlers ──────────────────────────────────────────
-
-  async function handleScenarioSelected(scenarioId: string, _tier: number) {
-    let conversationId = activeConversation
-    if (!conversationId) {
-      const conv = await api.createConversation('Level Up Life')
-      setConversations(prev => [conv, ...prev])
-      conversationId = conv.id
-      setActiveConversation(conv.id)
-    }
-
-    setStreaming(true)
-    setStreamingContent('')
-    if (activeApp) setChatDrawerOpen(true)
-
-    await api.sendLevelUpAction(
-      conversationId,
-      { action_type: 'scenario_selected', scenario_id: scenarioId },
-      (token) => setStreamingContent(prev => prev + token),
-      (messageId) => {
-        setStreamingContent(prev => {
-          const assistantMessage: Message = {
-            id: messageId, role: 'assistant', content: prev,
-            tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
-          }
-          setMessages(msgs => [...msgs, assistantMessage])
-          return ''
-        })
-        setStreaming(false)
-      },
-      (error) => {
-        setStreamingContent('')
-        setStreaming(false)
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(), role: 'assistant', content: `Error: ${error}`,
-          tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
-        }])
-      },
-      (data) => appIframeRef.current?.sendLevelUpMessage({ ...data, type: 'scenario_event' }),
-      (data) => appIframeRef.current?.sendLevelUpMessage({ ...data, type: 'scenario_end' }),
-      (data) => appIframeRef.current?.sendLevelUpMessage({ ...data, type: 'levelup_state_update' }),
-    )
-  }
-
-  async function handleChoiceMade(correlationId: string, choiceId: string, _value?: number) {
-    let conversationId = activeConversation
-    if (!conversationId) return
-
-    setStreaming(true)
-    setStreamingContent('')
-    if (activeApp) setChatDrawerOpen(true)
-
-    await api.sendLevelUpAction(
-      conversationId,
-      { action_type: 'choice_made', choice_id: choiceId, correlation_id: correlationId },
-      (token) => setStreamingContent(prev => prev + token),
-      (messageId) => {
-        setStreamingContent(prev => {
-          const assistantMessage: Message = {
-            id: messageId, role: 'assistant', content: prev,
-            tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
-          }
-          setMessages(msgs => [...msgs, assistantMessage])
-          return ''
-        })
-        setStreaming(false)
-      },
-      (error) => {
-        setStreamingContent('')
-        setStreaming(false)
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(), role: 'assistant', content: `Error: ${error}`,
-          tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
-        }])
-      },
-      (data) => appIframeRef.current?.sendLevelUpMessage({ ...data, type: 'scenario_event' }),
-      (data) => appIframeRef.current?.sendLevelUpMessage({ ...data, type: 'scenario_end' }),
-      (data) => appIframeRef.current?.sendLevelUpMessage({ ...data, type: 'levelup_state_update' }),
-    )
-  }
-
-  async function handleSliderChanged(correlationId: string, field: string, value: number) {
-    const conversationId = activeConversation
-    if (!conversationId) return
-
-    await api.sendLevelUpAction(
-      conversationId,
-      { action_type: 'slider_changed', field, value, correlation_id: correlationId },
-      () => {},
-      () => {},
-      (error) => {
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(), role: 'assistant', content: `Error: ${error}`,
-          tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
-        }])
-      },
-      (data) => appIframeRef.current?.sendLevelUpMessage({ ...data, type: 'scenario_event' }),
-      (data) => appIframeRef.current?.sendLevelUpMessage({ ...data, type: 'scenario_end' }),
-      (data) => appIframeRef.current?.sendLevelUpMessage({ ...data, type: 'levelup_state_update' }),
-    )
-  }
-
   const visibleMessages = messages.filter(m => m.role !== 'system')
 
   // ============================================================
@@ -401,21 +299,7 @@ export default function ChatPage() {
               appIframeRef.current.invokeTool('restore_state', pendingRestore).catch(() => {})
               setPendingRestore(null)
             }
-            // Level Up Life: send scenario list when iframe is ready
-            if (activeApp.appId === 'life-skills' && appIframeRef.current) {
-              api.getLevelUpScenarios().then(({ tier, scenarios }) => {
-                appIframeRef.current?.sendLevelUpMessage({
-                  type: 'scenario_start',
-                  correlationId: '',
-                  tier,
-                  scenarios,
-                })
-              }).catch(() => {})
-            }
           }}
-          onScenarioSelected={handleScenarioSelected}
-          onChoiceMade={handleChoiceMade}
-          onSliderChanged={handleSliderChanged}
           onStateUpdate={(data) => {
             if (data.type === 'inappropriate_search') {
               fetch('/api/teacher/flags', {

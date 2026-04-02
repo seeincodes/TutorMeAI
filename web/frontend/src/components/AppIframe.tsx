@@ -3,8 +3,6 @@ import {
   type AppMessage,
   type PlatformMessage,
   isAppMessage,
-  isLevelUpAppMessage,
-  type LevelUpAppMessage,
   createCorrelationId,
 } from '@/lib/postMessage'
 
@@ -25,14 +23,10 @@ interface AppIframeProps {
   onError?: (error: string) => void
   onStateUpdate?: (data: Record<string, unknown>) => void
   onReady?: () => void
-  onScenarioSelected?: (scenarioId: string, tier: number) => void
-  onChoiceMade?: (correlationId: string, choiceId: string, value?: number) => void
-  onSliderChanged?: (correlationId: string, field: string, value: number) => void
 }
 
 export type AppIframeHandle = {
   invokeTool: (tool: string, params: Record<string, unknown>) => Promise<Record<string, unknown>>
-  sendLevelUpMessage: (msg: Record<string, unknown>) => void
 }
 
 const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe({
@@ -43,9 +37,6 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
   onError,
   onStateUpdate,
   onReady,
-  onScenarioSelected,
-  onChoiceMade,
-  onSliderChanged,
 }, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [ready, setReady] = useState(false)
@@ -59,23 +50,6 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
       // Origin is "null" for sandboxed iframes without allow-same-origin
       // We validate by checking the message structure instead
       const msg = event.data
-
-      // Handle Level Up Life messages from iframe
-      if (isLevelUpAppMessage(msg)) {
-        const luMsg = msg as LevelUpAppMessage
-        switch (luMsg.type) {
-          case 'scenario_selected':
-            onScenarioSelected?.(luMsg.scenarioId, 0) // tier derived server-side
-            break
-          case 'choice_made':
-            onChoiceMade?.(luMsg.correlationId, luMsg.choiceId, undefined)
-            break
-          case 'slider_changed':
-            onSliderChanged?.(luMsg.correlationId, luMsg.sliderId, luMsg.value)
-            break
-        }
-        return
-      }
 
       if (!isAppMessage(msg)) return
 
@@ -123,7 +97,7 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
           break
       }
     },
-    [onToolResult, onCompletion, onError, onStateUpdate, onReady, onScenarioSelected, onChoiceMade, onSliderChanged],
+    [onToolResult, onCompletion, onError, onStateUpdate, onReady],
   )
 
   useEffect(() => {
@@ -181,15 +155,7 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
     [ready, onError],
   )
 
-  const sendLevelUpMessage = useCallback(
-    (msg: Record<string, unknown>) => {
-      if (!iframeRef.current?.contentWindow) return
-      iframeRef.current.contentWindow.postMessage(msg, '*')
-    },
-    [],
-  )
-
-  useImperativeHandle(ref, () => ({ invokeTool, sendLevelUpMessage }), [invokeTool, sendLevelUpMessage])
+  useImperativeHandle(ref, () => ({ invokeTool }), [invokeTool])
 
   function handleRetry() {
     setError(null)
