@@ -15,6 +15,7 @@ from app.config import settings
 from app.conversations.router import router as conversations_router
 from app.oauth.router import router as oauth_router
 from app.teacher.router import router as teacher_router
+from app.classroom.router import router as classroom_router
 
 limiter = Limiter(key_func=get_remote_address, enabled=not os.environ.get("TESTING"))
 
@@ -96,7 +97,7 @@ _apps_dirs = {
     "weather": Path(__file__).parent.parent.parent.parent / "apps" / "weather" / "dist",
     "flashcards": Path(__file__).parent.parent.parent.parent / "apps" / "flashcards" / "dist",
     "life-skills": Path(__file__).parent.parent.parent.parent / "apps" / "life-skills" / "dist",
-    "spotify": Path(__file__).parent.parent.parent.parent / "apps" / "spotify" / "dist",
+    "google-classroom": Path(__file__).parent.parent.parent.parent / "apps" / "google-classroom" / "dist",
 }
 
 # Mount app static dirs

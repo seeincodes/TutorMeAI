@@ -37,7 +37,7 @@ async def _setup():
             async with sf() as s:
                 for u, p, r, d in [("admin","admin123","admin","Admin"),("teacher1","teacher123","teacher","Teacher One"),("student1","student123","student","Student One"),("student2","student234","student","Student Two")]:
                     s.add(User(username=u, password_hash=hash_password(p), display_name=d, role=r, grade=5 if r=="student" else None, allowed_levels=["K-2","3-5"] if r=="student" else None))
-                for aid, n in [("chess","Chess"),("calculator","Math Calculator"),("dictionary","Dictionary"),("weather","Weather"),("flashcards","Flashcard Quiz"),("life-skills","Life Skills"),("spotify","Spotify")]:
+                for aid, n in [("chess","Chess"),("calculator","Math Calculator"),("dictionary","Dictionary"),("weather","Weather"),("flashcards","Flashcard Quiz"),("life-skills","Life Skills")]:
                     s.add(AppRegistration(app_id=aid, name=n, description=f"{n} app", auth_type="none", iframe_url=f"/apps/{aid}/index.html", tool_schemas=[{"name":"test","description":"Test","parameters":[]}], status="active", is_active=True))
                 s.add(AppRegistration(
                     app_id="google-classroom", name="Google Classroom",
@@ -52,7 +52,7 @@ async def _setup():
                         "redirect_uri_env_var": "GOOGLE_REDIRECT_URI",
                         "scopes": ["https://www.googleapis.com/auth/classroom.courses.readonly"],
                     },
-                    status="active", is_active=True,
+                    status="active", is_active=True, platform_status="allowed",
                 ))
                 await s.commit()
 
