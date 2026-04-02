@@ -14,8 +14,8 @@ export interface ChoiceOption {
   id: string;
   label: string;
   icon: string;
-  cost?: number;
-  effect?: string;
+  cost?: number | null;
+  effect?: string | null;
 }
 
 export interface VisualUpdate {
@@ -55,4 +55,27 @@ export interface SimulationState {
     visualUpdate: VisualUpdate;
   } | null;
   decisions: DecisionRecord[];
+  eventIndex: number;
+}
+
+// Full scenario seed (matches backend JSON schema)
+export interface EventTemplate {
+  description: string;
+  event_type: string;
+  choices?: ChoiceOption[];
+}
+
+export interface ScenarioSeed {
+  id: string;
+  title: string;
+  tier: number;
+  domain: string;
+  icon: string;
+  learning_objectives: string[];
+  initial_state: Record<string, unknown>;
+  events: EventTemplate[];
+  recap_template: string;
+  positive_framing_rules: string[];
+  ai_variation_allowed: string[];
+  max_turns: number;
 }

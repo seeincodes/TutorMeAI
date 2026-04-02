@@ -1,194 +1,194 @@
-import { useState, useEffect, useCallback } from 'react';
-import {
-  Screen,
-  Tier,
-  ScenarioInfo,
-  SimulationState,
-  RecapSummary,
-  ChoiceOption,
-  VisualUpdate,
-} from './types';
-import ScenarioPickerScreen from './components/ScenarioPickerScreen';
-import SimulationScreen from './components/SimulationScreen';
-import RecapScreen from './components/RecapScreen';
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import type {
+  Screen, Tier, Domain, ScenarioInfo, SimulationState, RecapSummary,
+  DecisionRecord, ScenarioSeed, ChoiceOption,
+} from './types'
+import ScenarioPickerScreen from './components/ScenarioPickerScreen'
+import SimulationScreen from './components/SimulationScreen'
+import RecapScreen from './components/RecapScreen'
+import allScenarios from './data/scenarios'
 
-function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
-  window.parent.postMessage({ type, correlationId, data }, '*');
+/** Derive tier from the ?grade= query param, default tier 2. */
+function getTierFromUrl(): Tier {
+  const params = new URLSearchParams(window.location.search)
+  const grade = parseInt(params.get('grade') || '', 10)
+  if (isNaN(grade)) return 2
+  if (grade <= 1) return 1
+  if (grade <= 4) return 2
+  if (grade <= 6) return 3
+  return 4
 }
 
 export default function LevelUpLifeApp() {
-  const [screen, setScreen] = useState<Screen>('picker');
-  const [tier, setTier] = useState<Tier>(1);
-  const [scenarios, setScenarios] = useState<ScenarioInfo[]>([]);
-  const [simulation, setSimulation] = useState<SimulationState | null>(null);
-  const [recap, setRecap] = useState<RecapSummary | null>(null);
+  const tier = useMemo<Tier>(getTierFromUrl, [])
+  const [screen, setScreen] = useState<Screen>('picker')
+  const [activeScenario, setActiveScenario] = useState<ScenarioSeed | null>(null)
+  const [sim, setSim] = useState<SimulationState | null>(null)
+  const [recap, setRecap] = useState<RecapSummary | null>(null)
 
-  // Send ui_ready on mount
+  // Tell parent we're loaded
   useEffect(() => {
-    sendToPlatform('ui_ready', '', {});
-  }, []);
+    window.parent.postMessage({ type: 'ui_ready' }, '*')
+  }, [])
 
-  const handleScenarioSelected = useCallback(
-    (scenarioId: string) => {
-      sendToPlatform('scenario_selected', '', { scenarioId, tier });
-    },
-    [tier]
-  );
+  // Filter scenarios for this tier
+  const scenarios: ScenarioInfo[] = useMemo(() =>
+    allScenarios
+      .filter(s => s.tier === tier)
+      .map(s => ({
+        id: s.id,
+        title: s.title,
+        domain: s.domain as Domain,
+        icon: s.icon,
+        description: s.learning_objectives[0] || s.title,
+      })),
+    [tier],
+  )
 
-  const handleChoiceMade = useCallback(
-    (choiceId: string) => {
-      const correlationId = simulation?.scenarioId || '';
-      sendToPlatform('choice_made', correlationId, { choiceId });
-    },
-    [simulation]
-  );
+  const handleSelectScenario = useCallback((scenarioId: string) => {
+    const seed = allScenarios.find(s => s.id === scenarioId)
+    if (!seed) return
+
+    setActiveScenario(seed)
+    const firstEvent = seed.events[0]
+    const balance = (seed.initial_state.wallet as number) ?? 0
+
+    setSim({
+      tier,
+      scenarioId: seed.id,
+      scenarioTitle: seed.title,
+      domain: seed.domain as Domain,
+      balance,
+      items: [],
+      progress: 0,
+      currentEvent: firstEvent ? {
+        eventType: firstEvent.event_type as 'choice' | 'info' | 'surprise',
+        description: firstEvent.description,
+        choices: firstEvent.choices as ChoiceOption[] | undefined,
+        visualUpdate: { scene: seed.id, balance },
+      } : null,
+      decisions: [],
+      eventIndex: 0,
+    })
+    setScreen('simulation')
+  }, [tier])
+
+  const handleChoice = useCallback((choiceId: string) => {
+    if (!sim || !activeScenario) return
+
+    const currentEvent = activeScenario.events[sim.eventIndex]
+    const choice = currentEvent?.choices?.find(c => c.id === choiceId)
+    if (!choice) return
+
+    // Apply cost
+    const cost = choice.cost ?? 0
+    const newBalance = sim.balance - cost
+    const newItems = choice.effect
+      ? [...sim.items, choice.label]
+      : sim.items
+
+    // Record decision
+    const decision: DecisionRecord = {
+      turn: sim.eventIndex + 1,
+      choice: choice.label,
+      outcome: choice.effect || 'Done!',
+    }
+    const newDecisions = [...sim.decisions, decision]
+
+    // Advance to next event
+    const nextIndex = sim.eventIndex + 1
+    const nextEvent = activeScenario.events[nextIndex]
+    const totalEvents = activeScenario.events.length
+    const progress = Math.round(((nextIndex) / totalEvents) * 100)
+
+    if (!nextEvent) {
+      // Scenario complete — show effect briefly then go to recap
+      setSim(prev => prev ? {
+        ...prev,
+        balance: newBalance,
+        items: newItems,
+        decisions: newDecisions,
+        progress: 100,
+        currentEvent: {
+          eventType: 'info',
+          description: choice.effect || 'Great job!',
+          choices: undefined,
+          visualUpdate: { scene: activeScenario.id, balance: newBalance, progress: 100 },
+        },
+        eventIndex: nextIndex,
+      } : prev)
+
+      // After a brief pause, show recap
+      setTimeout(() => {
+        setRecap({
+          domain: activeScenario.domain,
+          scenarioTitle: activeScenario.title,
+          decisions: newDecisions,
+          takeaway: activeScenario.recap_template
+            .replace('{choices}', newDecisions.map(d => d.choice).join(', '))
+            .replace('{balance}', String(newBalance))
+            .replace('{initial_balance}', String(activeScenario.initial_state.wallet ?? 0)),
+          illustration: activeScenario.icon,
+        })
+        setScreen('recap')
+      }, 1500)
+    } else {
+      // Show effect of current choice briefly, then advance
+      setSim(prev => prev ? {
+        ...prev,
+        balance: newBalance,
+        items: newItems,
+        decisions: newDecisions,
+        progress,
+        currentEvent: {
+          eventType: 'info',
+          description: choice.effect || 'Nice choice!',
+          choices: undefined,
+          visualUpdate: { scene: activeScenario.id, balance: newBalance, progress },
+        },
+        eventIndex: nextIndex,
+      } : prev)
+
+      // After brief pause, show next event
+      setTimeout(() => {
+        setSim(prev => prev ? {
+          ...prev,
+          currentEvent: {
+            eventType: nextEvent.event_type as 'choice' | 'info' | 'surprise',
+            description: nextEvent.description,
+            choices: nextEvent.choices as ChoiceOption[] | undefined,
+            visualUpdate: { scene: activeScenario.id, balance: newBalance, progress },
+          },
+        } : prev)
+      }, 1200)
+    }
+  }, [sim, activeScenario])
 
   const handleRestart = useCallback(() => {
-    setScreen('picker');
-    setSimulation(null);
-    setRecap(null);
-    sendToPlatform('ui_ready', '', {});
-  }, []);
-
-  // Message router
-  useEffect(() => {
-    function handleMessage(event: MessageEvent) {
-      const msg = event.data;
-      if (!msg || typeof msg.type !== 'string') return;
-
-      switch (msg.type) {
-        case 'scenario_start': {
-          const { tier: msgTier, scenarios: msgScenarios } = msg;
-          setTier(msgTier || 1);
-          setScenarios(msgScenarios || []);
-          setScreen('picker');
-          setSimulation(null);
-          setRecap(null);
-          break;
-        }
-
-        case 'scenario_event': {
-          const {
-            correlationId,
-            eventType,
-            description,
-            choices,
-            visualUpdate,
-          } = msg as {
-            correlationId: string;
-            eventType: 'choice' | 'info' | 'surprise';
-            description: string;
-            choices?: ChoiceOption[];
-            visualUpdate: VisualUpdate;
-          };
-
-          setSimulation((prev) => {
-            const base = prev || {
-              tier,
-              scenarioId: correlationId,
-              scenarioTitle: '',
-              domain: 'money' as const,
-              balance: 0,
-              items: [],
-              progress: 0,
-              currentEvent: null,
-              decisions: [],
-            };
-            return {
-              ...base,
-              balance: visualUpdate.balance ?? base.balance,
-              items: visualUpdate.items ?? base.items,
-              progress: visualUpdate.progress ?? base.progress,
-              currentEvent: {
-                eventType,
-                description,
-                choices,
-                visualUpdate,
-              },
-            };
-          });
-          setScreen('simulation');
-          break;
-        }
-
-        case 'state_update': {
-          const { balance, items, progress } = msg as {
-            balance?: number;
-            items?: string[];
-            progress?: number;
-          };
-          setSimulation((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              balance: balance ?? prev.balance,
-              items: items ?? prev.items,
-              progress: progress ?? prev.progress,
-            };
-          });
-          break;
-        }
-
-        case 'scenario_end': {
-          const { summary } = msg as { summary: RecapSummary };
-          setRecap(summary);
-          setScreen('recap');
-          break;
-        }
-
-        // Legacy backward compat
-        case 'tool_invoke': {
-          const { correlationId, tool } = msg as {
-            correlationId: string;
-            tool: string;
-          };
-          if (tool === 'restore_state') {
-            sendToPlatform('tool_result', correlationId, {
-              tool: 'restore_state',
-              message: 'Restored',
-            });
-          } else {
-            sendToPlatform('tool_result', correlationId, {
-              tool,
-              message: 'Use Level Up Life scenario picker',
-            });
-          }
-          break;
-        }
-
-        default:
-          break;
-      }
-    }
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [tier]);
+    setScreen('picker')
+    setActiveScenario(null)
+    setSim(null)
+    setRecap(null)
+  }, [])
 
   return (
-    <div
-      style={{
-        maxWidth: '480px',
-        width: '100%',
-        margin: '0 auto',
-        fontFamily: 'system-ui, sans-serif',
-        minHeight: '100vh',
-        background: '#fafafa',
-      }}
-    >
+    <div style={{
+      maxWidth: 480, width: '100%', margin: '0 auto', padding: 16,
+      fontFamily: 'system-ui, sans-serif', minHeight: '100vh', background: '#fafafa',
+    }}>
       {screen === 'picker' && (
         <ScenarioPickerScreen
           scenarios={scenarios}
           tier={tier}
-          onSelect={handleScenarioSelected}
+          onSelect={handleSelectScenario}
         />
       )}
-      {screen === 'simulation' && simulation && (
-        <SimulationScreen state={simulation} onChoose={handleChoiceMade} />
+      {screen === 'simulation' && sim && (
+        <SimulationScreen state={sim} onChoose={handleChoice} />
       )}
       {screen === 'recap' && recap && (
         <RecapScreen summary={recap} tier={tier} onRestart={handleRestart} />
       )}
     </div>
-  );
+  )
 }
