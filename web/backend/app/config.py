@@ -22,10 +22,10 @@ class Settings(BaseSettings):
     # External APIs
     openweathermap_api_key: str = ""
 
-    # Spotify OAuth
-    spotify_client_id: str = ""
-    spotify_client_secret: str = ""
-    spotify_redirect_uri: str = ""
+    # Google Classroom OAuth
+    google_classroom_client_id: str = ""
+    google_classroom_client_secret: str = ""
+    google_classroom_redirect_uri: str = ""
 
     # OAuth Token Encryption
     oauth_encryption_key: str = ""
