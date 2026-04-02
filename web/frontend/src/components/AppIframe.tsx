@@ -245,7 +245,7 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
       <iframe
         ref={iframeRef}
         src={iframeUrl}
-        sandbox="allow-scripts allow-same-origin"
+        sandbox="allow-scripts allow-same-origin allow-forms"
         title={`${appId} app`}
         className="flex-1 border-0"
         style={{ width: '100%', minHeight: '300px' }}
