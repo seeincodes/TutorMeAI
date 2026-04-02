@@ -39,6 +39,21 @@ async def _setup():
                     s.add(User(username=u, password_hash=hash_password(p), display_name=d, role=r, grade=5 if r=="student" else None, allowed_levels=["K-2","3-5"] if r=="student" else None))
                 for aid, n in [("chess","Chess"),("calculator","Math Calculator"),("dictionary","Dictionary"),("weather","Weather"),("flashcards","Flashcard Quiz"),("life-skills","Life Skills"),("spotify","Spotify")]:
                     s.add(AppRegistration(app_id=aid, name=n, description=f"{n} app", auth_type="none", iframe_url=f"/apps/{aid}/index.html", tool_schemas=[{"name":"test","description":"Test","parameters":[]}], status="active", is_active=True))
+                s.add(AppRegistration(
+                    app_id="google-classroom", name="Google Classroom",
+                    description="Google Classroom integration", auth_type="oauth2",
+                    iframe_url="/apps/google-classroom/index.html",
+                    tool_schemas=[{"name":"test","description":"Test","parameters":[]}],
+                    oauth_config={
+                        "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+                        "token_url": "https://oauth2.googleapis.com/token",
+                        "client_id_env_var": "GOOGLE_CLIENT_ID",
+                        "client_secret_env_var": "GOOGLE_CLIENT_SECRET",
+                        "redirect_uri_env_var": "GOOGLE_REDIRECT_URI",
+                        "scopes": ["https://www.googleapis.com/auth/classroom.courses.readonly"],
+                    },
+                    status="active", is_active=True,
+                ))
                 await s.commit()
 
         _initialized = True
