@@ -1,0 +1,90 @@
+[
+  {
+    "id": "tier4_gap_year",
+    "title": "Plan Your Gap Year",
+    "tier": 4,
+    "domain": "combo",
+    "icon": "🌍",
+    "learning_objectives": [
+      "Build a travel budget with multiple currencies and costs",
+      "Plan an itinerary with time zones and logistics",
+      "Research nutrition and food safety in different regions",
+      "Navigate cultural sensitivity and risk management"
+    ],
+    "initial_state": {
+      "wallet": 8000,
+      "currency": "dollars",
+      "months": 6,
+      "destinations": [],
+      "skills": ["budgeting", "planning", "cooking", "communication"]
+    },
+    "events": [
+      {
+        "description": "You've saved $8,000 for a 6-month gap year! Rough costs: Southeast Asia ($800-1200/month), Europe ($1500-2500/month), South America ($1000-1500/month). You can mix regions. How do you plan your route?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "budget_stretch", "label": "4 months SE Asia + 2 months S. America (~$7,200)", "icon": "🌏", "cost": null, "effect": "Maximum time abroad! Lower-cost regions let you travel longer. $800 buffer for emergencies."},
+          {"id": "mixed_route", "label": "2 months each: SE Asia, S. America, Europe (~$8,000)", "icon": "🗺️", "cost": null, "effect": "Three continents! Tight budget but incredible diversity of experiences. Every dollar is planned."},
+          {"id": "deep_dive", "label": "6 months in one region — deep cultural immersion", "icon": "🏡", "cost": null, "effect": "Deep over wide! Six months in one place means learning the language, building relationships, and truly understanding a culture."}
+        ]
+      },
+      {
+        "description": "Time planning: visa processing takes 2-4 weeks, flights are cheaper booked 6-8 weeks ahead, and some regions have monsoon/extreme weather seasons. Your trip starts in 3 months. What do you plan first?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "visa_first", "label": "Visa applications — longest lead time", "icon": "🛂", "cost": null, "effect": "Critical path thinking! Visas can take 4 weeks and have limited appointment slots. Starting here prevents costly last-minute expediting."},
+          {"id": "season_check", "label": "Check weather seasons — adjust route timing", "icon": "🌧️", "cost": null, "effect": "Smart! Arriving during monsoon season means rain every day. Shifting your Thailand visit by 6 weeks changes the entire experience."},
+          {"id": "flight_deals", "label": "Search flights now — prices go up every week", "icon": "✈️", "cost": null, "effect": "Price-sensitive planning! You find a multi-city ticket for $900 instead of $1,400 for separate flights. $500 saved!"}
+        ]
+      },
+      {
+        "description": "Health and nutrition abroad: you'll be eating street food, cooking in hostels, and navigating unfamiliar cuisines. Some regions have different food safety standards. How do you prepare?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "research_food", "label": "Research safe street food practices + get travel vaccinations", "icon": "💉", "cost": null, "effect": "Preparation! Eat where locals eat (high turnover = fresh food), avoid ice in tap-water regions, get Hepatitis A and typhoid vaccines. Knowledge protects you."},
+          {"id": "learn_cooking", "label": "Learn 5 simple recipes you can make anywhere with local ingredients", "icon": "👨‍🍳", "cost": null, "effect": "Self-sufficiency! Rice dishes, simple stir-fries, and egg-based meals work in almost every country. Cooking in hostels saves $10-15/day."},
+          {"id": "dietary_plan", "label": "Research local nutrition — what foods provide what you need in each region", "icon": "🥗", "cost": null, "effect": "Nutritional mapping! Southeast Asian food is rich in vegetables and rice, South American food emphasizes beans and corn. Each region has balanced options."}
+        ]
+      },
+      {
+        "description": "Cultural scenario: you're staying with a local family and they invite you to a religious ceremony. You're unfamiliar with the customs. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "ask_respectfully", "label": "Ask your host to explain customs and proper behavior", "icon": "🙏", "cost": null, "effect": "Asking shows respect, not ignorance! Your host is happy to explain. You learn about dress code, etiquette, and the ceremony's meaning."},
+          {"id": "observe_first", "label": "Watch and follow what others do before participating", "icon": "👀", "cost": null, "effect": "Observational learning! You watch the respectful behaviors, match the dress code, and follow along. Your host notices your effort and appreciates it."},
+          {"id": "research_ahead", "label": "You already researched local customs before arriving", "icon": "📚", "cost": null, "effect": "Proactive cultural preparation! You read about common ceremonies in this region. When the invitation came, you already knew the basics."}
+        ]
+      },
+      {
+        "description": "Month 4: your budget is running lower than expected. You have $2,500 for 2 remaining months. That's tight. What adjustments do you make?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "work_exchange", "label": "Find a work-exchange: 4 hours of work for free accommodation", "icon": "🏨", "cost": null, "effect": "Work-exchanges (hostels, farms, language teaching) eliminate your biggest expense! $2,500 for food and activities is plenty."},
+          {"id": "cheaper_region", "label": "Switch remaining travel to the cheapest region available", "icon": "💰", "cost": null, "effect": "Budget pivot! Moving to a lower-cost country stretches your remaining money. $1,000/month is comfortable in many Southeast Asian countries."},
+          {"id": "shorten_trip", "label": "Come home 2 weeks early and use saved money for re-entry costs", "icon": "🏠", "cost": null, "effect": "Practical! Returning early means you're not stressed about money for the last month. Plus you have transition funds for coming home."}
+        ]
+      },
+      {
+        "description": "You're home! Reflecting on 6 months of travel. What was the most valuable thing you gained?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "independence", "label": "I can handle anything — I navigated a foreign country alone", "icon": "💪", "cost": null, "effect": "Self-reliance and confidence! If you can figure out a bus system in a language you don't speak, you can handle anything back home."},
+          {"id": "perspective", "label": "I see the world differently — my problems feel smaller now", "icon": "🌍", "cost": null, "effect": "Perspective is priceless! Meeting people from different backgrounds reshapes how you see your own life, opportunities, and challenges."},
+          {"id": "practical_skills", "label": "Budgeting, cooking, planning, communicating — I level up'd everything", "icon": "📈", "cost": null, "effect": "Every life skill in one adventure! You budgeted across currencies, cooked with unfamiliar ingredients, planned logistics, and communicated across cultures."}
+        ]
+      }
+    ],
+    "recap_template": "You planned and executed a gap year! You managed an international budget, planned across time zones and seasons, navigated food and health in new regions, and practiced cultural sensitivity. That's every life skill domain combined into one unforgettable experience.",
+    "positive_framing_rules": [
+      "Never suggest travel is irresponsible or a waste of time",
+      "Frame budget challenges as problem-solving opportunities",
+      "Celebrate cultural curiosity and respect"
+    ],
+    "ai_variation_allowed": [
+      "Change the destinations and budget",
+      "Vary the cultural scenarios",
+      "Add different travel challenges and opportunities"
+    ],
+    "max_turns": 20
+  }
+]

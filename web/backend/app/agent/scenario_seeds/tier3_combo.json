@@ -1,0 +1,81 @@
+[
+  {
+    "id": "tier3_school_fair_booth",
+    "title": "Run a School Fair Booth",
+    "tier": 3,
+    "domain": "combo",
+    "icon": "🎪",
+    "learning_objectives": [
+      "Budget for booth supplies and inventory",
+      "Schedule shifts for team members",
+      "Plan a snack menu with energy-giving options",
+      "Make team decisions and handle customer interactions"
+    ],
+    "initial_state": {
+      "wallet": 100,
+      "currency": "dollars",
+      "team_size": 5,
+      "hours": 6,
+      "location": "school fair"
+    },
+    "events": [
+      {
+        "description": "Your team is running a booth at the school fair! You have $100 and 6 hours. First, what kind of booth? Each option has different costs and earning potential.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "food_booth", "label": "Snack booth — fruit cups + lemonade ($60 supplies, high demand)", "icon": "🍋", "cost": 60, "effect": "Food always sells! $60 invested, high earning potential. $40 left for other needs."},
+          {"id": "game_booth", "label": "Game booth — ring toss + prizes ($45 supplies, steady demand)", "icon": "🎯", "cost": 45, "effect": "Games attract a crowd! $45 in supplies, $55 left. Prizes cost less than food."},
+          {"id": "combo_booth", "label": "Games + small snacks ($80 supplies, highest potential)", "icon": "🎯🍋", "cost": 80, "effect": "Double the fun! More setup but more ways to earn. $20 left for emergencies."}
+        ]
+      },
+      {
+        "description": "Time to schedule 6 hours of shifts for your 5 team members. Everyone needs at least one break. Two people at the booth at all times. How do you organize it?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "rotating_pairs", "label": "Rotating pairs — everyone works 3 hours with breaks", "icon": "🔄", "cost": null, "effect": "Fair rotation! Everyone works the same amount and gets breaks."},
+          {"id": "skill_based", "label": "Match people to roles — cashier, server, promoter", "icon": "👥", "cost": null, "effect": "Specialized roles! The outgoing person promotes, the organized one handles money."},
+          {"id": "flexible", "label": "Flexible sign-up — people pick their preferred hours", "icon": "📋", "cost": null, "effect": "People work when they're most available! Some flexibility needed for gaps."}
+        ]
+      },
+      {
+        "description": "Midway through the fair, you're running low on supplies. You've earned $75 so far. The supply store nearby has what you need for $25. But a teammate wants to use the $25 to buy prizes for a raffle.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "restock", "label": "Restock supplies — keep earning", "icon": "📦", "cost": 25, "effect": "Smart reinvestment! You restock and earn another $50 by the end of the fair."},
+          {"id": "raffle", "label": "Raffle — one big draw at the end", "icon": "🎟️", "cost": 25, "effect": "The raffle creates excitement! People buy tickets and it draws a crowd."},
+          {"id": "split_budget", "label": "Split — $15 restock, $10 raffle prizes", "icon": "⚖️", "cost": 25, "effect": "A balanced approach! Partial restock AND a smaller raffle. Both strategies in play!"}
+        ]
+      },
+      {
+        "description": "A parent complains that the prices are too high. A younger kid is upset because they didn't win a prize. Two situations at once! How does your team handle it?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "delegate", "label": "You handle the parent, teammate helps the kid", "icon": "🤝", "cost": null, "effect": "Team delegation! You calmly explain pricing while your teammate gives the kid a participation sticker."},
+          {"id": "discount_consolation", "label": "Offer a small discount + a 'try again free' coupon", "icon": "🎫", "cost": null, "effect": "Customer service! The parent feels heard and the kid gets another chance. Both leave happy."},
+          {"id": "team_huddle", "label": "Quick team huddle — decide together", "icon": "🏈", "cost": null, "effect": "30-second team meeting! You agree on a response and everyone's on the same page."}
+        ]
+      },
+      {
+        "description": "Fair's over! Time to count earnings and split any profits. Your team earned $150 total, spent $100 on supplies. That's $50 profit for 5 people.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "equal_split", "label": "Split equally — $10 each", "icon": "💰", "cost": null, "effect": "Fair and simple! Everyone gets $10 for their hard work."},
+          {"id": "donate", "label": "Donate profits to a school cause", "icon": "🎁", "cost": null, "effect": "The team votes to donate! The school thanks you and everyone feels great about giving back."},
+          {"id": "reinvest", "label": "Save it for the next school event booth", "icon": "🐷", "cost": null, "effect": "Reinvesting! Next time you'll start with $50 and need less startup money."}
+        ]
+      }
+    ],
+    "recap_template": "You ran a school fair booth from start to finish! You managed money, scheduled a team, served customers, and handled surprises. That's real-world leadership across all four life skills!",
+    "positive_framing_rules": [
+      "Never say the booth was unsuccessful or poorly managed",
+      "Frame customer complaints as learning opportunities",
+      "Celebrate teamwork and adaptability"
+    ],
+    "ai_variation_allowed": [
+      "Change the booth type",
+      "Vary the customer scenarios",
+      "Add weather or supply challenges"
+    ],
+    "max_turns": 18
+  }
+]

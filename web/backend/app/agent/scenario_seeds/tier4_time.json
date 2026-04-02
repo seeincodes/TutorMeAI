@@ -1,0 +1,232 @@
+[
+  {
+    "id": "tier4_project_deadline_manager",
+    "title": "Project Deadline Manager",
+    "tier": 4,
+    "domain": "time",
+    "icon": "📊",
+    "learning_objectives": [
+      "Manage a multi-week project with dependencies",
+      "Identify critical path and milestones",
+      "Handle delays and scope changes",
+      "Communicate timeline updates to stakeholders"
+    ],
+    "initial_state": {
+      "project": "school newspaper launch",
+      "weeks": 6,
+      "team_size": 8,
+      "tasks": 12,
+      "dependencies": true
+    },
+    "events": [
+      {
+        "description": "You're launching the school newspaper in 6 weeks. Tasks and dependencies: Content planning (Week 1) → Article writing (Weeks 2-3) → Editing (Week 4) → Layout design (Week 5) → Printing (Week 6). Meanwhile, ad sales (Weeks 1-3) and photography (Weeks 2-4) run in parallel. What's your critical path?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "content_to_print", "label": "Content → Writing → Editing → Layout → Print (the longest chain)", "icon": "🔗", "cost": null, "effect": "Correct! This chain has zero slack time. Any delay here delays the whole project."},
+          {"id": "all_critical", "label": "Everything is critical — no room for error", "icon": "⚠️", "cost": null, "effect": "Good caution, but parallel tasks (ads, photos) have some flexibility. The key chain is content through printing."},
+          {"id": "start_everything", "label": "Start all possible tasks immediately", "icon": "🚀", "cost": null, "effect": "Proactive! Starting parallel tasks early builds buffer time. Smart resource management."}
+        ]
+      },
+      {
+        "description": "Week 2: Two of your best writers have a school trip and will miss 3 days. That's 30% of the writing phase. How do you adjust?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "redistribute", "label": "Redistribute their articles to other writers", "icon": "📝", "cost": null, "effect": "Other writers take on 1-2 extra articles each. The writing deadline holds!"},
+          {"id": "extend_writing", "label": "Extend writing into Week 4, compress editing", "icon": "📅", "cost": null, "effect": "Writing gets 3 more days, editing is compressed. Tighter for editors but the critical path holds."},
+          {"id": "reduce_scope", "label": "Reduce from 20 articles to 16 — quality over quantity", "icon": "✂️", "cost": null, "effect": "Fewer articles but better ones! Scope reduction is a legitimate project management tool."}
+        ]
+      },
+      {
+        "description": "Week 4: The editing team finds that 5 articles need major rewrites. The layout designer says they need final articles by end of Week 5 or printing gets pushed. What's the plan?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "parallel_edit_layout", "label": "Start layout with finished articles, edit the 5 in parallel", "icon": "🔀", "cost": null, "effect": "11 articles go to layout now, 5 more slot in as they're finished. Parallel work saves the deadline!"},
+          {"id": "editing_sprint", "label": "Weekend editing sprint — all hands on the 5 articles", "icon": "⚡", "cost": null, "effect": "The team rallies! All 16 articles ready by Monday. Extra effort saves the timeline."},
+          {"id": "push_printing", "label": "Push printing back 3 days, communicate the delay", "icon": "📢", "cost": null, "effect": "Transparent communication! You inform the principal and adjust. Better a 3-day delay than a rushed product."}
+        ]
+      },
+      {
+        "description": "Week 5: The principal asks if you can add a 4-page special section on the upcoming science fair. That's scope creep — more pages means more layout time and higher printing costs. How do you handle it?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "negotiate_scope", "label": "Offer 2 pages now, full section in issue #2", "icon": "🤝", "cost": null, "effect": "Compromise! The principal gets coverage, you keep the timeline. Promise more in the next issue."},
+          {"id": "accept_delay", "label": "Accept it but request 1 extra week for launch", "icon": "📅", "cost": null, "effect": "Honest about the timeline impact! Adding scope means adding time. The principal agrees."},
+          {"id": "team_vote", "label": "Ask the team if they can handle it in the current timeline", "icon": "🗳️", "cost": null, "effect": "The team votes: 2 pages they can handle, 4 is too much. You counter-propose 2 pages to the principal."}
+        ]
+      },
+      {
+        "description": "Launch day! The newspaper is printed and ready for distribution. What did you learn about project management?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "critical_path", "label": "Critical path management keeps projects on track", "icon": "🔗", "cost": null, "effect": "The critical path concept saved you from panic when delays hit non-critical tasks."},
+          {"id": "communication", "label": "Communicating early about problems prevents bigger problems", "icon": "📢", "cost": null, "effect": "Transparency with stakeholders built trust and gave you room to adjust."},
+          {"id": "flexibility", "label": "Plans change — the skill is adjusting while keeping the goal", "icon": "🌊", "cost": null, "effect": "No project goes exactly to plan. Your ability to adapt is the real skill!"}
+        ]
+      }
+    ],
+    "recap_template": "You managed a complex project from planning to launch! You identified critical paths, handled delays, managed scope changes, and communicated with stakeholders. These are professional-level project management skills.",
+    "positive_framing_rules": [
+      "Never say the project is falling apart or at risk",
+      "Frame delays as normal project challenges with solutions",
+      "Celebrate leadership and communication"
+    ],
+    "ai_variation_allowed": [
+      "Change the project type",
+      "Vary the specific delays and challenges",
+      "Add different stakeholder dynamics"
+    ],
+    "max_turns": 18
+  },
+  {
+    "id": "tier4_college_app_timeline",
+    "title": "College App Timeline",
+    "tier": 4,
+    "domain": "time",
+    "icon": "🎓",
+    "learning_objectives": [
+      "Manage multiple long-term deadlines",
+      "Coordinate parallel application processes",
+      "Handle stress and prioritize self-care",
+      "Build backward from deadlines"
+    ],
+    "initial_state": {
+      "month": "September",
+      "applications": 6,
+      "deadlines": {"early_action": "November 1", "regular": "January 1", "scholarships": "December-February"},
+      "tasks": ["essays", "recommendations", "test_scores", "activities_list", "financial_aid"]
+    },
+    "events": [
+      {
+        "description": "It's September. You're applying to 6 schools: 2 early action (Nov 1 deadline), 4 regular decision (Jan 1). Each needs: essays, recommendations (ask 6 weeks ahead), test scores (sent 4 weeks ahead), activities list, and financial aid forms. How do you start?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "backward_plan", "label": "Work backward from Nov 1 — what needs to start NOW?", "icon": "⏪", "cost": null, "effect": "Backward planning! Recommendations need asking by Sept 20, test scores sent by Oct 1, essays drafted by Oct 15. Clear timeline!"},
+          {"id": "common_first", "label": "Start with tasks shared across all apps (activities list, common essay)", "icon": "📋", "cost": null, "effect": "Efficient! The common app essay and activities list work for all 6 schools. Do them once, use them everywhere."},
+          {"id": "priority_school", "label": "Focus on your top-choice school's early action first", "icon": "🌟", "cost": null, "effect": "Top choice gets your best energy! Once that's submitted, you can adapt materials for other schools."}
+        ]
+      },
+      {
+        "description": "October: You have 3 essays to write, SAT scores to send, and a teacher says they need 3 more weeks for your recommendation (pushing past Nov 1). Meanwhile, midterms are next week.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "ask_another_teacher", "label": "Ask a different teacher who can meet the deadline", "icon": "👩‍🏫", "cost": null, "effect": "New recommender, same quality! Sometimes backup plans are the best plans."},
+          {"id": "switch_to_regular", "label": "Move that school from early action to regular decision", "icon": "📅", "cost": null, "effect": "Strategic pivot! Regular decision gives the original teacher time. One less Nov 1 deadline reduces stress too."},
+          {"id": "polite_reminder", "label": "Send a polite reminder with the deadline", "icon": "📧", "cost": null, "effect": "The teacher apologizes and prioritizes yours! Sometimes a gentle nudge is all that's needed. Advocacy skills!"}
+        ]
+      },
+      {
+        "description": "November: Early action apps submitted! But now you have 4 regular decision apps, 3 scholarship deadlines (Dec 15, Jan 15, Feb 1), and the FAFSA (financial aid) due by Jan 1. Plus finals in December. How do you map the next 2 months?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "calendar_block", "label": "Block every deadline on a calendar, work backward from each", "icon": "📅", "cost": null, "effect": "Visual timeline! You can see exactly when crunch periods overlap and plan rest days around them."},
+          {"id": "batch_tasks", "label": "Batch similar tasks: all essays one week, all forms another", "icon": "📦", "cost": null, "effect": "Batching reduces context-switching! Essay brain one week, form brain the next."},
+          {"id": "weekly_goals", "label": "Set weekly goals with specific deliverables", "icon": "📊", "cost": null, "effect": "Week 1: 2 essays. Week 2: FAFSA + 1 scholarship. Week 3: finals study. Week 4: remaining apps. Clear and achievable!"}
+        ]
+      },
+      {
+        "description": "December crunch: finals AND application deadlines in the same 2-week window. You're feeling stretched. What's your self-care strategy?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "schedule_breaks", "label": "Schedule 30-minute breaks between work blocks", "icon": "☕", "cost": null, "effect": "Breaks prevent burnout! Research shows regular breaks improve both focus and output quality."},
+          {"id": "ask_help", "label": "Ask family/friends to help with smaller tasks (proofreading, form filling)", "icon": "🤝", "cost": null, "effect": "Delegating isn't weakness — it's smart management! Your parent proofreads while you focus on essays."},
+          {"id": "cut_perfection", "label": "Good enough is good enough — stop over-editing", "icon": "✅", "cost": null, "effect": "Perfectionism is the enemy of done! Your 4th revision is usually as good as your 10th."}
+        ]
+      },
+      {
+        "description": "January 2: Everything is submitted! Looking back at the last 4 months, what's your biggest takeaway about managing long-term timelines?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "start_early", "label": "Starting early gave me flexibility when surprises hit", "icon": "🏃", "cost": null, "effect": "Front-loading work creates buffer time. The recommendation delay didn't become a crisis because you started in September!"},
+          {"id": "systems", "label": "Having a system (calendar, checklists) kept me sane", "icon": "📋", "cost": null, "effect": "Systems beat willpower! When your brain is tired, the system keeps you on track."},
+          {"id": "self_care", "label": "Taking care of myself made the work better, not slower", "icon": "🧘", "cost": null, "effect": "Well-rested you produces better essays than burned-out you. Self-care is productivity!"}
+        ]
+      }
+    ],
+    "recap_template": "You managed 6 college applications across 4 months with overlapping deadlines! You built backward from deadlines, handled surprises, and maintained your well-being. These skills apply to any complex long-term project.",
+    "positive_framing_rules": [
+      "Never say the student is falling behind or stressed out",
+      "Frame busy periods as manageable with good planning",
+      "Celebrate self-advocacy and self-care as strengths"
+    ],
+    "ai_variation_allowed": [
+      "Change the number and types of schools",
+      "Vary the specific deadline conflicts",
+      "Add different support system scenarios"
+    ],
+    "max_turns": 18
+  },
+  {
+    "id": "tier4_work_life_balance",
+    "title": "Work-Life Balance Sim",
+    "tier": 4,
+    "domain": "time",
+    "icon": "⚖️",
+    "learning_objectives": [
+      "Balance part-time work with academics and social life",
+      "Recognize burnout signals and adjust",
+      "Make trade-offs across life domains",
+      "Set boundaries and communicate them"
+    ],
+    "initial_state": {
+      "hours_per_week": 168,
+      "school_hours": 35,
+      "sleep_hours": 56,
+      "available_hours": 77,
+      "work_hours": 0,
+      "study_hours": 0,
+      "social_hours": 0,
+      "self_care_hours": 0
+    },
+    "events": [
+      {
+        "description": "You're a junior with 77 hours/week after school and sleep. Your part-time job wants 15-20 hours, you need ~15 hours for homework/study, and you want time for friends, hobbies, and yourself. How do you allocate your 77 hours?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "balanced", "label": "Work 15hr + Study 15hr + Social 10hr + Self-care 7hr = 47hr (30 flex)", "icon": "⚖️", "cost": null, "effect": "Balanced with 30 hours of flex time for meals, commuting, and spontaneous things. Sustainable!"},
+          {"id": "work_heavy", "label": "Work 20hr + Study 15hr + Social 5hr + Self-care 5hr = 45hr (32 flex)", "icon": "💼", "cost": null, "effect": "More money but less social and self-care time. The question is: can you sustain this for months?"},
+          {"id": "study_heavy", "label": "Work 12hr + Study 20hr + Social 8hr + Self-care 7hr = 47hr (30 flex)", "icon": "📚", "cost": null, "effect": "Academic focus! Less income but your GPA will thank you. Depends on your priorities."}
+        ]
+      },
+      {
+        "description": "Month 2: Your boss asks you to pick up extra shifts (5 more hours/week). Your grades are good and you could use the money. But your friend says you've been distant lately. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "decline_shifts", "label": "Decline — your current balance is working", "icon": "🛑", "cost": null, "effect": "Setting boundaries! 'No' is a complete sentence. Your boss understands and respects it."},
+          {"id": "temporary", "label": "Take them for 3 weeks only (holiday rush)", "icon": "📅", "cost": null, "effect": "Temporary commitment with a clear end date. You earn extra and your friend knows it's short-term."},
+          {"id": "trade_off", "label": "Accept but reduce study time — adjust grades expectation", "icon": "🔄", "cost": null, "effect": "Conscious trade-off! You accepted lower grades for higher income this month. As long as it's intentional, not accidental."}
+        ]
+      },
+      {
+        "description": "Month 4: You notice burnout signs — trouble sleeping, snapping at friends, dreading work. These are signals, not failures. What adjustment do you make?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "reduce_work", "label": "Ask to drop to 12 hours/week at work", "icon": "📉", "cost": null, "effect": "Less income but more recovery time. Burnout is expensive — catching it early saves you weeks of suffering."},
+          {"id": "self_care_up", "label": "Non-negotiable: 1 hour of self-care daily", "icon": "🧘", "cost": null, "effect": "Exercise, journaling, or just quiet time. Protecting self-care hours prevents burnout from getting worse."},
+          {"id": "talk_to_someone", "label": "Talk to a counselor, parent, or trusted adult", "icon": "💬", "cost": null, "effect": "Asking for help is strength! A counselor helps you see options you couldn't see while stressed."}
+        ]
+      },
+      {
+        "description": "End of semester. You've learned a lot about managing your time and energy. What's your biggest insight?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "boundaries", "label": "Saying no protects what matters most", "icon": "🛡️", "cost": null, "effect": "Boundaries aren't selfish — they're essential. You can't pour from an empty cup."},
+          {"id": "flexible_plan", "label": "Plans need regular check-ins and adjustments", "icon": "🔄", "cost": null, "effect": "A monthly review of your time allocation catches problems before they become crises."},
+          {"id": "priorities_shift", "label": "Priorities change — and that's okay", "icon": "🌊", "cost": null, "effect": "What mattered in September might shift by February. Regularly reassessing keeps your life aligned with your values."}
+        ]
+      }
+    ],
+    "recap_template": "You navigated a semester balancing work, school, social life, and self-care! You learned to set boundaries, recognize burnout, and adjust your plan. Work-life balance is a lifelong skill.",
+    "positive_framing_rules": [
+      "Never say the student is overwhelmed or incapable",
+      "Frame burnout signals as useful information, not weakness",
+      "Celebrate boundary-setting and self-awareness"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific work and school scenarios",
+      "Vary the burnout signals and responses",
+      "Add positive milestone celebrations"
+    ],
+    "max_turns": 18
+  }
+]

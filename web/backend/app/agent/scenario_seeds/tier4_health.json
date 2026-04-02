@@ -1,0 +1,219 @@
+[
+  {
+    "id": "tier4_meal_prep_budget",
+    "title": "Meal Prep on a Budget",
+    "tier": 4,
+    "domain": "health",
+    "icon": "🍱",
+    "learning_objectives": [
+      "Plan weekly meals with dietary constraints and a budget",
+      "Optimize nutrition per dollar",
+      "Batch cook for efficiency",
+      "Adapt meals to what's on sale"
+    ],
+    "initial_state": {
+      "wallet": 50,
+      "currency": "dollars",
+      "meals_per_week": 21,
+      "dietary_constraints": [],
+      "location": "apartment kitchen"
+    },
+    "events": [
+      {
+        "description": "You have $50 for a week of meals (breakfast, lunch, dinner). That's about $2.38 per meal. The store has chicken thighs on sale ($2/lb instead of $5/lb), eggs are $3/dozen, rice is $1/lb, and seasonal vegetables are $2/lb. How do you approach your shopping list?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "sale_based", "label": "Build meals around what's on sale", "icon": "🏷️", "cost": null, "effect": "Smart! Buying 3 lbs of chicken ($6 instead of $15) frees up $9 for other ingredients. Sale shopping stretches your budget."},
+          {"id": "batch_cook", "label": "Plan 3 base recipes that make 7+ servings each", "icon": "🍲", "cost": null, "effect": "Batch cooking! A big pot of chili, a sheet pan of chicken, and a rice-and-bean mix covers most of the week."},
+          {"id": "nutrition_first", "label": "Ensure each day hits protein, fiber, and vitamin targets", "icon": "📊", "cost": null, "effect": "Nutrition-first planning! You map out daily protein (50g+), fiber (25g+), and varied vegetables before choosing recipes."}
+        ]
+      },
+      {
+        "description": "You've planned your meals but realize you're $8 over budget at $58. What do you cut without sacrificing nutrition?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "swap_protein", "label": "Swap 2 chicken dinners for bean-based meals (save $6)", "icon": "🫘", "cost": null, "effect": "Beans cost 1/3 the price of chicken with similar protein! Chili and bean tacos are delicious AND budget-friendly."},
+          {"id": "frozen_veggies", "label": "Switch fresh veggies to frozen for 3 meals (save $4)", "icon": "🥦", "cost": null, "effect": "Frozen vegetables are nutritionally identical to fresh and cost 30-50% less! Flash-frozen at peak nutrition."},
+          {"id": "reduce_variety", "label": "Repeat lunches all week instead of 5 different ones (save $5)", "icon": "🔄", "cost": null, "effect": "Same lunch 5 days saves prep time AND money. Batch cooking one lunch recipe is wildly efficient."}
+        ]
+      },
+      {
+        "description": "Meal prep Sunday! You have 3 hours to cook for the week. How do you organize your time? You're making chicken stir-fry, chili, overnight oats, and prepping salad ingredients.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "parallel_cooking", "label": "Chili simmers while you stir-fry and prep oats", "icon": "⏱️", "cost": null, "effect": "Parallel cooking! Chili takes 45 min hands-off time — perfect for making other dishes simultaneously. Done in 2 hours!"},
+          {"id": "sequential", "label": "One recipe at a time, clean as you go", "icon": "1️⃣", "cost": null, "effect": "Organized and methodical! Takes the full 3 hours but your kitchen stays clean and nothing burns."},
+          {"id": "prep_first", "label": "Chop ALL vegetables first, then cook everything", "icon": "🔪", "cost": null, "effect": "Mise en place! Pro chefs prep first. Once everything is chopped, cooking goes lightning fast."}
+        ]
+      },
+      {
+        "description": "Wednesday: your roommate ate some of your prepped meals. You're 3 meals short for the rest of the week with $5 left. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "pantry_raid", "label": "Raid the pantry — rice, beans, and eggs = 3 meals for $2", "icon": "🍚", "cost": 2, "effect": "Pantry staples to the rescue! Egg fried rice, bean and rice bowl, and scrambled eggs with toast. Under budget!"},
+          {"id": "roommate_owes", "label": "Ask roommate to cover those meals or replace them", "icon": "🤝", "cost": 0, "effect": "Setting boundaries about shared food! Your roommate buys you replacement groceries. Communication works!"},
+          {"id": "stretch_meals", "label": "Add rice/bread to remaining meals to make them stretch", "icon": "🍞", "cost": 1, "effect": "Adding cheap carbs to existing meals extends them. Not ideal nutritionally for every meal, but solves the immediate problem."}
+        ]
+      },
+      {
+        "description": "End of week review: How did your $50 meal plan work out? What would you change next week?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "more_variety", "label": "I need more variety — eating the same thing gets old", "icon": "🌈", "cost": null, "effect": "Sauce and seasoning variety! Same base ingredients with different seasonings = different meals. Thai one night, Mexican the next."},
+          {"id": "more_prep", "label": "More prep on Sunday so weekday meals are grab-and-go", "icon": "📦", "cost": null, "effect": "Pre-portioned containers make busy days effortless. 30 more minutes of Sunday prep saves hours during the week."},
+          {"id": "adjust_budget", "label": "This week was tight — I'll try $55 next week and see the difference", "icon": "💰", "cost": null, "effect": "An extra $5 adds 2-3 more meal options. Sometimes a small budget increase makes a big quality-of-life difference."}
+        ]
+      }
+    ],
+    "recap_template": "You meal-prepped for a whole week on $50! You balanced nutrition, budget, time, and dealt with surprises. These are essential skills for living independently.",
+    "positive_framing_rules": [
+      "Never suggest the student is eating poorly or going hungry",
+      "Frame budget constraints as creative cooking challenges",
+      "Use 'energy and nutrition' language, not calorie restriction"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific meals and ingredients",
+      "Vary the budget amount and sale items",
+      "Add dietary preference scenarios"
+    ],
+    "max_turns": 18
+  },
+  {
+    "id": "tier4_diet_fitness_planner",
+    "title": "Diet + Fitness Planner",
+    "tier": 4,
+    "domain": "health",
+    "icon": "💪",
+    "learning_objectives": [
+      "Align nutrition with physical activity goals",
+      "Understand macronutrients and their roles",
+      "Plan meals that support athletic performance",
+      "Balance training intensity with recovery"
+    ],
+    "initial_state": {
+      "sport": null,
+      "training_days": 5,
+      "nutrition_knowledge": "intermediate",
+      "goal": null
+    },
+    "events": [
+      {
+        "description": "You're training for [sport] and want to optimize your nutrition. Your coach says you need more protein for muscle recovery and complex carbs for energy. Currently you eat about 60g protein/day. Athletes your age need 80-100g. How do you increase protein?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "food_based", "label": "Add protein-rich foods: Greek yogurt, chicken, eggs, beans", "icon": "🍳", "cost": null, "effect": "Whole food protein! A Greek yogurt at breakfast (+15g), chicken at lunch (+25g), and you're already at 100g. No supplements needed."},
+          {"id": "timing", "label": "Focus on protein timing — 20-30g within 30 min of training", "icon": "⏰", "cost": null, "effect": "Nutrient timing matters! Post-workout protein helps muscles recover faster. A protein-rich snack after practice is key."},
+          {"id": "track_first", "label": "Track current intake for 3 days first, then adjust", "icon": "📊", "cost": null, "effect": "Data-driven approach! You might be eating more protein than you think. Track before you change."}
+        ]
+      },
+      {
+        "description": "Game day nutrition: you have a big match at 2 PM. What do you eat and when?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "carb_load", "label": "Big pasta dinner night before, banana + toast at 11 AM", "icon": "🍝", "cost": null, "effect": "Classic carb-loading! Complex carbs the night before fill glycogen stores. Light carbs 3 hours before game time provide quick energy."},
+          {"id": "balanced_day", "label": "Normal meals but extra hydration starting the morning", "icon": "💧", "cost": null, "effect": "Hydration is often more important than food changes! Starting water early ensures you're not dehydrated at game time."},
+          {"id": "light_early", "label": "Light breakfast, moderate lunch at 11 AM, nothing heavy after", "icon": "🥪", "cost": null, "effect": "Eating 3+ hours before avoids heaviness during play. A balanced lunch at 11 gives time to digest before your 2 PM game."}
+        ]
+      },
+      {
+        "description": "You've been training hard all week and your body feels sore and tired. Your coach says tomorrow is a rest day. What does recovery nutrition look like?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "anti_inflammatory", "label": "Foods that reduce inflammation: berries, fish, leafy greens", "icon": "🫐", "cost": null, "effect": "Anti-inflammatory foods support recovery! Omega-3s from fish and antioxidants from berries help your body repair."},
+          {"id": "extra_sleep_hydrate", "label": "Extra sleep + extra water — let your body do its thing", "icon": "😴", "cost": null, "effect": "Rest and hydration are the #1 recovery tools! Your body repairs most during sleep."},
+          {"id": "same_nutrition", "label": "Same nutrition as training days — your body is still working", "icon": "🍽️", "cost": null, "effect": "Correct insight! Muscles repair on rest days, so they still need protein and nutrients. Don't cut calories on rest days."}
+        ]
+      },
+      {
+        "description": "Mid-season: you're tempted to try a restrictive diet trend that a teammate says gives them 'more energy.' It cuts out entire food groups. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "research", "label": "Research the science — does it have evidence?", "icon": "🔬", "cost": null, "effect": "Critical thinking! Most trendy diets lack evidence for athletes. Peer-reviewed research > social media claims."},
+          {"id": "ask_coach", "label": "Ask your coach or a sports nutritionist", "icon": "👨‍⚕️", "cost": null, "effect": "Expert advice! A nutritionist explains that restricting food groups can actually decrease performance. Variety is key."},
+          {"id": "trust_plan", "label": "Stick with your balanced plan — it's working", "icon": "✅", "cost": null, "effect": "If your energy, recovery, and performance are good, why change? Consistency beats trendy diets every time."}
+        ]
+      }
+    ],
+    "recap_template": "You built a nutrition plan that supports your athletic training! You learned about protein timing, game-day nutrition, recovery eating, and how to evaluate diet trends with critical thinking.",
+    "positive_framing_rules": [
+      "Never promote restrictive eating or body image concerns",
+      "Frame nutrition as fuel and recovery, not weight management",
+      "Celebrate listening to your body"
+    ],
+    "ai_variation_allowed": [
+      "Change the sport and specific nutritional needs",
+      "Vary the diet trend scenario",
+      "Add sport-specific nutrition tips"
+    ],
+    "max_turns": 18
+  },
+  {
+    "id": "tier4_cooking_for_one",
+    "title": "Cooking for One",
+    "tier": 4,
+    "domain": "health",
+    "icon": "👨‍🍳",
+    "learning_objectives": [
+      "Plan meals for a single person efficiently",
+      "Reduce food waste with smart shopping",
+      "Build basic cooking skills from scratch",
+      "Create a sustainable cooking routine"
+    ],
+    "initial_state": {
+      "cooking_skill": "beginner",
+      "kitchen_equipment": ["pot", "pan", "oven", "knife", "cutting_board"],
+      "wallet": 40,
+      "currency": "dollars_per_week"
+    },
+    "events": [
+      {
+        "description": "You've just moved out and need to cook for yourself. Recipes for 1 person are rare — most make 4+ servings. How do you handle this?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "batch_and_freeze", "label": "Cook full recipes, freeze portions for later", "icon": "🧊", "cost": null, "effect": "Freezer meals! Cook once, eat four times. Sunday's chili becomes Monday's lunch and Wednesday's dinner."},
+          {"id": "halve_recipes", "label": "Learn to halve recipes — smaller batches, less waste", "icon": "📏", "cost": null, "effect": "Recipe math! Halving means you need half of everything. Some recipes scale down better than others."},
+          {"id": "component_cooking", "label": "Cook components (rice, protein, veggies) and mix differently", "icon": "🧩", "cost": null, "effect": "Versatile! Grilled chicken becomes salad topping Monday, stir-fry Tuesday, and wraps Wednesday. Same protein, three meals."}
+        ]
+      },
+      {
+        "description": "Food waste challenge: you bought a head of lettuce, but one person can't eat it all before it wilts. Bananas are turning brown. Half an onion is left from Tuesday's recipe. How do you reduce waste?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "meal_plan_around", "label": "Plan the next 2 days' meals around what's about to expire", "icon": "📋", "cost": null, "effect": "Salad tonight, banana smoothie tomorrow morning! Planning around what you have prevents waste and saves money."},
+          {"id": "preservation", "label": "Freeze the bananas, make croutons from stale bread", "icon": "🧊", "cost": null, "effect": "Preservation skills! Frozen bananas make great smoothies. Brown bananas are perfect for banana bread."},
+          {"id": "buy_smaller", "label": "Next time: buy smaller quantities even if unit price is higher", "icon": "📦", "cost": null, "effect": "For one person, buying less at a higher unit price can actually save money if you throw less away. Waste costs more than the price difference!"}
+        ]
+      },
+      {
+        "description": "You're tired after work and tempted to order delivery ($15-20) instead of cooking. This has happened 3 times this week. At $15-20/meal vs $3-5 cooking, that's $30-45 extra per week. How do you build a sustainable cooking habit?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "easy_recipes", "label": "Find 5 meals you can make in under 15 minutes", "icon": "⚡", "cost": null, "effect": "Speed recipes! Eggs and toast (5 min), pasta with jarred sauce (12 min), quesadillas (8 min). When cooking is fast, delivery loses its appeal."},
+          {"id": "prep_ahead", "label": "Sunday prep: chop veggies, marinate protein, cook grains", "icon": "📦", "cost": null, "effect": "Weekday cooking drops to assembly! When ingredients are ready, a meal takes 10 minutes instead of 40."},
+          {"id": "budget_rule", "label": "Allow delivery once a week, cook the rest — compromise", "icon": "⚖️", "cost": null, "effect": "Realistic! One delivery a week is a treat, not a habit. $15/week on delivery vs $100+ is a huge difference."}
+        ]
+      },
+      {
+        "description": "After a month of cooking for yourself, what have you learned?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "confidence", "label": "I can actually cook! It gets easier with practice", "icon": "👨‍🍳", "cost": null, "effect": "Cooking confidence! Your first month's meals were simple, but you're already trying new things. Skills compound!"},
+          {"id": "savings", "label": "Cooking saves so much money — I can see it in my budget", "icon": "💰", "cost": null, "effect": "Cooking at home averages $3-5/meal vs $12-20 eating out. Over a year, that's thousands saved!"},
+          {"id": "health_impact", "label": "I feel better physically when I control what I eat", "icon": "🌟", "cost": null, "effect": "Cooking your own food means knowing exactly what's in it. More vegetables, less sodium, and portions that match your needs."}
+        ]
+      }
+    ],
+    "recap_template": "You learned to cook for one! Batch cooking, reducing waste, building quick recipes, and creating sustainable habits are the building blocks of feeding yourself for life.",
+    "positive_framing_rules": [
+      "Never shame ordering delivery or eating out",
+      "Frame cooking as a skill that develops over time",
+      "Celebrate progress from any starting point"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific recipes and challenges",
+      "Add kitchen disaster recovery scenarios",
+      "Vary the budget and dietary preferences"
+    ],
+    "max_turns": 18
+  }
+]

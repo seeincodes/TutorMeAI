@@ -256,3 +256,29 @@ async def stream_chat_with_tools(
                     yield {"type": "token", "content": follow_chunk.content}
 
     yield {"type": "done", "full_content": full_content}
+
+
+# ---------------------------------------------------------------------------
+# Level Up Life — age-tier tool gating
+# ---------------------------------------------------------------------------
+
+TIER_ALLOWED_TOOLS: dict[int, list[str]] = {
+    1: ["life_skills__start_scenario", "life_skills__make_choice", "life_skills__get_recap"],
+    2: [
+        "life_skills__start_scenario", "life_skills__make_choice", "life_skills__get_recap",
+        "calculator__calculate",
+    ],
+    3: [
+        "life_skills__start_scenario", "life_skills__make_choice", "life_skills__get_recap",
+        "calculator__calculate", "dictionary__lookup",
+    ],
+    4: [
+        "life_skills__start_scenario", "life_skills__make_choice", "life_skills__get_recap",
+        "calculator__calculate", "dictionary__lookup", "weather__get_forecast",
+    ],
+}
+
+
+def get_allowed_tools_for_tier(tier: int) -> list[str]:
+    """Return the list of tool names a student at the given tier may use."""
+    return TIER_ALLOWED_TOOLS.get(tier, TIER_ALLOWED_TOOLS[1])

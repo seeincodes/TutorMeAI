@@ -1,0 +1,174 @@
+[
+  {
+    "id": "tier2_plan_playdate",
+    "title": "Plan a Playdate",
+    "tier": 2,
+    "domain": "social",
+    "icon": "🎮",
+    "learning_objectives": [
+      "Plan activities together with a friend",
+      "Handle disagreements respectfully",
+      "Practice collaborative decision-making"
+    ],
+    "initial_state": {
+      "friend": "Alex",
+      "hours_available": 3,
+      "location": "your house"
+    },
+    "events": [
+      {
+        "description": "Your friend Alex is coming over for 3 hours! You want to play video games but Alex wants to play outside. How do you figure it out?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "compromise", "label": "Do both — 1.5 hours each!", "icon": "⚖️", "cost": null, "effect": "Great compromise! You both get to do what you love!"},
+          {"id": "guest_picks", "label": "Let Alex pick since they're the guest", "icon": "🏠", "cost": null, "effect": "What a thoughtful host! Alex feels so welcome!"},
+          {"id": "new_idea", "label": "Think of something you both like", "icon": "💡", "cost": null, "effect": "You came up with a board game you both love! Creative problem solving!"}
+        ]
+      },
+      {
+        "description": "You're having a great time! But Alex accidentally knocks over your favorite building block tower. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "its_ok", "label": "Say 'It's okay, accidents happen!'", "icon": "😊", "cost": null, "effect": "Alex feels better right away. You can rebuild it together!"},
+          {"id": "rebuild_together", "label": "Ask Alex to help rebuild it", "icon": "🏗️", "cost": null, "effect": "Building it together makes it even better than before!"},
+          {"id": "take_a_break", "label": "Take a deep breath, then decide", "icon": "🌬️", "cost": null, "effect": "Taking a moment to calm down is really mature! Then you figured out what to do next."}
+        ]
+      },
+      {
+        "description": "It's snack time! You have two choices in the kitchen. Alex has a food allergy and one option might not work for them.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "ask_first", "label": "Ask Alex what they can eat", "icon": "❓", "cost": null, "effect": "Asking first is so considerate! Alex tells you what works and you both enjoy a snack!"},
+          {"id": "safe_option", "label": "Pick the option that works for everyone", "icon": "✅", "cost": null, "effect": "You picked the safe choice! Being thoughtful about friends' needs is really kind!"}
+        ]
+      }
+    ],
+    "recap_template": "You planned a great playdate! You practiced compromising, handling accidents calmly, and being thoughtful about your friend's needs.",
+    "positive_framing_rules": [
+      "Never frame disagreements as fights or conflicts",
+      "Celebrate all conflict resolution approaches",
+      "Model kindness and consideration in all options"
+    ],
+    "ai_variation_allowed": [
+      "Change the friend's name and preferences",
+      "Vary the activities available",
+      "Add a surprise fun moment during the playdate"
+    ],
+    "max_turns": 10
+  },
+  {
+    "id": "tier2_team_decision",
+    "title": "Team Decision",
+    "tier": 2,
+    "domain": "social",
+    "icon": "🤝",
+    "learning_objectives": [
+      "Listen to different opinions",
+      "Find fair solutions when people disagree",
+      "Practice group decision-making"
+    ],
+    "initial_state": {
+      "team_size": 4,
+      "options": 3,
+      "location": "classroom"
+    },
+    "events": [
+      {
+        "description": "Your class team needs to pick a project topic. Sam wants animals, Jordan wants space, and Taylor wants dinosaurs. You're the tiebreaker! How do you decide?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "vote", "label": "Take a vote — everyone picks!", "icon": "🗳️", "cost": null, "effect": "A fair vote! The team agrees to go with the winner. Democracy in action!"},
+          {"id": "combine", "label": "Combine ideas — animals in space!", "icon": "🚀🐕", "cost": null, "effect": "Creative! The team loves the mash-up idea! Everyone's idea is included!"},
+          {"id": "discuss", "label": "Discuss why each person likes their topic", "icon": "💬", "cost": null, "effect": "Great listening! After hearing reasons, the team finds an idea everyone's excited about!"}
+        ]
+      },
+      {
+        "description": "The team is working on the project. One person is doing more work than others. What do you suggest?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "split_tasks", "label": "Split the work into equal parts", "icon": "📋", "cost": null, "effect": "Everyone has a clear job now! The workload is fair and balanced!"},
+          {"id": "check_in", "label": "Ask if anyone needs help", "icon": "🤝", "cost": null, "effect": "Turns out someone was stuck! Now that they have help, everyone's contributing!"},
+          {"id": "play_strengths", "label": "Let people do what they're best at", "icon": "⭐", "cost": null, "effect": "Sam draws, Jordan writes, Taylor researches, and you organize! Everyone shines!"}
+        ]
+      },
+      {
+        "description": "Presentation day! The team is nervous. How do you help everyone feel ready?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "practice", "label": "Practice together one more time", "icon": "🎭", "cost": null, "effect": "Practice makes confident! The whole team feels ready!"},
+          {"id": "encourage", "label": "Tell everyone they did great work", "icon": "💪", "cost": null, "effect": "Your encouragement boosts everyone's confidence! Team spirit!"}
+        ]
+      }
+    ],
+    "recap_template": "You helped your team make decisions, share work fairly, and support each other. Those are amazing teamwork skills!",
+    "positive_framing_rules": [
+      "Never label any team member as lazy or unhelpful",
+      "Celebrate all approaches to group work",
+      "Frame disagreements as opportunities to find better solutions"
+    ],
+    "ai_variation_allowed": [
+      "Change the project topic options",
+      "Vary the team member personalities",
+      "Add a surprise challenge during the project"
+    ],
+    "max_turns": 10
+  },
+  {
+    "id": "tier2_goal_tracker",
+    "title": "Goal Tracker",
+    "tier": 2,
+    "domain": "social",
+    "icon": "🎯",
+    "learning_objectives": [
+      "Set a realistic weekly goal",
+      "Check in on progress each day",
+      "Learn that setbacks are part of the process"
+    ],
+    "initial_state": {
+      "goal": null,
+      "day": 1,
+      "total_days": 5,
+      "progress": 0
+    },
+    "events": [
+      {
+        "description": "Let's set a goal for this week! What would you like to work on?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "reading_goal", "label": "Read for 20 minutes every day", "icon": "📖", "cost": null, "effect": "Great goal! Reading every day builds your imagination and vocabulary!"},
+          {"id": "kindness_goal", "label": "Do one kind thing every day", "icon": "💛", "cost": null, "effect": "A kindness goal! The world could use more kindness. Love it!"},
+          {"id": "exercise_goal", "label": "Play outside for 30 minutes daily", "icon": "🏃", "cost": null, "effect": "Active goal! Moving your body gives you energy and makes you feel great!"}
+        ]
+      },
+      {
+        "description": "Day 3! You've been doing great, but today was really busy and you almost forgot about your goal. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "do_it_anyway", "label": "Do it even though you're tired", "icon": "💪", "cost": null, "effect": "You pushed through! Even a little bit of effort counts!"},
+          {"id": "smaller_version", "label": "Do a smaller version today", "icon": "📏", "cost": null, "effect": "10 minutes instead of 20 still counts! Adjusting your plan is smart!"},
+          {"id": "skip_today", "label": "Skip today, do extra tomorrow", "icon": "📅", "cost": null, "effect": "One day off is totally fine! You can catch up tomorrow!"}
+        ]
+      },
+      {
+        "description": "It's Day 5 — the last day of your goal week! How do you feel about what you accomplished?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "celebrate", "label": "Celebrate! I did my best!", "icon": "🎉", "cost": null, "effect": "You should be so proud! Sticking with a goal for a whole week is amazing!"},
+          {"id": "set_new_goal", "label": "Set an even bigger goal for next week!", "icon": "🚀", "cost": null, "effect": "Level up! Your confidence is growing along with your skills!"}
+        ]
+      }
+    ],
+    "recap_template": "You set a goal and tracked it for a whole week! You learned that goals take daily effort, and it's okay to adjust along the way.",
+    "positive_framing_rules": [
+      "Never say the student gave up or quit",
+      "Frame missed days as normal and recoverable",
+      "Celebrate effort and persistence, not perfection"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific goal options",
+      "Add surprise challenges or motivating moments",
+      "Vary the day-by-day check-in scenarios"
+    ],
+    "max_turns": 10
+  }
+]

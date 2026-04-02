@@ -1,0 +1,225 @@
+[
+  {
+    "id": "tier4_conflict_resolver",
+    "title": "Conflict Resolver",
+    "tier": 4,
+    "domain": "social",
+    "icon": "🕊️",
+    "learning_objectives": [
+      "See situations from multiple perspectives",
+      "Practice de-escalation techniques",
+      "Find solutions that address root causes",
+      "Communicate assertively but respectfully"
+    ],
+    "initial_state": {
+      "setting": "school/workplace",
+      "parties_involved": 3,
+      "conflict_level": "moderate"
+    },
+    "events": [
+      {
+        "description": "Scenario: You and a classmate were paired on a project. You did 80% of the work, they did 20%. Now they want equal credit. You're frustrated. Before you react, consider their perspective — they mentioned their parent was sick last week. How do you approach this?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "empathy_first", "label": "Start by acknowledging their situation, then discuss the work gap", "icon": "❤️", "cost": null, "effect": "Leading with empathy opens the conversation. They explain they were at the hospital most nights. Now you can solve the real problem together."},
+          {"id": "facts_first", "label": "Present the work split factually — 'I noticed I did sections 1-4, you did part of 5'", "icon": "📊", "cost": null, "effect": "Factual framing avoids blame. 'I noticed' is different from 'you didn't.' They agree and offer to do extra for the next phase."},
+          {"id": "teacher_mediate", "label": "Ask the teacher to mediate before it becomes an argument", "icon": "👩‍🏫", "cost": null, "effect": "Third-party mediation! The teacher helps you both share perspectives without it getting personal."}
+        ]
+      },
+      {
+        "description": "The conversation gets emotional. Your classmate says 'You don't understand what I've been going through!' You feel your own frustration rising. What do you do in this moment?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "pause", "label": "Pause — 'You're right, I don't fully understand. Can you tell me?'", "icon": "⏸️", "cost": null, "effect": "De-escalation through validation! When someone feels heard, the emotional temperature drops. They open up about their situation."},
+          {"id": "i_statements", "label": "Use I-statements: 'I feel frustrated because I put in a lot of work'", "icon": "🗣️", "cost": null, "effect": "I-statements express your feelings without attacking. 'I feel frustrated' is different from 'You're lazy.' Both feelings are now on the table."},
+          {"id": "break", "label": "Suggest a 10-minute break before continuing", "icon": "☕", "cost": null, "effect": "Emotional regulation! Neither of you will solve this well when emotions are high. A break lets both brains switch from reactive to thoughtful."}
+        ]
+      },
+      {
+        "description": "You've both calmed down. Now you need a solution. The project is due in 5 days. How do you move forward?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "redistribute", "label": "Redistribute remaining work so they can catch up on their share", "icon": "📋", "cost": null, "effect": "A forward-looking solution! They take on the presentation prep and bibliography — doable in their situation and adds real value."},
+          {"id": "differentiated_credit", "label": "Suggest noting each person's contributions on the project", "icon": "📝", "cost": null, "effect": "Transparent credit! You both get credit for the project but each section shows who contributed what. Fair and honest."},
+          {"id": "grace_and_plan", "label": "Give grace this time, but set clear expectations for Part 2", "icon": "🤝", "cost": null, "effect": "Sometimes people need grace during hard times. You set up a shared task tracker for Part 2 so expectations are crystal clear."}
+        ]
+      },
+      {
+        "description": "Reflecting on this conflict: what's the biggest lesson?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "both_valid", "label": "Both people's feelings were valid — the conflict was the situation, not the people", "icon": "💡", "cost": null, "effect": "Key insight! Most conflicts are situational, not personal. Separating the person from the problem is the foundation of conflict resolution."},
+          {"id": "early_communication", "label": "If we'd talked earlier, it wouldn't have built up", "icon": "📢", "cost": null, "effect": "Prevention! A quick check-in in Week 1 ('How are you doing on your sections?') catches problems before they become conflicts."},
+          {"id": "multiple_solutions", "label": "There were many possible solutions — not just 'I win, you lose'", "icon": "🔀", "cost": null, "effect": "Win-win thinking! The best solutions address both people's needs. That's not compromise — it's creative problem-solving."}
+        ]
+      }
+    ],
+    "recap_template": "You resolved a real-world conflict using empathy, assertive communication, and creative problem-solving! Conflict resolution isn't about winning — it's about finding solutions that work for everyone.",
+    "positive_framing_rules": [
+      "Never frame either party as the villain",
+      "Model de-escalation in all response options",
+      "Celebrate emotional regulation as a skill"
+    ],
+    "ai_variation_allowed": [
+      "Change the conflict scenario",
+      "Vary the emotional dynamics",
+      "Add different resolution approaches"
+    ],
+    "max_turns": 18
+  },
+  {
+    "id": "tier4_job_interview_prep",
+    "title": "Job Interview Prep",
+    "tier": 4,
+    "domain": "social",
+    "icon": "👔",
+    "learning_objectives": [
+      "Practice answering common interview questions",
+      "Present skills and experiences confidently",
+      "Handle unexpected questions gracefully",
+      "Follow up professionally"
+    ],
+    "initial_state": {
+      "job": "part-time position",
+      "interview_stage": "preparation",
+      "confidence": 50
+    },
+    "events": [
+      {
+        "description": "You have a job interview tomorrow for a part-time position. The interviewer will likely ask: 'Tell me about yourself,' 'Why do you want this job?' and 'What's your biggest strength?' How do you prepare?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "practice_answers", "label": "Write out key points for each question and practice aloud", "icon": "📝", "cost": null, "effect": "Preparation builds confidence! You have clear, concise answers ready. Practice out loud makes them feel natural, not scripted."},
+          {"id": "research_company", "label": "Research the company so you can connect your answers to their values", "icon": "🔍", "cost": null, "effect": "Impressive! Mentioning specific company details shows genuine interest. 'I saw your community volunteer program and that aligns with my values.'"},
+          {"id": "mock_interview", "label": "Do a mock interview with a friend or family member", "icon": "🎭", "cost": null, "effect": "Real practice! Your friend asks tough questions and gives honest feedback. You discover you say 'um' too much and fix it."}
+        ]
+      },
+      {
+        "description": "Interview day! First question: 'Tell me about a time you had to handle a difficult situation.' You're nervous and your mind goes blank for a moment. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "pause_think", "label": "Take a breath and say 'Great question, let me think for a moment'", "icon": "💭", "cost": null, "effect": "Totally professional! Pausing to think shows confidence, not weakness. Your answer is better because you took a moment."},
+          {"id": "star_method", "label": "Use the STAR method: Situation, Task, Action, Result", "icon": "⭐", "cost": null, "effect": "Structured storytelling! 'At my volunteer job (Situation), we needed to reorganize (Task), I created a schedule (Action), and we finished early (Result).' Clear and impressive!"},
+          {"id": "honest", "label": "Be honest: 'I'm a bit nervous but I'm excited about this opportunity'", "icon": "😊", "cost": null, "effect": "Authenticity! The interviewer smiles — they appreciate honesty. It actually relaxes the conversation and you answer naturally."}
+        ]
+      },
+      {
+        "description": "Curveball question: 'If you could have any superpower, what would it be and why?' This isn't about the answer — it's about how you think on your feet.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "creative", "label": "Connect it to the job: 'Time control — I'd never miss a deadline!'", "icon": "⏰", "cost": null, "effect": "Clever tie-in! You showed creativity and job relevance in one answer. The interviewer laughs and nods."},
+          {"id": "thoughtful", "label": "Be genuine: 'Teleportation — I value experiences and seeing the world'", "icon": "🌍", "cost": null, "effect": "Authentic answer that reveals your values! The interviewer sees you as thoughtful and genuine. There's no wrong answer here."},
+          {"id": "humor", "label": "Light humor: 'Mind reading — but only during interviews!'", "icon": "😄", "cost": null, "effect": "Humor that acknowledges the situation! The interviewer laughs. A moment of levity makes the interview feel more like a conversation."}
+        ]
+      },
+      {
+        "description": "Interview is over! The interviewer asks 'Do you have any questions for us?' This is your chance to show interest and gather information.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "growth_question", "label": "'What does growth look like in this role?'", "icon": "📈", "cost": null, "effect": "Shows ambition and long-term thinking! The interviewer appreciates someone who thinks beyond just getting hired."},
+          {"id": "culture_question", "label": "'What do you enjoy most about working here?'", "icon": "💬", "cost": null, "effect": "Flips the interview! Now THEY'RE sharing, and you get genuine insight into the workplace culture."},
+          {"id": "next_steps", "label": "'What are the next steps in the hiring process?'", "icon": "📋", "cost": null, "effect": "Practical and confident! You know exactly what to expect next and when to follow up."}
+        ]
+      },
+      {
+        "description": "After the interview: follow-up. You should send a thank-you note within 24 hours. What do you write?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "specific_thanks", "label": "Reference a specific conversation point from the interview", "icon": "📧", "cost": null, "effect": "Personalized! 'I especially enjoyed hearing about your volunteer program' shows you were listening and engaged."},
+          {"id": "reiterate_fit", "label": "Briefly restate why you're a great fit for the role", "icon": "✨", "cost": null, "effect": "Reinforcement! One more reminder of your strengths keeps you top-of-mind during their decision."},
+          {"id": "short_sweet", "label": "Keep it brief: thank them, express enthusiasm, sign off", "icon": "✉️", "cost": null, "effect": "Concise professionalism! Busy hiring managers appreciate brevity. Two sentences and a polite close."}
+        ]
+      }
+    ],
+    "recap_template": "You prepared for, aced, and followed up on a job interview! You practiced common questions, handled curveballs, asked smart questions, and sent a professional follow-up. These skills apply to every interview in your future.",
+    "positive_framing_rules": [
+      "Never say the student bombed or failed a question",
+      "Frame nervousness as normal and manageable",
+      "Celebrate preparation and professionalism"
+    ],
+    "ai_variation_allowed": [
+      "Change the job type",
+      "Vary the interview questions",
+      "Add different interviewer personalities"
+    ],
+    "max_turns": 18
+  },
+  {
+    "id": "tier4_negotiation_sim",
+    "title": "Negotiation Sim",
+    "tier": 4,
+    "domain": "social",
+    "icon": "🤝",
+    "learning_objectives": [
+      "Prepare for a negotiation with clear goals",
+      "Practice persuasion with evidence",
+      "Find win-win solutions",
+      "Know when to compromise and when to hold firm"
+    ],
+    "initial_state": {
+      "scenario": null,
+      "your_goal": null,
+      "other_party_goal": null,
+      "leverage_points": []
+    },
+    "events": [
+      {
+        "description": "Choose your negotiation scenario:",
+        "event_type": "choice",
+        "choices": [
+          {"id": "raise", "label": "Ask your boss for a raise at your part-time job", "icon": "💰", "cost": null, "effect": "Raise negotiation! You've worked here 6 months, always on time, and took on extra responsibilities. Your current rate is $12/hour, similar jobs pay $14-15."},
+          {"id": "deadline", "label": "Negotiate a deadline extension with your teacher", "icon": "📅", "cost": null, "effect": "Academic negotiation! Your big project overlaps with two other deadlines. You need 3 extra days. The teacher values responsibility and communication."},
+          {"id": "group_decision", "label": "Negotiate with your team about project direction", "icon": "👥", "cost": null, "effect": "Team negotiation! You want to go one direction, two teammates want another. You need consensus to move forward."}
+        ]
+      },
+      {
+        "description": "Preparation is 90% of negotiation. Before you walk in, you need to know: your goal, your best alternative if they say no (BATNA), and what the other side cares about. What do you prepare first?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "research", "label": "Research: what's the market rate / typical policy / team history?", "icon": "🔍", "cost": null, "effect": "Data is power! You found comparable rates/precedents that support your position. Facts are more persuasive than feelings."},
+          {"id": "their_perspective", "label": "Think about what the other side wants and fears", "icon": "🧠", "cost": null, "effect": "Empathy as strategy! Your boss wants to keep good employees, your teacher wants to be fair, your team wants a good project. Understanding their goals helps you propose win-wins."},
+          {"id": "your_batna", "label": "Figure out your BATNA — what happens if they say no?", "icon": "🛡️", "cost": null, "effect": "BATNA = Best Alternative To a Negotiated Agreement. Knowing your fallback gives you confidence and a clear walk-away point."}
+        ]
+      },
+      {
+        "description": "You're in the negotiation. You've made your case with evidence. The other party says 'I hear you, but I can only offer about half of what you're asking.' How do you respond?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "counter", "label": "Counter with a specific number between your ask and their offer", "icon": "🎯", "cost": null, "effect": "Meeting in the middle shows flexibility! A specific counter (not 'maybe' or 'I guess') demonstrates you know your worth."},
+          {"id": "ask_why", "label": "Ask 'What's driving that limit?' — understand their constraints", "icon": "❓", "cost": null, "effect": "Understanding their 'why' opens new solutions! Maybe there's a budget cycle, policy, or timeline you can work with."},
+          {"id": "add_value", "label": "Propose non-monetary value: flexible schedule, title change, future review", "icon": "➕", "cost": null, "effect": "Expanding the pie! When they can't give dollars, maybe they can give other things you value. Creative negotiation!"}
+        ]
+      },
+      {
+        "description": "The negotiation is wrapping up. You didn't get everything you wanted, but you got more than the initial offer. How do you close?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "summarize", "label": "Summarize the agreement clearly: 'So we've agreed to X, Y, Z?'", "icon": "📋", "cost": null, "effect": "Clear summary prevents misunderstandings! Both parties confirm the same terms. Put it in writing if possible."},
+          {"id": "future_check", "label": "Set a date to revisit: 'Can we check in on this in 3 months?'", "icon": "📅", "cost": null, "effect": "Built-in follow-up! This negotiation isn't the last one. A future check-in keeps the door open for more."},
+          {"id": "gratitude", "label": "Thank them for their time and flexibility", "icon": "🙏", "cost": null, "effect": "Ending with gratitude preserves the relationship! Negotiations are between people, not positions. You'll work with this person again."}
+        ]
+      },
+      {
+        "description": "Reflection: What did you learn about negotiation?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "preparation_key", "label": "Preparation made the biggest difference", "icon": "📝", "cost": null, "effect": "Absolutely! Knowing your facts, their perspective, and your BATNA meant you were never caught off guard."},
+          {"id": "relationship_matters", "label": "The relationship matters as much as the outcome", "icon": "🤝", "cost": null, "effect": "Win-win > win-lose! A good negotiation strengthens the relationship. A scorched-earth win often costs more long-term."},
+          {"id": "practice_helps", "label": "It gets easier with practice — this was a good start", "icon": "💪", "cost": null, "effect": "Negotiation is a muscle! Every conversation where you advocate for yourself builds the skill. This was great practice."}
+        ]
+      }
+    ],
+    "recap_template": "You practiced negotiation from preparation through closing! You learned about BATNA, evidence-based persuasion, creative solutions, and relationship-preserving communication. These skills serve you in career, relationships, and daily life.",
+    "positive_framing_rules": [
+      "Never frame negotiation as adversarial or aggressive",
+      "Celebrate compromise as a sign of skill, not weakness",
+      "Frame all outcomes as learning experiences"
+    ],
+    "ai_variation_allowed": [
+      "Change the negotiation scenario",
+      "Vary the other party's responses",
+      "Add different cultural contexts for negotiation"
+    ],
+    "max_turns": 18
+  }
+]

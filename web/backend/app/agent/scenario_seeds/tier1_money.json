@@ -1,0 +1,100 @@
+[
+  {
+    "id": "tier1_toy_shop",
+    "title": "Toy Shop Choices",
+    "tier": 1,
+    "domain": "money",
+    "icon": "🧸",
+    "learning_objectives": [
+      "Recognize coins and their values",
+      "Compare prices of items",
+      "Make a choice when you can't buy everything"
+    ],
+    "initial_state": {
+      "wallet": 5.0,
+      "currency": "dollars",
+      "location": "toy shop"
+    },
+    "events": [
+      {
+        "description": "You walk into the toy shop with $5. You see three toys on the shelf.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "teddy", "label": "Teddy Bear", "icon": "🧸", "cost": 3, "effect": "You buy the teddy bear and have $2 left."},
+          {"id": "car", "label": "Toy Car", "icon": "🚗", "cost": 2, "effect": "You buy the toy car and have $3 left."},
+          {"id": "puzzle", "label": "Puzzle", "icon": "🧩", "cost": 4, "effect": "You buy the puzzle and have $1 left."}
+        ]
+      },
+      {
+        "description": "Your friend asks if you want to share a snack that costs $2. Do you have enough money left?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "share_yes", "label": "Yes, share the snack!", "icon": "🍪", "cost": 2, "effect": "You share a snack with your friend. What a kind choice!"},
+          {"id": "share_no", "label": "No thanks, I'll save my money", "icon": "🐷", "cost": 0, "effect": "You decide to save your money for later. Smart thinking!"}
+        ]
+      }
+    ],
+    "recap_template": "Today you visited the toy shop and learned about making choices with money. You started with $5 and practiced comparing prices.",
+    "positive_framing_rules": [
+      "Never say a choice was wrong or bad",
+      "Praise the student for thinking about their decision",
+      "Frame saving and spending as both valid choices"
+    ],
+    "ai_variation_allowed": [
+      "Add extra dialogue from the shopkeeper",
+      "Describe the toys in more detail",
+      "Add a surprise bonus event if the student saved money"
+    ],
+    "max_turns": 10
+  },
+  {
+    "id": "tier1_lemonade_stand",
+    "title": "Lemonade Stand",
+    "tier": 1,
+    "domain": "money",
+    "icon": "🍋",
+    "learning_objectives": [
+      "Understand earning money by selling something",
+      "Count coins and small bills",
+      "Make simple spending decisions"
+    ],
+    "initial_state": {
+      "wallet": 0.0,
+      "currency": "dollars",
+      "location": "front yard",
+      "inventory": {"lemons": 10, "cups": 10, "sugar": 1}
+    },
+    "events": [
+      {
+        "description": "You set up a lemonade stand in your front yard! Each cup of lemonade sells for $1. A neighbor walks up and wants to buy some.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "sell_one", "label": "Sell 1 cup", "icon": "🥤", "cost": null, "effect": "You sell one cup and earn $1!"},
+          {"id": "sell_two", "label": "Sell 2 cups", "icon": "🥤🥤", "cost": null, "effect": "You sell two cups and earn $2!"},
+          {"id": "free_sample", "label": "Give a free sample", "icon": "🎁", "cost": null, "effect": "You give a free sample. The neighbor smiles and tells their friends!"}
+        ]
+      },
+      {
+        "description": "After selling lemonade all morning, you have some money. The ice cream truck is coming! An ice cream costs $3.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "buy_icecream", "label": "Buy ice cream", "icon": "🍦", "cost": 3, "effect": "You enjoy a cold ice cream on a hot day!"},
+          {"id": "save_money", "label": "Save your money", "icon": "🐷", "cost": 0, "effect": "You put your money in your piggy bank. Great saving!"},
+          {"id": "buy_more_lemons", "label": "Buy more lemons to sell", "icon": "🍋", "cost": 2, "effect": "You buy more lemons to make more lemonade tomorrow!"}
+        ]
+      }
+    ],
+    "recap_template": "Today you ran a lemonade stand and learned about earning and spending money. Great job being a young entrepreneur!",
+    "positive_framing_rules": [
+      "Never say a choice was wrong or bad",
+      "Celebrate both earning and spending decisions",
+      "Encourage entrepreneurial thinking"
+    ],
+    "ai_variation_allowed": [
+      "Add extra customers with different requests",
+      "Vary the weather to affect sales",
+      "Add a surprise event like a dog visiting the stand"
+    ],
+    "max_turns": 12
+  }
+]

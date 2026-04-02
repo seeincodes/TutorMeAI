@@ -273,7 +273,7 @@ export default function ChatPage() {
       )}
 
       {/* App — fills all remaining space */}
-      <div className="flex-1 relative z-10">
+      <div className="flex-1 relative z-10 min-h-0 overflow-hidden">
         <AppIframe
           key={activeApp.appId}
           ref={appIframeRef}

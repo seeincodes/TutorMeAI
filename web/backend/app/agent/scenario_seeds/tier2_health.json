@@ -1,0 +1,175 @@
+[
+  {
+    "id": "tier2_pack_lunch",
+    "title": "Pack a Lunch Box",
+    "tier": 2,
+    "domain": "health",
+    "icon": "🥗",
+    "learning_objectives": [
+      "Build a balanced meal from options",
+      "Identify different food groups",
+      "Practice choosing a variety of foods"
+    ],
+    "initial_state": {
+      "lunch_items": [],
+      "food_groups_covered": [],
+      "location": "kitchen"
+    },
+    "events": [
+      {
+        "description": "Time to pack your lunch! A great lunch has something from each food group: grains, protein, fruit, veggies, and dairy. Let's start with your main item!",
+        "event_type": "choice",
+        "choices": [
+          {"id": "turkey_wrap", "label": "Turkey wrap (grain + protein)", "icon": "🌯", "cost": null, "effect": "A turkey wrap covers grains AND protein! Two food groups in one! Smart pick!"},
+          {"id": "pb_sandwich", "label": "PB&J sandwich (grain + protein)", "icon": "🥪", "cost": null, "effect": "PB&J is a classic! Bread for grains and peanut butter for protein!"},
+          {"id": "pasta_salad", "label": "Pasta salad with cheese (grain + dairy)", "icon": "🍝", "cost": null, "effect": "Pasta salad with cheese! Grains and dairy covered!"}
+        ]
+      },
+      {
+        "description": "Great main dish! Now let's add a fruit or veggie. What sounds good?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "apple", "label": "Apple slices", "icon": "🍎", "cost": null, "effect": "Crisp apple slices! Fruit group covered!"},
+          {"id": "baby_carrots", "label": "Baby carrots", "icon": "🥕", "cost": null, "effect": "Crunchy carrots! Veggie group covered!"},
+          {"id": "grapes_peppers", "label": "Grapes and bell pepper strips", "icon": "🍇", "cost": null, "effect": "Fruit AND veggies! You're covering lots of food groups!"}
+        ]
+      },
+      {
+        "description": "Looking good! Let's add one more thing and a drink to finish your lunch.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "yogurt_water", "label": "Yogurt + water bottle", "icon": "🥛", "cost": null, "effect": "Yogurt for dairy and water to stay hydrated! Complete lunch!"},
+          {"id": "cheese_juice", "label": "String cheese + juice box", "icon": "🧀", "cost": null, "effect": "String cheese for dairy and juice for a sweet drink! All packed!"},
+          {"id": "granola_milk", "label": "Granola bar + milk", "icon": "🥜", "cost": null, "effect": "Extra energy from granola and calcium from milk! Well-rounded!"}
+        ]
+      }
+    ],
+    "recap_template": "You packed an awesome lunch! You included items from different food groups to give you energy all afternoon. Great meal planning!",
+    "positive_framing_rules": [
+      "Never label any food as unhealthy or bad",
+      "Use 'gives you energy' and 'helps you grow' language",
+      "Celebrate variety and balance, not restriction"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific food options",
+      "Add fun descriptions of how foods taste",
+      "Mention how different foods help your body"
+    ],
+    "max_turns": 10
+  },
+  {
+    "id": "tier2_balanced_plate",
+    "title": "Balanced Plate Builder",
+    "tier": 2,
+    "domain": "health",
+    "icon": "🍽️",
+    "learning_objectives": [
+      "Learn about MyPlate food categories",
+      "Build meals that cover all food groups",
+      "Practice assembling balanced meals"
+    ],
+    "initial_state": {
+      "plate_sections": {"grains": false, "protein": false, "vegetables": false, "fruits": false, "dairy": false},
+      "location": "cafeteria"
+    },
+    "events": [
+      {
+        "description": "Welcome to the school cafeteria! Your plate has 5 sections to fill: grains, protein, vegetables, fruits, and dairy. Let's start with protein — what sounds good?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "chicken", "label": "Grilled chicken", "icon": "🍗", "cost": null, "effect": "Grilled chicken is packed with protein! It helps your muscles grow strong!"},
+          {"id": "beans", "label": "Black beans", "icon": "🫘", "cost": null, "effect": "Beans are a great protein source! They also have fiber for energy!"},
+          {"id": "fish", "label": "Fish sticks", "icon": "🐟", "cost": null, "effect": "Fish is great for your brain! Protein section filled!"}
+        ]
+      },
+      {
+        "description": "Protein is on the plate! Now let's fill the grains and veggies sections.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "rice_broccoli", "label": "Brown rice + broccoli", "icon": "🍚🥦", "cost": null, "effect": "Rice for grains and broccoli for veggies! Two sections filled at once!"},
+          {"id": "bread_corn", "label": "Whole wheat roll + corn", "icon": "🍞🌽", "cost": null, "effect": "A roll for grains and sweet corn for veggies! Great combo!"},
+          {"id": "pasta_salad", "label": "Pasta + side salad", "icon": "🍝🥗", "cost": null, "effect": "Pasta for grains and salad for veggies! Your plate is filling up!"}
+        ]
+      },
+      {
+        "description": "Almost there! You need fruit and dairy to complete your plate. What do you pick?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "orange_milk", "label": "Orange + milk", "icon": "🍊🥛", "cost": null, "effect": "Vitamin C from the orange and calcium from milk! Plate complete!"},
+          {"id": "berries_yogurt", "label": "Berries + yogurt", "icon": "🫐🥛", "cost": null, "effect": "Antioxidants from berries and protein from yogurt! What a plate!"},
+          {"id": "banana_cheese", "label": "Banana + cheese slice", "icon": "🍌🧀", "cost": null, "effect": "Potassium from banana and calcium from cheese! All 5 sections filled!"}
+        ]
+      }
+    ],
+    "recap_template": "You built a balanced plate with all 5 food groups! Your body gets different nutrients from each group, and together they give you energy for the whole day.",
+    "positive_framing_rules": [
+      "Never shame any food choice",
+      "Focus on what foods give your body, not calories",
+      "Celebrate completing the plate regardless of specific choices"
+    ],
+    "ai_variation_allowed": [
+      "Change the cafeteria setting",
+      "Add fun facts about nutrients",
+      "Vary the specific food options per group"
+    ],
+    "max_turns": 10
+  },
+  {
+    "id": "tier2_snack_shop",
+    "title": "Snack Shop",
+    "tier": 2,
+    "domain": "health",
+    "icon": "🏪",
+    "learning_objectives": [
+      "Pick snacks within a budget",
+      "Choose snacks that include fruits or protein",
+      "Practice combining money and nutrition thinking"
+    ],
+    "initial_state": {
+      "wallet": 5,
+      "currency": "dollars",
+      "snacks_bought": [],
+      "location": "school snack shop"
+    },
+    "events": [
+      {
+        "description": "The school snack shop is open! You have $5. An apple is $1, trail mix is $2, a juice box is $1, and a cookie is $1. You can pick up to 3 items. What do you grab first?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "trail_mix", "label": "Trail mix ($2)", "icon": "🥜", "cost": 2, "effect": "Trail mix has nuts and dried fruit — energy that lasts! $3 left."},
+          {"id": "apple", "label": "Apple ($1)", "icon": "🍎", "cost": 1, "effect": "A crunchy apple! Quick energy from natural sugars! $4 left."},
+          {"id": "cookie", "label": "Cookie ($1)", "icon": "🍪", "cost": 1, "effect": "A tasty cookie treat! $4 left."}
+        ]
+      },
+      {
+        "description": "Good pick! What else do you want from the snack shop?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "juice", "label": "Juice box ($1)", "icon": "🧃", "cost": 1, "effect": "Apple juice to drink! Refreshing!"},
+          {"id": "cheese_stick", "label": "Cheese stick ($2)", "icon": "🧀", "cost": 2, "effect": "Cheese stick for protein! Keeps you full longer!"},
+          {"id": "banana", "label": "Banana ($1)", "icon": "🍌", "cost": 1, "effect": "A banana for quick energy! Great choice!"}
+        ]
+      },
+      {
+        "description": "Last chance! You have some money left. Do you want one more item or save the rest?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "one_more", "label": "One more snack", "icon": "🛒", "cost": 1, "effect": "Your snack bag is full! You picked a great variety!"},
+          {"id": "save_change", "label": "Save the rest for tomorrow", "icon": "💰", "cost": 0, "effect": "Smart thinking! You'll have money for snacks tomorrow too!"}
+        ]
+      }
+    ],
+    "recap_template": "You shopped at the snack shop and practiced choosing snacks within a budget! You thought about both what you wanted and what gives you energy.",
+    "positive_framing_rules": [
+      "Never label snacks as junk food or bad choices",
+      "Celebrate budget-conscious decisions",
+      "Frame all foods as having something to offer"
+    ],
+    "ai_variation_allowed": [
+      "Change the snack shop inventory",
+      "Add a special deal or sale item",
+      "Vary prices slightly"
+    ],
+    "max_turns": 10
+  }
+]

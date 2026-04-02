@@ -1,0 +1,72 @@
+[
+  {
+    "id": "tier2_birthday_party",
+    "title": "Plan a Birthday Party",
+    "tier": 2,
+    "domain": "combo",
+    "icon": "🎂",
+    "learning_objectives": [
+      "Budget for party supplies within a limit",
+      "Schedule party activities in order",
+      "Pick food that includes energy-giving options",
+      "Handle friend preferences and invitations"
+    ],
+    "initial_state": {
+      "wallet": 50,
+      "currency": "dollars",
+      "guests": 6,
+      "hours": 3,
+      "location": "home"
+    },
+    "events": [
+      {
+        "description": "You're planning your birthday party! You have $50 and 6 friends coming. First, let's pick decorations. Balloons are $5, streamers are $3, and a banner is $8.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "all_decor", "label": "All three! ($16)", "icon": "🎈🎊", "cost": 16, "effect": "The room looks amazing! Balloons, streamers, and a banner! $34 left."},
+          {"id": "balloons_streamers", "label": "Balloons + streamers ($8)", "icon": "🎈", "cost": 8, "effect": "Colorful and festive! $42 left for food and activities!"},
+          {"id": "diy_decor", "label": "Make your own decorations ($3 for supplies)", "icon": "✂️", "cost": 3, "effect": "Handmade decorations are the coolest! $47 left and so creative!"}
+        ]
+      },
+      {
+        "description": "Time for food planning! Pizza costs $15, fruit and veggie trays cost $10, and a cake costs $12. What's on the menu?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "pizza_cake", "label": "Pizza + cake ($27)", "icon": "🍕🎂", "cost": 27, "effect": "Pizza and cake — party classics! Everyone will be happy!"},
+          {"id": "full_spread", "label": "Pizza + fruit tray + cake ($37)", "icon": "🍕🍎🎂", "cost": 37, "effect": "A full spread! Pizza, fresh fruit, and cake! Lots of energy-giving options!"},
+          {"id": "budget_food", "label": "Pizza + homemade cupcakes ($18)", "icon": "🍕🧁", "cost": 18, "effect": "Pizza and homemade cupcakes! Personal touch AND budget-friendly!"}
+        ]
+      },
+      {
+        "description": "Now let's plan the party schedule! The party is 3 hours. You have games, eating, and cake time. Two friends want to play different games. What's the plan?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "structured", "label": "Games (1hr) → Eat (1hr) → Cake + free play (1hr)", "icon": "📋", "cost": null, "effect": "A clear plan! Everyone knows what's happening and when!"},
+          {"id": "flexible", "label": "Let everyone vote on what to do next", "icon": "🗳️", "cost": null, "effect": "Democratic party planning! Everyone feels included in the decisions!"},
+          {"id": "two_games", "label": "Play both games, then eat and cake", "icon": "🎮⚽", "cost": null, "effect": "Both friends' games get played! Great compromise!"}
+        ]
+      },
+      {
+        "description": "Party is almost over! One friend seems a little left out because they didn't win any games. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "include_them", "label": "Ask them to help with a special job", "icon": "⭐", "cost": null, "effect": "You asked them to help serve cake! They feel important and included!"},
+          {"id": "team_game", "label": "Start a team game where everyone wins", "icon": "🤝", "cost": null, "effect": "A cooperative game means everyone's on the same team! Everyone's laughing!"},
+          {"id": "chat", "label": "Sit and chat with them", "icon": "💬", "cost": null, "effect": "Sometimes a friend just needs someone to talk to. You're a great friend!"}
+        ]
+      }
+    ],
+    "recap_template": "You planned an amazing birthday party! You budgeted for supplies and food, scheduled activities, picked energy-giving snacks, and made sure all your friends felt included.",
+    "positive_framing_rules": [
+      "Never say the student overspent or the party was lacking",
+      "Celebrate both budget-friendly and splurge choices",
+      "Frame social awareness as a strength"
+    ],
+    "ai_variation_allowed": [
+      "Change the party theme",
+      "Vary the guest personalities",
+      "Add a surprise moment like a fun delivery"
+    ],
+    "max_turns": 14
+  }
+]

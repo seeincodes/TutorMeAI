@@ -1,0 +1,166 @@
+[
+  {
+    "id": "tier1_snack_plate",
+    "title": "Build a Snack Plate",
+    "tier": 1,
+    "domain": "health",
+    "icon": "🍽️",
+    "learning_objectives": [
+      "Recognize different food groups",
+      "Practice picking foods that give energy",
+      "Build a colorful snack plate"
+    ],
+    "initial_state": {
+      "plate_items": 0,
+      "plate_max": 3,
+      "location": "kitchen"
+    },
+    "events": [
+      {
+        "description": "Let's build a yummy snack plate! Pick something colorful to start!",
+        "event_type": "choice",
+        "choices": [
+          {"id": "apple_slices", "label": "Apple slices", "icon": "🍎", "cost": null, "effect": "Crunchy apple slices! Red goes on the plate!"},
+          {"id": "carrot_sticks", "label": "Carrot sticks", "icon": "🥕", "cost": null, "effect": "Orange carrot sticks! So crunchy and bright!"}
+        ]
+      },
+      {
+        "description": "Great pick! Now let's add something that gives you lots of energy!",
+        "event_type": "choice",
+        "choices": [
+          {"id": "cheese_cubes", "label": "Cheese cubes", "icon": "🧀", "cost": null, "effect": "Yummy cheese! It helps you grow strong!"},
+          {"id": "peanut_butter", "label": "Peanut butter dip", "icon": "🥜", "cost": null, "effect": "Peanut butter is so good for dipping!"}
+        ]
+      },
+      {
+        "description": "Your plate looks amazing! One more thing to make it perfect!",
+        "event_type": "choice",
+        "choices": [
+          {"id": "grapes", "label": "Grapes", "icon": "🍇", "cost": null, "effect": "Sweet purple grapes! Your plate is so colorful!"},
+          {"id": "crackers", "label": "Crackers", "icon": "🍘", "cost": null, "effect": "Crunchy crackers! A great addition to your plate!"}
+        ]
+      }
+    ],
+    "recap_template": "You built a wonderful snack plate with foods that give you energy! Your plate was so colorful and delicious.",
+    "positive_framing_rules": [
+      "Never label foods as healthy or unhealthy",
+      "Use 'foods that give you energy' instead of 'healthy foods'",
+      "Celebrate all food choices positively"
+    ],
+    "ai_variation_allowed": [
+      "Describe the colors and textures of the food",
+      "Add fun facts about the foods",
+      "Have a stuffed animal friend comment on the plate"
+    ],
+    "max_turns": 8
+  },
+  {
+    "id": "tier1_fruit_or_cookie",
+    "title": "Fruit or Cookie?",
+    "tier": 1,
+    "domain": "health",
+    "icon": "🍓",
+    "learning_objectives": [
+      "Think about what gives your body energy",
+      "Practice making snack choices",
+      "Learn that all foods can be part of snack time"
+    ],
+    "initial_state": {
+      "snacks_chosen": 0,
+      "location": "school"
+    },
+    "events": [
+      {
+        "description": "It's snack time at school! Your teacher put two choices on the table. Which one do you pick?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "strawberries", "label": "Strawberries", "icon": "🍓", "cost": null, "effect": "Sweet strawberries! They give you energy to play at recess!"},
+          {"id": "cookie", "label": "A cookie", "icon": "🍪", "cost": null, "effect": "A yummy cookie! What a nice treat!"}
+        ]
+      },
+      {
+        "description": "After recess, you're thirsty! What would you like to drink?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "water", "label": "Water", "icon": "💧", "cost": null, "effect": "Refreshing water! Your body loves water!"},
+          {"id": "juice", "label": "Apple juice", "icon": "🧃", "cost": null, "effect": "Sweet apple juice! Tastes like apples!"}
+        ]
+      },
+      {
+        "description": "It's almost time to go home. Your friend shares their snack with you! Which one do you try?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "banana", "label": "Banana", "icon": "🍌", "cost": null, "effect": "Bananas are so sweet and soft! What a nice friend!"},
+          {"id": "crackers", "label": "Goldfish crackers", "icon": "🐟", "cost": null, "effect": "Crunchy crackers! It's fun to share snacks!"}
+        ]
+      }
+    ],
+    "recap_template": "You made great snack choices today! You tried different foods and thought about what gives your body energy.",
+    "positive_framing_rules": [
+      "Never say a snack choice was bad or wrong",
+      "Frame all foods positively — treats and fruits alike",
+      "Use 'gives you energy' not 'healthy vs unhealthy'"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific fruit or snack options",
+      "Add a fun character who serves the snacks",
+      "Describe how the food tastes and feels"
+    ],
+    "max_turns": 8
+  },
+  {
+    "id": "tier1_lunch_box",
+    "title": "Lunch Box Packer",
+    "tier": 1,
+    "domain": "health",
+    "icon": "🥪",
+    "learning_objectives": [
+      "Choose foods from different groups",
+      "Practice picking items within a limit",
+      "Build a lunch that gives energy all day"
+    ],
+    "initial_state": {
+      "lunch_items": 0,
+      "lunch_max": 3,
+      "location": "kitchen"
+    },
+    "events": [
+      {
+        "description": "Time to pack your lunch box! You can pick 3 things. What goes in first?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "sandwich", "label": "A sandwich", "icon": "🥪", "cost": null, "effect": "A yummy sandwich! That will keep you full!"},
+          {"id": "pasta", "label": "Pasta in a container", "icon": "🍝", "cost": null, "effect": "Pasta is so fun to eat! Great pick!"}
+        ]
+      },
+      {
+        "description": "What else should go in your lunch box?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "orange", "label": "An orange", "icon": "🍊", "cost": null, "effect": "A juicy orange! So bright and sweet!"},
+          {"id": "yogurt", "label": "Yogurt", "icon": "🥛", "cost": null, "effect": "Creamy yogurt! Yum yum!"}
+        ]
+      },
+      {
+        "description": "One more thing to finish your lunch box!",
+        "event_type": "choice",
+        "choices": [
+          {"id": "celery", "label": "Celery sticks", "icon": "🥬", "cost": null, "effect": "Crunchy celery! So fun to munch on!"},
+          {"id": "cheese_stick", "label": "A cheese stick", "icon": "🧀", "cost": null, "effect": "A cheese stick! Easy to eat and gives you energy!"}
+        ]
+      }
+    ],
+    "recap_template": "You packed a wonderful lunch box all by yourself! You picked different foods that will give you energy for the whole day.",
+    "positive_framing_rules": [
+      "Never judge any food choice negatively",
+      "Celebrate the variety of foods chosen",
+      "Use 'gives you energy' language throughout"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific food options offered",
+      "Add descriptions of fun lunch box designs",
+      "Have the student imagine opening their lunch at school"
+    ],
+    "max_turns": 8
+  }
+]

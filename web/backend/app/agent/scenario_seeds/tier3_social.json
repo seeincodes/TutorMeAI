@@ -1,0 +1,206 @@
+[
+  {
+    "id": "tier3_should_i_join",
+    "title": "Should I Join?",
+    "tier": 3,
+    "domain": "social",
+    "icon": "🤔",
+    "learning_objectives": [
+      "Use a decision matrix to evaluate options",
+      "Weigh pros and cons of activities",
+      "Make structured decisions about commitments"
+    ],
+    "initial_state": {
+      "options": 3,
+      "criteria": ["fun", "learning", "time_commitment", "social"],
+      "available_time": "10 hours per week"
+    },
+    "events": [
+      {
+        "description": "Three clubs are recruiting! Drama Club (3hr/week, performances, social), Coding Club (2hr/week, build projects, smaller group), and Soccer Team (5hr/week, competitive, large team). You have 10 hours/week of free time. How do you start deciding?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "try_all", "label": "Try all three for a week each", "icon": "🔄", "cost": null, "effect": "Hands-on research! After trying each, you have real data for your decision."},
+          {"id": "decision_matrix", "label": "Rate each club on fun, learning, time, social", "icon": "📊", "cost": null, "effect": "A decision matrix! You score each option and compare. Structured thinking!"},
+          {"id": "ask_friends", "label": "Talk to kids in each club about their experience", "icon": "💬", "cost": null, "effect": "First-hand accounts! Their experiences help you imagine yourself in each club."}
+        ]
+      },
+      {
+        "description": "You're leaning toward two clubs. Drama is super fun but 3 hours during your busiest day. Coding is flexible timing and you love building things. Can you do both?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "both", "label": "Join both — 5 hours total fits!", "icon": "🎭💻", "cost": null, "effect": "5 of your 10 free hours — totally doable! And the skills are so different."},
+          {"id": "coding_only", "label": "Just coding — keep more free time", "icon": "💻", "cost": null, "effect": "One focused commitment leaves time for other things. Quality over quantity!"},
+          {"id": "talk_to_leaders", "label": "Ask if Drama has a less intensive role", "icon": "🗣️", "cost": null, "effect": "The director says you can help with set design — only 1.5 hours! Now both fit perfectly!"}
+        ]
+      },
+      {
+        "description": "A month in, your best friend joins Soccer Team and wants you to switch. You're happy in your current clubs but feel pulled. How do you think through it?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "revisit_matrix", "label": "Go back to your decision criteria", "icon": "📊", "cost": null, "effect": "Your criteria haven't changed! Soccer doesn't score higher just because a friend joined."},
+          {"id": "friend_factor", "label": "Add 'being with best friend' as a new factor", "icon": "👫", "cost": null, "effect": "Social connection is valid! You recalculate and decide based on the updated matrix."},
+          {"id": "stay_course", "label": "Stick with your plan — see your friend other times", "icon": "🎯", "cost": null, "effect": "You can be friends without being in the same club! Independence is a strength."}
+        ]
+      },
+      {
+        "description": "End of semester reflection: how do you feel about your club decision?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "great_choice", "label": "It was the right choice for me!", "icon": "🌟", "cost": null, "effect": "Trusting your decision-making process paid off! You chose based on what matters to YOU."},
+          {"id": "learned_something", "label": "I'd choose differently next time — and that's okay", "icon": "📝", "cost": null, "effect": "Learning what you like and don't like IS the value of trying! Great self-awareness."},
+          {"id": "want_more", "label": "I want to try something new next semester", "icon": "🚀", "cost": null, "effect": "Growth mindset! You can always explore new activities. The decision skills you built carry over."}
+        ]
+      }
+    ],
+    "recap_template": "You used structured decision-making to choose activities! Whether you use a matrix, talk to people, or try things out, having a process leads to better choices.",
+    "positive_framing_rules": [
+      "Never say the student made the wrong choice of club",
+      "Frame changing your mind as growth, not indecision",
+      "Celebrate the decision process over the specific outcome"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific clubs or activities",
+      "Vary the friend dynamics",
+      "Add different decision criteria"
+    ],
+    "max_turns": 15
+  },
+  {
+    "id": "tier3_group_project_planner",
+    "title": "Group Project Planner",
+    "tier": 3,
+    "domain": "social",
+    "icon": "👥",
+    "learning_objectives": [
+      "Assign roles based on strengths",
+      "Manage workload distribution",
+      "Handle team challenges constructively"
+    ],
+    "initial_state": {
+      "team_size": 4,
+      "project": "history presentation",
+      "days_until_due": 10,
+      "team_members": ["You", "Mia", "Leo", "Sam"]
+    },
+    "events": [
+      {
+        "description": "Your team has a history presentation due in 10 days. Tasks: research (4 hours), write the script (3 hours), create slides (3 hours), and practice presenting (2 hours). Mia loves research, Leo is great at design, Sam is a good speaker. How do you divide the work?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "strengths", "label": "Play to strengths: Mia researches, Leo designs, you and Sam write + present", "icon": "⭐", "cost": null, "effect": "Everyone does what they're best at! The project will shine because of diverse talents."},
+          {"id": "equal", "label": "Everyone does a bit of everything", "icon": "⚖️", "cost": null, "effect": "Equal exposure! Everyone learns each skill, even if it takes a bit longer."},
+          {"id": "pairs", "label": "Work in pairs: Mia+you on content, Leo+Sam on design+presentation", "icon": "👫", "cost": null, "effect": "Pair work means built-in support! Nobody works alone."}
+        ]
+      },
+      {
+        "description": "Day 5 check-in. Mia's research is excellent and Leo's slides look great. But Sam hasn't started their part yet. How do you handle it?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "ask_whats_up", "label": "Check in — 'Hey Sam, how's it going? Need help?'", "icon": "💬", "cost": null, "effect": "Sam was overwhelmed by other homework. Once you understood, you adjusted the plan. Empathy + problem-solving!"},
+          {"id": "redistribute", "label": "Split Sam's part among the team", "icon": "🔀", "cost": null, "effect": "Everyone takes a small piece. The work gets done and Sam catches up when they can."},
+          {"id": "adjust_deadline", "label": "Create mini-deadlines so nothing falls behind again", "icon": "📅", "cost": null, "effect": "Mini check-ins every 2 days! The team stays on track without anyone feeling singled out."}
+        ]
+      },
+      {
+        "description": "Day 8. During practice, Mia and Leo disagree about how to present a section. Mia wants lots of facts, Leo wants more visuals. The argument is getting tense.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "mediate", "label": "Find a middle ground — facts WITH visuals", "icon": "🤝", "cost": null, "effect": "An infographic! Mia's facts presented in Leo's visual style. Both feel heard and it's better than either idea alone!"},
+          {"id": "audience_focus", "label": "Ask 'What would the audience prefer?'", "icon": "🎯", "cost": null, "effect": "Shifting focus to the audience dissolves the personal disagreement. Data + visuals for the win!"},
+          {"id": "test_both", "label": "Try both approaches and see which works better", "icon": "🔬", "cost": null, "effect": "Testing removes opinion from the equation! The team picks what actually works best."}
+        ]
+      },
+      {
+        "description": "Presentation day! How does the team feel?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "proud_team", "label": "Proud of what we built together", "icon": "🏆", "cost": null, "effect": "The presentation is a hit! Working through challenges made the team stronger."},
+          {"id": "learned_collab", "label": "We learned as much about teamwork as history", "icon": "🧠", "cost": null, "effect": "Collaboration skills are just as valuable as the content! Double learning."},
+          {"id": "do_again", "label": "We'd work together again — we figured it out!", "icon": "🔄", "cost": null, "effect": "The best teams aren't the ones without disagreements — they're the ones who work through them!"}
+        ]
+      }
+    ],
+    "recap_template": "You led a group project from planning to presentation! You assigned roles, handled workload issues, mediated disagreements, and delivered as a team.",
+    "positive_framing_rules": [
+      "Never label a team member as lazy or a slacker",
+      "Frame disagreements as chances to find better solutions",
+      "Celebrate the team process, not just the final product"
+    ],
+    "ai_variation_allowed": [
+      "Change the project topic",
+      "Vary team member personalities",
+      "Add different types of team challenges"
+    ],
+    "max_turns": 15
+  },
+  {
+    "id": "tier3_multi_week_goal",
+    "title": "Multi-Week Goal",
+    "tier": 3,
+    "domain": "social",
+    "icon": "🏔️",
+    "learning_objectives": [
+      "Set a 4-week goal with milestones",
+      "Handle setbacks without giving up",
+      "Adjust plans while keeping the end goal"
+    ],
+    "initial_state": {
+      "goal": null,
+      "week": 1,
+      "total_weeks": 4,
+      "progress": 0,
+      "milestones": []
+    },
+    "events": [
+      {
+        "description": "Set a 4-week goal! What would you like to accomplish?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "run_mile", "label": "Run a mile without stopping", "icon": "🏃", "cost": null, "effect": "Great goal! Week 1: run/walk for 10 minutes. Week 2: run 1/2 mile. Week 3: run 3/4 mile. Week 4: the full mile!"},
+          {"id": "learn_guitar", "label": "Learn 3 songs on guitar", "icon": "🎸", "cost": null, "effect": "Awesome! Week 1: learn chords. Week 2: first song. Week 3: second song. Week 4: all three!"},
+          {"id": "community_project", "label": "Organize a neighborhood cleanup", "icon": "🌍", "cost": null, "effect": "Making a difference! Week 1: plan. Week 2: recruit volunteers. Week 3: get supplies. Week 4: cleanup day!"}
+        ]
+      },
+      {
+        "description": "End of Week 1! You hit your first milestone. But Week 2 brings a challenge: you got sick and missed 3 days. You're behind on your milestone. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "adjust_timeline", "label": "Push milestones back by a few days", "icon": "📅", "cost": null, "effect": "Flexible! A few extra days doesn't change the overall goal. Recovery first!"},
+          {"id": "modify_milestone", "label": "Make this week's milestone smaller", "icon": "📏", "cost": null, "effect": "A smaller Week 2 milestone is still progress! You can catch up when you feel better."},
+          {"id": "combine_weeks", "label": "Combine Week 2 and 3 milestones next week", "icon": "🔗", "cost": null, "effect": "Ambitious catch-up plan! You'll work harder next week but the end date stays the same."}
+        ]
+      },
+      {
+        "description": "Week 3. You're back on track! But a friend says 'Why are you even bothering with that?' It stings a little. How do you respond to yourself?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "internal_motivation", "label": "I'm doing this for ME, not for them", "icon": "💪", "cost": null, "effect": "Your goals don't need anyone else's approval. Internal motivation is the strongest kind!"},
+          {"id": "show_progress", "label": "Look at how far you've come — proof it's worth it!", "icon": "📈", "cost": null, "effect": "3 weeks of progress speaks louder than doubt! You can see your own growth."},
+          {"id": "invite_friend", "label": "Invite them to join — maybe they'll understand", "icon": "🤝", "cost": null, "effect": "Your friend tries it and says 'Okay, this is actually cool!' Sometimes people need to see it."}
+        ]
+      },
+      {
+        "description": "Week 4 — final week! You're so close to your goal. One last push!",
+        "event_type": "choice",
+        "choices": [
+          {"id": "full_effort", "label": "Give it everything this week!", "icon": "🔥", "cost": null, "effect": "You did it! Four weeks of dedication led to an amazing accomplishment!"},
+          {"id": "celebrate_journey", "label": "Even if I don't fully finish, I grew so much", "icon": "🌱", "cost": null, "effect": "The journey IS the achievement! You're so much further than where you started."},
+          {"id": "set_next_goal", "label": "Finish strong and already plan what's next", "icon": "🚀", "cost": null, "effect": "Goal achieved and already looking forward! You've built a growth mindset."}
+        ]
+      }
+    ],
+    "recap_template": "You set a 4-week goal, created milestones, handled setbacks, and pushed through doubt! Long-term goals teach persistence, flexibility, and self-belief.",
+    "positive_framing_rules": [
+      "Never say the student gave up or let themselves down",
+      "Frame setbacks as normal parts of any goal journey",
+      "Celebrate effort and growth, not just completion"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific goal options",
+      "Vary the setback scenarios",
+      "Add motivating moments and small wins"
+    ],
+    "max_turns": 15
+  }
+]
