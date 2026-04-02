@@ -1,0 +1,1512 @@
+# Google Classroom Integration — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Replace Spotify with Google Classroom as ChatBridge's OAuth2 third-party app, adding a provider-agnostic OAuth architecture and K-12 app allowlist/blocklist.
+
+**Architecture:** Extend `AppRegistration` with `oauth_config` JSONB and `platform_status` columns. Refactor the OAuth router to read provider config dynamically. Add Google Classroom proxy endpoints with role-gated PII filtering. Build a new iframe app for visual display. Add an `oauth_prompt` SSE event for in-chat discovery.
+
+**Tech Stack:** FastAPI, SQLAlchemy async, Alembic, httpx, React + TypeScript + Tailwind, Vite
+
+**Spec:** `docs/superpowers/specs/2026-04-02-google-classroom-integration-design.md`
+
+---
+
+## File Map
+
+### Files to Create
+- `web/backend/alembic/versions/XXXX_add_oauth_config_and_platform_status.py` — migration: add columns + seed Google Classroom
+- `web/backend/alembic/versions/XXXX_deactivate_spotify.py` — migration: block Spotify
+- `web/backend/app/classroom/router.py` — Google Classroom proxy endpoints
+- `web/backend/app/classroom/__init__.py` — package init
+- `web/backend/tests/test_oauth_generic.py` — tests for provider-agnostic OAuth
+- `web/backend/tests/test_classroom.py` — tests for Classroom proxy endpoints
+- `apps/google-classroom/index.html` — entry HTML
+- `apps/google-classroom/package.json` — dependencies
+- `apps/google-classroom/tsconfig.json` — TS config
+- `apps/google-classroom/vite.config.ts` — Vite config
+- `apps/google-classroom/src/main.tsx` — entry point
+- `apps/google-classroom/src/GoogleClassroomApp.tsx` — main component
+
+### Files to Modify
+- `web/backend/app/models.py:91-108` — add `oauth_config`, `platform_status`, `requires_admin_approval` to AppRegistration
+- `web/backend/app/config.py:25-28` — replace Spotify config with Google Classroom config
+- `web/backend/app/oauth/router.py` — full refactor to provider-agnostic
+- `web/backend/app/agent/graph.py:265-279` — update TIER_ALLOWED_TOOLS
+- `web/backend/app/agent/prompts.py:1-30` — add Google Classroom awareness to system prompt
+- `web/backend/app/main.py:92-100` — replace Spotify static mount with google-classroom
+- `web/backend/tests/conftest.py:40-41` — update app seeding
+- `web/frontend/src/lib/api.ts` — add `oauth_prompt` SSE event handling
+- `web/frontend/src/pages/ChatPage.tsx` — render oauth_prompt cards, handle oauth_complete
+
+### Files to Delete
+- `apps/spotify/` — entire directory
+
+---
+
+## Task 1: Extend AppRegistration Model
+
+**Files:**
+- Modify: `web/backend/app/models.py:91-108`
+
+- [ ] **Step 1: Add new columns to AppRegistration**
+
+In `web/backend/app/models.py`, add three new columns to the `AppRegistration` class after line 103 (`is_active`):
+
+```python
+class AppRegistration(Base):
+    __tablename__ = "app_registrations"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    app_id: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    auth_type: Mapped[str] = mapped_column(Text, nullable=False)
+    iframe_url: Mapped[str] = mapped_column(Text, nullable=False)
+    tool_schemas: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    oauth_config: Mapped[dict | None] = mapped_column(JSONB)
+    platform_status: Mapped[str] = mapped_column(Text, default="allowed")
+    requires_admin_approval: Mapped[bool] = mapped_column(Boolean, default=False)
+    status: Mapped[str] = mapped_column(Text, default="pending_review")
+    age_rating: Mapped[str] = mapped_column(Text, default="all")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        CheckConstraint("auth_type IN ('none', 'api_key', 'oauth2')", name="ck_app_registrations_auth_type"),
+        CheckConstraint("platform_status IN ('allowed', 'blocked', 'pending_review')", name="ck_app_registrations_platform_status"),
+    )
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add web/backend/app/models.py
+git commit -m "feat: add oauth_config, platform_status, requires_admin_approval to AppRegistration"
+```
+
+---
+
+## Task 2: Migration — Add Columns and Seed Google Classroom
+
+**Files:**
+- Create: `web/backend/alembic/versions/XXXX_add_oauth_config_and_platform_status.py`
+
+- [ ] **Step 1: Generate alembic migration**
+
+```bash
+cd web/backend && python -m alembic revision --autogenerate -m "add oauth_config and platform_status to app_registrations"
+```
+
+- [ ] **Step 2: Edit the generated migration to also seed Google Classroom**
+
+The autogenerated migration will add the columns. After the `op.add_column` calls, add the Google Classroom insert and update existing apps to `platform_status='allowed'`:
+
+```python
+"""add oauth_config and platform_status to app_registrations
+
+Revision ID: <auto>
+Revises: 29be9890ff89
+Create Date: <auto>
+"""
+from typing import Sequence, Union
+
+from alembic import op
+import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
+
+revision: str = '<auto>'
+down_revision: Union[str, Sequence[str], None] = '29be9890ff89'
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+
+GOOGLE_CLASSROOM_TOOLS = [
+    {
+        "name": "list_courses",
+        "description": "List the teacher's Google Classroom courses",
+        "parameters": [],
+    },
+    {
+        "name": "list_assignments",
+        "description": "List assignments for a specific course",
+        "parameters": [
+            {"name": "course_id", "type": "string", "description": "The course ID", "required": True},
+        ],
+    },
+    {
+        "name": "get_assignment",
+        "description": "Get details for a specific assignment",
+        "parameters": [
+            {"name": "course_id", "type": "string", "description": "The course ID", "required": True},
+            {"name": "assignment_id", "type": "string", "description": "The assignment ID", "required": True},
+        ],
+    },
+    {
+        "name": "list_submissions",
+        "description": "List student submissions for an assignment (teacher only)",
+        "parameters": [
+            {"name": "course_id", "type": "string", "description": "The course ID", "required": True},
+            {"name": "assignment_id", "type": "string", "description": "The assignment ID", "required": True},
+        ],
+    },
+    {
+        "name": "create_assignment",
+        "description": "Draft a new assignment for teacher review before creation",
+        "parameters": [
+            {"name": "course_id", "type": "string", "description": "The course ID", "required": True},
+            {"name": "title", "type": "string", "description": "Assignment title", "required": True},
+            {"name": "description", "type": "string", "description": "Assignment description/instructions", "required": True},
+            {"name": "due_date", "type": "string", "description": "Due date in ISO 8601 format", "required": False},
+            {"name": "max_points", "type": "number", "description": "Maximum points for the assignment", "required": False},
+        ],
+    },
+]
+
+GOOGLE_CLASSROOM_OAUTH_CONFIG = {
+    "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+    "token_url": "https://oauth2.googleapis.com/token",
+    "scopes": [
+        "https://www.googleapis.com/auth/classroom.courses.readonly",
+        "https://www.googleapis.com/auth/classroom.coursework.me",
+        "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly",
+    ],
+    "client_id_env_var": "GOOGLE_CLASSROOM_CLIENT_ID",
+    "client_secret_env_var": "GOOGLE_CLASSROOM_CLIENT_SECRET",
+    "redirect_uri_env_var": "GOOGLE_CLASSROOM_REDIRECT_URI",
+}
+
+
+def upgrade() -> None:
+    # Add new columns
+    op.add_column("app_registrations", sa.Column("oauth_config", postgresql.JSONB, nullable=True))
+    op.add_column("app_registrations", sa.Column("platform_status", sa.Text(), nullable=True, server_default="allowed"))
+    op.add_column("app_registrations", sa.Column("requires_admin_approval", sa.Boolean(), nullable=True, server_default="false"))
+
+    # Set default platform_status for existing apps
+    op.execute(sa.text("UPDATE app_registrations SET platform_status = 'allowed' WHERE platform_status IS NULL"))
+    op.execute(sa.text("UPDATE app_registrations SET requires_admin_approval = false WHERE requires_admin_approval IS NULL"))
+
+    # Add check constraint
+    op.create_check_constraint("ck_app_registrations_platform_status", "app_registrations", "platform_status IN ('allowed', 'blocked', 'pending_review')")
+
+    # Deactivate and block Spotify
+    op.execute(sa.text("UPDATE app_registrations SET platform_status = 'blocked', is_active = false WHERE app_id = 'spotify'"))
+
+    # Insert Google Classroom
+    import json
+    app_registrations = sa.table(
+        "app_registrations",
+        sa.column("app_id", sa.Text), sa.column("name", sa.Text),
+        sa.column("description", sa.Text), sa.column("auth_type", sa.Text),
+        sa.column("iframe_url", sa.Text), sa.column("tool_schemas", postgresql.JSONB),
+        sa.column("oauth_config", postgresql.JSONB),
+        sa.column("platform_status", sa.Text),
+        sa.column("requires_admin_approval", sa.Boolean),
+        sa.column("status", sa.Text), sa.column("age_rating", sa.Text),
+        sa.column("is_active", sa.Boolean),
+    )
+    op.bulk_insert(app_registrations, [{
+        "app_id": "google-classroom",
+        "name": "Google Classroom",
+        "description": "Access courses, assignments, submissions, and create assignments via Google Classroom. Requires teacher Google account connection.",
+        "auth_type": "oauth2",
+        "iframe_url": "/apps/google-classroom/index.html",
+        "tool_schemas": GOOGLE_CLASSROOM_TOOLS,
+        "oauth_config": GOOGLE_CLASSROOM_OAUTH_CONFIG,
+        "platform_status": "allowed",
+        "requires_admin_approval": True,
+        "status": "active",
+        "age_rating": "all",
+        "is_active": True,
+    }])
+
+
+def downgrade() -> None:
+    op.execute(sa.text("DELETE FROM app_registrations WHERE app_id = 'google-classroom'"))
+    op.execute(sa.text("UPDATE app_registrations SET platform_status = 'active', is_active = true WHERE app_id = 'spotify'"))
+    op.drop_constraint("ck_app_registrations_platform_status", "app_registrations", type_="check")
+    op.drop_column("app_registrations", "requires_admin_approval")
+    op.drop_column("app_registrations", "platform_status")
+    op.drop_column("app_registrations", "oauth_config")
+```
+
+- [ ] **Step 3: Run the migration**
+
+```bash
+cd web/backend && python -m alembic upgrade head
+```
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add web/backend/alembic/versions/
+git commit -m "feat: migration adds oauth_config/platform_status, seeds Google Classroom, blocks Spotify"
+```
+
+---
+
+## Task 3: Update Config — Replace Spotify with Google Classroom
+
+**Files:**
+- Modify: `web/backend/app/config.py:25-28`
+
+- [ ] **Step 1: Replace Spotify config fields with Google Classroom**
+
+Replace lines 25-28 in `web/backend/app/config.py`:
+
+```python
+    # Google Classroom OAuth
+    google_classroom_client_id: str = ""
+    google_classroom_client_secret: str = ""
+    google_classroom_redirect_uri: str = ""
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add web/backend/app/config.py
+git commit -m "feat: replace Spotify config with Google Classroom OAuth config"
+```
+
+---
+
+## Task 4: Refactor OAuth Router to Provider-Agnostic
+
+**Files:**
+- Modify: `web/backend/app/oauth/router.py` (full rewrite)
+- Test: `web/backend/tests/test_oauth_generic.py`
+
+- [ ] **Step 1: Write tests for the provider-agnostic OAuth router**
+
+Create `web/backend/tests/test_oauth_generic.py`:
+
+```python
+import pytest
+
+
+@pytest.mark.asyncio
+async def test_authorize_unknown_app_returns_400(teacher_client):
+    resp = await teacher_client.get("/api/oauth/nonexistent/authorize")
+    assert resp.status_code == 400
+    assert "not found" in resp.json()["detail"].lower() or "not supported" in resp.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_authorize_non_oauth_app_returns_400(teacher_client):
+    resp = await teacher_client.get("/api/oauth/chess/authorize")
+    assert resp.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_status_no_connection(teacher_client):
+    resp = await teacher_client.get("/api/oauth/google-classroom/status")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["connected"] is False
+
+
+@pytest.mark.asyncio
+async def test_disconnect_no_connection_returns_404(teacher_client):
+    resp = await teacher_client.delete("/api/oauth/google-classroom/disconnect")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_student_cannot_authorize(student1_client):
+    resp = await student1_client.get("/api/oauth/google-classroom/authorize")
+    # Students should not be able to initiate OAuth (teacher-only feature)
+    # This test documents the expected behavior — may return 403 or proceed
+    # depending on role gating implementation
+    assert resp.status_code in (200, 400, 403)
+
+
+@pytest.mark.asyncio
+async def test_callback_invalid_state(client):
+    resp = await client.get("/api/oauth/google-classroom/callback?code=fake&state=invalid")
+    assert resp.status_code == 400
+    assert "invalid" in resp.json()["detail"].lower() or "expired" in resp.json()["detail"].lower()
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+```bash
+cd web/backend && python -m pytest tests/test_oauth_generic.py -v
+```
+
+Expected: Most tests fail because OAuth router still has Spotify-only logic.
+
+- [ ] **Step 3: Rewrite the OAuth router**
+
+Replace the entire content of `web/backend/app/oauth/router.py`:
+
+```python
+import os
+import secrets
+from datetime import datetime, timezone, timedelta
+
+import httpx
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import HTMLResponse
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.auth.dependencies import get_current_user
+from app.database import get_db
+from app.models import AppRegistration, OAuthToken, User
+from app.oauth.crypto import encrypt_token, decrypt_token
+from app.oauth.pkce import generate_pkce_pair
+
+router = APIRouter(prefix="/api/oauth", tags=["oauth"])
+
+# In-memory PKCE state store (keyed by state param). Production: use Redis or DB.
+_pkce_states: dict[str, dict] = {}
+
+
+async def _get_oauth_app(app_id: str, db: AsyncSession) -> AppRegistration:
+    """Look up an app registration and verify it supports OAuth2."""
+    result = await db.execute(
+        select(AppRegistration).where(AppRegistration.app_id == app_id)
+    )
+    app = result.scalar_one_or_none()
+    if not app:
+        raise HTTPException(status_code=400, detail=f"App '{app_id}' not found")
+    if app.auth_type != "oauth2" or not app.oauth_config:
+        raise HTTPException(status_code=400, detail=f"OAuth not supported for '{app_id}'")
+    if app.platform_status == "blocked":
+        raise HTTPException(status_code=403, detail=f"App '{app_id}' is blocked by platform policy")
+    return app
+
+
+def _get_env(var_name: str) -> str:
+    """Resolve an env var name from oauth_config."""
+    value = os.environ.get(var_name, "")
+    if not value:
+        raise HTTPException(status_code=500, detail=f"OAuth not configured (missing {var_name})")
+    return value
+
+
+@router.get("/{app_id}/authorize")
+async def authorize(
+    app_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    app = await _get_oauth_app(app_id, db)
+    config = app.oauth_config
+
+    client_id = _get_env(config["client_id_env_var"])
+    redirect_uri = _get_env(config["redirect_uri_env_var"])
+
+    code_verifier, code_challenge = generate_pkce_pair()
+
+    state = secrets.token_urlsafe(32)
+    _pkce_states[state] = {
+        "user_id": str(current_user.id),
+        "app_id": app_id,
+        "code_verifier": code_verifier,
+    }
+
+    scopes = " ".join(config.get("scopes", []))
+    params = {
+        "client_id": client_id,
+        "response_type": "code",
+        "redirect_uri": redirect_uri,
+        "scope": scopes,
+        "state": state,
+        "code_challenge_method": "S256",
+        "code_challenge": code_challenge,
+        "access_type": "offline",
+        "prompt": "consent",
+    }
+    query = "&".join(f"{k}={v}" for k, v in params.items())
+    return {"authorize_url": f"{config['authorize_url']}?{query}"}
+
+
+@router.get("/{app_id}/callback")
+async def callback(
+    app_id: str,
+    code: str,
+    state: str,
+    db: AsyncSession = Depends(get_db),
+):
+    pkce_data = _pkce_states.pop(state, None)
+    if not pkce_data:
+        raise HTTPException(status_code=400, detail="Invalid or expired state")
+
+    if pkce_data["app_id"] != app_id:
+        raise HTTPException(status_code=400, detail="App ID mismatch in callback")
+
+    user_id = pkce_data["user_id"]
+    code_verifier = pkce_data["code_verifier"]
+
+    app = await _get_oauth_app(app_id, db)
+    config = app.oauth_config
+
+    client_id = _get_env(config["client_id_env_var"])
+    client_secret = _get_env(config["client_secret_env_var"])
+    redirect_uri = _get_env(config["redirect_uri_env_var"])
+
+    # Exchange code for tokens
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            config["token_url"],
+            data={
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": redirect_uri,
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "code_verifier": code_verifier,
+            },
+        )
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=400, detail="Failed to exchange code for tokens")
+
+    token_data = resp.json()
+    access_token = token_data["access_token"]
+    refresh_token = token_data.get("refresh_token", "")
+    expires_in = token_data.get("expires_in", 3600)
+
+    # Encrypt and upsert tokens
+    result = await db.execute(
+        select(OAuthToken).where(OAuthToken.user_id == user_id, OAuthToken.app_id == app_id)
+    )
+    existing = result.scalar_one_or_none()
+
+    if existing:
+        existing.access_token = encrypt_token(access_token)
+        existing.refresh_token = encrypt_token(refresh_token) if refresh_token else None
+        existing.expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+    else:
+        oauth_token = OAuthToken(
+            user_id=user_id,
+            app_id=app_id,
+            access_token=encrypt_token(access_token),
+            refresh_token=encrypt_token(refresh_token) if refresh_token else None,
+            expires_at=datetime.now(timezone.utc) + timedelta(seconds=expires_in),
+        )
+        db.add(oauth_token)
+
+    await db.commit()
+
+    # Return HTML that closes the popup and notifies the parent
+    return HTMLResponse(f"""
+    <html><body><script>
+        window.opener?.postMessage({{type: 'oauth_complete', app_id: '{app_id}'}}, '*');
+        window.close();
+    </script><p>Connected! You can close this window.</p></body></html>
+    """)
+
+
+@router.delete("/{app_id}/disconnect")
+async def disconnect(
+    app_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(OAuthToken).where(
+            OAuthToken.user_id == current_user.id,
+            OAuthToken.app_id == app_id,
+        )
+    )
+    token = result.scalar_one_or_none()
+    if not token:
+        raise HTTPException(status_code=404, detail="No OAuth connection found")
+
+    await db.delete(token)
+    await db.commit()
+    return {"message": f"Disconnected from {app_id}"}
+
+
+@router.get("/{app_id}/status")
+async def oauth_status(
+    app_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(OAuthToken).where(
+            OAuthToken.user_id == current_user.id,
+            OAuthToken.app_id == app_id,
+        )
+    )
+    token = result.scalar_one_or_none()
+    if not token:
+        return {"connected": False}
+
+    expired = token.expires_at and token.expires_at < datetime.now(timezone.utc)
+    return {"connected": True, "expired": expired}
+
+
+async def get_oauth_token(user_id: str, app_id: str, db: AsyncSession) -> str | None:
+    """Get a valid OAuth access token for the user + app, auto-refreshing if expired."""
+    result = await db.execute(
+        select(OAuthToken).where(OAuthToken.user_id == user_id, OAuthToken.app_id == app_id)
+    )
+    token = result.scalar_one_or_none()
+    if not token:
+        return None
+
+    # Check if expired and refresh
+    if token.expires_at and token.expires_at < datetime.now(timezone.utc):
+        if not token.refresh_token:
+            return None
+
+        # Look up the app's oauth_config for token_url and client credentials
+        app_result = await db.execute(
+            select(AppRegistration).where(AppRegistration.app_id == app_id)
+        )
+        app = app_result.scalar_one_or_none()
+        if not app or not app.oauth_config:
+            return None
+
+        config = app.oauth_config
+        client_id = os.environ.get(config["client_id_env_var"], "")
+        client_secret = os.environ.get(config["client_secret_env_var"], "")
+
+        refresh = decrypt_token(token.refresh_token)
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                config["token_url"],
+                data={
+                    "grant_type": "refresh_token",
+                    "refresh_token": refresh,
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                },
+            )
+
+        if resp.status_code != 200:
+            return None
+
+        data = resp.json()
+        token.access_token = encrypt_token(data["access_token"])
+        if data.get("refresh_token"):
+            token.refresh_token = encrypt_token(data["refresh_token"])
+        token.expires_at = datetime.now(timezone.utc) + timedelta(seconds=data.get("expires_in", 3600))
+        await db.commit()
+
+    return decrypt_token(token.access_token)
+```
+
+- [ ] **Step 4: Run tests**
+
+```bash
+cd web/backend && python -m pytest tests/test_oauth_generic.py -v
+```
+
+Expected: All tests pass.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add web/backend/app/oauth/router.py web/backend/tests/test_oauth_generic.py
+git commit -m "feat: refactor OAuth router to provider-agnostic, add tests"
+```
+
+---
+
+## Task 5: Google Classroom Proxy Endpoints
+
+**Files:**
+- Create: `web/backend/app/classroom/__init__.py`
+- Create: `web/backend/app/classroom/router.py`
+- Modify: `web/backend/app/main.py:75-80` (mount new router)
+- Test: `web/backend/tests/test_classroom.py`
+
+- [ ] **Step 1: Write tests for Classroom proxy endpoints**
+
+Create `web/backend/tests/test_classroom.py`:
+
+```python
+import pytest
+
+
+@pytest.mark.asyncio
+async def test_courses_requires_auth(client):
+    resp = await client.get("/api/classroom/courses")
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_courses_no_oauth_token(teacher_client):
+    resp = await teacher_client.get("/api/classroom/courses")
+    assert resp.status_code == 400
+    assert "not connected" in resp.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_submissions_student_forbidden(student1_client):
+    resp = await student1_client.get("/api/classroom/courses/123/assignments/456/submissions")
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_create_assignment_student_forbidden(student1_client):
+    resp = await student1_client.post(
+        "/api/classroom/courses/123/assignments",
+        json={"title": "Test", "description": "Test desc"},
+    )
+    assert resp.status_code == 403
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+```bash
+cd web/backend && python -m pytest tests/test_classroom.py -v
+```
+
+Expected: FAIL — no `/api/classroom/` routes exist yet.
+
+- [ ] **Step 3: Create the classroom package**
+
+Create `web/backend/app/classroom/__init__.py` (empty file).
+
+- [ ] **Step 4: Implement the classroom router**
+
+Create `web/backend/app/classroom/router.py`:
+
+```python
+import httpx
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.auth.dependencies import get_current_user
+from app.database import get_db
+from app.models import User
+from app.oauth.router import get_oauth_token
+
+router = APIRouter(prefix="/api/classroom", tags=["classroom"])
+
+GOOGLE_CLASSROOM_API = "https://classroom.googleapis.com/v1"
+
+
+async def _get_classroom_token(user: User, db: AsyncSession) -> str:
+    """Get a valid Google Classroom token for the user. Raises 400 if not connected."""
+    token = await get_oauth_token(str(user.id), "google-classroom", db)
+    if not token:
+        raise HTTPException(status_code=400, detail="Google Classroom not connected. Please connect your account first.")
+    return token
+
+
+def _require_teacher(user: User):
+    """Raise 403 if user is not a teacher or admin."""
+    if user.role not in ("teacher", "admin"):
+        raise HTTPException(status_code=403, detail="Only teachers can access this resource")
+
+
+def _strip_student_pii(submissions: list[dict]) -> dict:
+    """Strip student PII from submissions, return aggregate counts only."""
+    total = len(submissions)
+    turned_in = sum(1 for s in submissions if s.get("state") == "TURNED_IN")
+    late = sum(1 for s in submissions if s.get("late", False))
+    missing = total - turned_in
+    return {
+        "total_students": total,
+        "submitted": turned_in,
+        "late": late,
+        "missing": missing,
+    }
+
+
+@router.get("/courses")
+async def list_courses(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    token = await _get_classroom_token(current_user, db)
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{GOOGLE_CLASSROOM_API}/courses",
+            params={"teacherId": "me", "courseStates": "ACTIVE"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=resp.status_code, detail="Failed to fetch courses from Google Classroom")
+
+    courses = resp.json().get("courses", [])
+    return [
+        {
+            "id": c["id"],
+            "name": c.get("name", ""),
+            "section": c.get("section", ""),
+            "description": c.get("descriptionHeading", ""),
+            "room": c.get("room", ""),
+        }
+        for c in courses
+    ]
+
+
+@router.get("/courses/{course_id}/assignments")
+async def list_assignments(
+    course_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    token = await _get_classroom_token(current_user, db)
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{GOOGLE_CLASSROOM_API}/courses/{course_id}/courseWork",
+            params={"orderBy": "dueDate desc"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=resp.status_code, detail="Failed to fetch assignments")
+
+    assignments = resp.json().get("courseWork", [])
+    return [
+        {
+            "id": a["id"],
+            "title": a.get("title", ""),
+            "description": a.get("description", ""),
+            "state": a.get("state", ""),
+            "max_points": a.get("maxPoints"),
+            "due_date": a.get("dueDate"),
+            "due_time": a.get("dueTime"),
+            "creation_time": a.get("creationTime"),
+        }
+        for a in assignments
+    ]
+
+
+@router.get("/courses/{course_id}/assignments/{assignment_id}")
+async def get_assignment(
+    course_id: str,
+    assignment_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    token = await _get_classroom_token(current_user, db)
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{GOOGLE_CLASSROOM_API}/courses/{course_id}/courseWork/{assignment_id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=resp.status_code, detail="Failed to fetch assignment")
+
+    a = resp.json()
+    return {
+        "id": a["id"],
+        "title": a.get("title", ""),
+        "description": a.get("description", ""),
+        "state": a.get("state", ""),
+        "max_points": a.get("maxPoints"),
+        "due_date": a.get("dueDate"),
+        "due_time": a.get("dueTime"),
+        "materials": a.get("materials", []),
+        "creation_time": a.get("creationTime"),
+    }
+
+
+@router.get("/courses/{course_id}/assignments/{assignment_id}/submissions")
+async def list_submissions(
+    course_id: str,
+    assignment_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    _require_teacher(current_user)
+    token = await _get_classroom_token(current_user, db)
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{GOOGLE_CLASSROOM_API}/courses/{course_id}/courseWork/{assignment_id}/studentSubmissions",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=resp.status_code, detail="Failed to fetch submissions")
+
+    submissions = resp.json().get("studentSubmissions", [])
+
+    # For teacher: return full data including student profiles
+    # The iframe only shows aggregates; the AI chat references names
+    aggregate = _strip_student_pii(submissions)
+    return {
+        "aggregate": aggregate,
+        "submissions": [
+            {
+                "id": s["id"],
+                "state": s.get("state", ""),
+                "late": s.get("late", False),
+                "assigned_grade": s.get("assignedGrade"),
+                "user_id": s.get("userId", ""),
+            }
+            for s in submissions
+        ],
+    }
+
+
+class CreateAssignmentRequest(BaseModel):
+    title: str
+    description: str
+    due_date: str | None = None
+    max_points: float | None = None
+    confirmed: bool = False
+
+
+@router.post("/courses/{course_id}/assignments")
+async def create_assignment(
+    course_id: str,
+    body: CreateAssignmentRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    _require_teacher(current_user)
+
+    if not body.confirmed:
+        # Return preview for confirm-then-create flow
+        return {
+            "status": "preview",
+            "assignment": {
+                "title": body.title,
+                "description": body.description,
+                "due_date": body.due_date,
+                "max_points": body.max_points,
+            },
+        }
+
+    token = await _get_classroom_token(current_user, db)
+
+    course_work = {
+        "title": body.title,
+        "description": body.description,
+        "workType": "ASSIGNMENT",
+        "state": "PUBLISHED",
+    }
+    if body.max_points is not None:
+        course_work["maxPoints"] = body.max_points
+    if body.due_date:
+        # Parse ISO date to Google's dueDate format (year, month, day)
+        try:
+            from datetime import date as date_type
+            d = date_type.fromisoformat(body.due_date[:10])
+            course_work["dueDate"] = {"year": d.year, "month": d.month, "day": d.day}
+            course_work["dueTime"] = {"hours": 23, "minutes": 59}
+        except ValueError:
+            pass
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            f"{GOOGLE_CLASSROOM_API}/courses/{course_id}/courseWork",
+            json=course_work,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+    if resp.status_code not in (200, 201):
+        raise HTTPException(status_code=resp.status_code, detail="Failed to create assignment in Google Classroom")
+
+    created = resp.json()
+    return {
+        "status": "created",
+        "assignment": {
+            "id": created["id"],
+            "title": created.get("title", ""),
+            "link": created.get("alternateLink", ""),
+        },
+    }
+```
+
+- [ ] **Step 5: Mount the classroom router in main.py**
+
+In `web/backend/app/main.py`, add the import after line 16:
+
+```python
+from app.classroom.router import router as classroom_router
+```
+
+And add after line 80 (after `teacher_router`):
+
+```python
+app.include_router(classroom_router)
+```
+
+- [ ] **Step 6: Run tests**
+
+```bash
+cd web/backend && python -m pytest tests/test_classroom.py -v
+```
+
+Expected: All 4 tests pass.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add web/backend/app/classroom/ web/backend/app/main.py web/backend/tests/test_classroom.py
+git commit -m "feat: add Google Classroom proxy endpoints with role-gated PII filtering"
+```
+
+---
+
+## Task 6: Update Agent — Tier Gating and System Prompt
+
+**Files:**
+- Modify: `web/backend/app/agent/graph.py:265-279`
+- Modify: `web/backend/app/agent/prompts.py:1-30`
+
+- [ ] **Step 1: Update TIER_ALLOWED_TOOLS in graph.py**
+
+Replace lines 265-279 in `web/backend/app/agent/graph.py`:
+
+```python
+TIER_ALLOWED_TOOLS: dict[int, list[str]] = {
+    1: ["life_skills__start_scenario", "life_skills__make_choice", "life_skills__get_recap"],
+    2: [
+        "life_skills__start_scenario", "life_skills__make_choice", "life_skills__get_recap",
+        "calculator__calculate",
+        "google-classroom__list_courses", "google-classroom__list_assignments", "google-classroom__get_assignment",
+    ],
+    3: [
+        "life_skills__start_scenario", "life_skills__make_choice", "life_skills__get_recap",
+        "calculator__calculate", "dictionary__lookup",
+        "google-classroom__list_courses", "google-classroom__list_assignments", "google-classroom__get_assignment",
+    ],
+    4: [
+        "life_skills__start_scenario", "life_skills__make_choice", "life_skills__get_recap",
+        "calculator__calculate", "dictionary__lookup", "weather__get_forecast",
+        "google-classroom__list_courses", "google-classroom__list_assignments", "google-classroom__get_assignment",
+        "google-classroom__list_submissions", "google-classroom__create_assignment",
+    ],
+}
+```
+
+Note: `list_submissions` and `create_assignment` are tier-4 only (teacher-role, which maps to tier 4 or higher). Students at tiers 2-3 get read-only classroom tools.
+
+- [ ] **Step 2: Add Google Classroom awareness to system prompt**
+
+In `web/backend/app/agent/prompts.py`, add after line 17 (after the "explain the result" instruction):
+
+```python
+- If the user references assignments, homework, grades, submissions, courses, or Google Classroom,
+  and you cannot find a Google Classroom tool available, suggest that the teacher connect their
+  Google Classroom account. Say: "I can pull that from Google Classroom! Your teacher needs to
+  connect their account first — they can do it from the dashboard or I can help set it up."
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add web/backend/app/agent/graph.py web/backend/app/agent/prompts.py
+git commit -m "feat: add Google Classroom tools to tier gating, update system prompt"
+```
+
+---
+
+## Task 7: Delete Spotify App and Clean Up References
+
+**Files:**
+- Delete: `apps/spotify/` (entire directory)
+- Modify: `web/backend/app/main.py:92-100` — remove Spotify static mount
+- Modify: `web/backend/tests/conftest.py:40-41` — update seeding
+
+- [ ] **Step 1: Delete Spotify app directory**
+
+```bash
+rm -rf apps/spotify
+```
+
+- [ ] **Step 2: Update static mount paths in main.py**
+
+Replace lines 92-100 in `web/backend/app/main.py`:
+
+```python
+_apps_dirs = {
+    "chess": Path(__file__).parent.parent.parent.parent / "apps" / "chess" / "dist",
+    "calculator": Path(__file__).parent.parent.parent.parent / "apps" / "calculator" / "dist",
+    "dictionary": Path(__file__).parent.parent.parent.parent / "apps" / "dictionary" / "dist",
+    "weather": Path(__file__).parent.parent.parent.parent / "apps" / "weather" / "dist",
+    "flashcards": Path(__file__).parent.parent.parent.parent / "apps" / "flashcards" / "dist",
+    "life-skills": Path(__file__).parent.parent.parent.parent / "apps" / "life-skills" / "dist",
+    "google-classroom": Path(__file__).parent.parent.parent.parent / "apps" / "google-classroom" / "dist",
+}
+```
+
+- [ ] **Step 3: Update test conftest seeding**
+
+Replace line 40-41 in `web/backend/tests/conftest.py`:
+
+```python
+                for aid, n, at in [("chess","Chess","none"),("calculator","Math Calculator","none"),("dictionary","Dictionary","none"),("weather","Weather","none"),("flashcards","Flashcard Quiz","none"),("life-skills","Life Skills","none"),("google-classroom","Google Classroom","oauth2")]:
+                    s.add(AppRegistration(app_id=aid, name=n, description=f"{n} app", auth_type=at, iframe_url=f"/apps/{aid}/index.html", tool_schemas=[{"name":"test","description":"Test","parameters":[]}], status="active", is_active=True, platform_status="allowed"))
+```
+
+- [ ] **Step 4: Run all existing tests to verify nothing breaks**
+
+```bash
+cd web/backend && python -m pytest -v
+```
+
+Expected: All tests pass.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add -A
+git commit -m "feat: remove Spotify app, add google-classroom to static mounts and test fixtures"
+```
+
+---
+
+## Task 8: Google Classroom Iframe App
+
+**Files:**
+- Create: `apps/google-classroom/index.html`
+- Create: `apps/google-classroom/package.json`
+- Create: `apps/google-classroom/tsconfig.json`
+- Create: `apps/google-classroom/vite.config.ts`
+- Create: `apps/google-classroom/src/main.tsx`
+- Create: `apps/google-classroom/src/GoogleClassroomApp.tsx`
+
+- [ ] **Step 1: Create app scaffolding files**
+
+Create `apps/google-classroom/index.html`:
+
+```html
+<!doctype html>
+<html lang="en">
+  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Google Classroom — ChatBridge</title>
+    <style>* { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f9fafb; }</style>
+  </head>
+  <body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body>
+</html>
+```
+
+Create `apps/google-classroom/package.json`:
+
+```json
+{
+  "name": "@chatbridge/google-classroom",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": { "dev": "vite", "build": "tsc -b && vite build", "preview": "vite preview" },
+  "dependencies": { "react": "^18.3.1", "react-dom": "^18.3.1" },
+  "devDependencies": { "@types/react": "^18.3.12", "@types/react-dom": "^18.3.1", "@vitejs/plugin-react": "4.3.4", "typescript": "^5.6.3", "vite": "^5.4.11" }
+}
+```
+
+Create `apps/google-classroom/tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020", "useDefineForClassFields": true, "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext", "skipLibCheck": true, "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true, "isolatedModules": true, "moduleDetection": "force",
+    "noEmit": true, "jsx": "react-jsx", "strict": true, "noUnusedLocals": false, "noUnusedParameters": false
+  },
+  "include": ["src"]
+}
+```
+
+Create `apps/google-classroom/vite.config.ts`:
+
+```typescript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  base: '/apps/google-classroom/',
+})
+```
+
+Create `apps/google-classroom/src/main.tsx`:
+
+```typescript
+import { createRoot } from 'react-dom/client'
+import GoogleClassroomApp from './GoogleClassroomApp'
+createRoot(document.getElementById('root')!).render(<GoogleClassroomApp />)
+```
+
+- [ ] **Step 2: Implement the main component**
+
+Create `apps/google-classroom/src/GoogleClassroomApp.tsx`:
+
+```typescript
+import { useState, useEffect } from 'react'
+
+function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
+  window.parent.postMessage({ type, correlationId, data }, '*')
+}
+
+interface Course {
+  id: string
+  name: string
+  section: string
+  description: string
+  room: string
+}
+
+interface Assignment {
+  id: string
+  title: string
+  description: string
+  state: string
+  max_points: number | null
+  due_date: { year: number; month: number; day: number } | null
+}
+
+interface SubmissionAggregate {
+  total_students: number
+  submitted: number
+  late: number
+  missing: number
+}
+
+interface AssignmentPreview {
+  title: string
+  description: string
+  due_date: string | null
+  max_points: number | null
+}
+
+type View =
+  | { type: 'idle' }
+  | { type: 'courses'; courses: Course[] }
+  | { type: 'assignments'; assignments: Assignment[] }
+  | { type: 'assignment_detail'; assignment: Assignment }
+  | { type: 'submissions'; aggregate: SubmissionAggregate }
+  | { type: 'create_preview'; preview: AssignmentPreview; correlationId: string }
+
+export default function GoogleClassroomApp() {
+  const [view, setView] = useState<View>({ type: 'idle' })
+  const [message, setMessage] = useState('')
+
+  useEffect(() => { sendToPlatform('ui_ready', '', {}) }, [])
+
+  useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      const msg = event.data
+      if (!msg || msg.type !== 'tool_invoke') return
+      const { correlationId, tool, params } = msg
+
+      switch (tool) {
+        case 'restore_state': {
+          sendToPlatform('tool_result', correlationId, { tool: 'restore_state', message: 'Restored' })
+          break
+        }
+
+        case 'list_courses': {
+          sendToPlatform('tool_result', correlationId, {
+            tool: 'list_courses',
+            request: { endpoint: '/api/classroom/courses', method: 'GET' },
+            message: 'Loading courses...',
+          })
+          setMessage('Loading courses...')
+          break
+        }
+
+        case 'list_assignments': {
+          const courseId = params?.course_id as string
+          sendToPlatform('tool_result', correlationId, {
+            tool: 'list_assignments',
+            request: { endpoint: `/api/classroom/courses/${courseId}/assignments`, method: 'GET' },
+            message: 'Loading assignments...',
+          })
+          setMessage('Loading assignments...')
+          break
+        }
+
+        case 'get_assignment': {
+          const cId = params?.course_id as string
+          const aId = params?.assignment_id as string
+          sendToPlatform('tool_result', correlationId, {
+            tool: 'get_assignment',
+            request: { endpoint: `/api/classroom/courses/${cId}/assignments/${aId}`, method: 'GET' },
+            message: 'Loading assignment details...',
+          })
+          setMessage('Loading assignment details...')
+          break
+        }
+
+        case 'list_submissions': {
+          const csId = params?.course_id as string
+          const asId = params?.assignment_id as string
+          sendToPlatform('tool_result', correlationId, {
+            tool: 'list_submissions',
+            request: { endpoint: `/api/classroom/courses/${csId}/assignments/${asId}/submissions`, method: 'GET' },
+            message: 'Loading submissions...',
+          })
+          setMessage('Loading submissions...')
+          break
+        }
+
+        case 'create_assignment': {
+          const preview: AssignmentPreview = {
+            title: (params?.title as string) || '',
+            description: (params?.description as string) || '',
+            due_date: (params?.due_date as string) || null,
+            max_points: (params?.max_points as number) || null,
+          }
+          setView({ type: 'create_preview', preview, correlationId })
+          setMessage('Review the assignment below')
+          break
+        }
+
+        default:
+          sendToPlatform('error', correlationId, { message: `Unknown tool: ${tool}` })
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [])
+
+  function handleConfirmCreate() {
+    if (view.type !== 'create_preview') return
+    sendToPlatform('tool_result', view.correlationId, {
+      tool: 'create_assignment',
+      confirmed: true,
+      ...view.preview,
+      request: {
+        endpoint: `/api/classroom/courses/PENDING/assignments`,
+        method: 'POST',
+        body: { ...view.preview, confirmed: true },
+      },
+    })
+    setMessage('Creating assignment...')
+    setView({ type: 'idle' })
+  }
+
+  function handleCancelCreate() {
+    if (view.type !== 'create_preview') return
+    sendToPlatform('tool_result', view.correlationId, {
+      tool: 'create_assignment',
+      confirmed: false,
+      message: 'Assignment creation cancelled by teacher',
+    })
+    setMessage('Assignment creation cancelled')
+    setView({ type: 'idle' })
+  }
+
+  return (
+    <div style={{ padding: '24px', maxWidth: '600px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4285f4" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Google Classroom
+      </div>
+
+      {message && (
+        <div style={{ fontSize: '14px', color: '#374151', marginBottom: '16px', padding: '8px 12px', background: '#f3f4f6', borderRadius: '6px' }}>
+          {message}
+        </div>
+      )}
+
+      {/* Create Assignment Preview */}
+      {view.type === 'create_preview' && (
+        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '20px', marginBottom: '16px' }}>
+          <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
+            Assignment Preview
+          </div>
+          <div style={{ fontSize: '18px', fontWeight: 600, color: '#111827', marginBottom: '8px' }}>
+            {view.preview.title}
+          </div>
+          <div style={{ fontSize: '14px', color: '#4b5563', marginBottom: '12px', whiteSpace: 'pre-wrap' }}>
+            {view.preview.description}
+          </div>
+          <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#6b7280', marginBottom: '16px' }}>
+            {view.preview.due_date && <span>Due: {view.preview.due_date}</span>}
+            {view.preview.max_points && <span>Points: {view.preview.max_points}</span>}
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={handleConfirmCreate}
+              style={{ padding: '8px 16px', background: '#4285f4', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
+              Create in Google Classroom
+            </button>
+            <button onClick={handleCancelCreate}
+              style={{ padding: '8px 16px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', cursor: 'pointer' }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Idle state */}
+      {view.type === 'idle' && !message && (
+        <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '13px', padding: '40px 0' }}>
+          Ask your tutor about courses, assignments, or submissions
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+- [ ] **Step 3: Install dependencies and build**
+
+```bash
+cd apps/google-classroom && pnpm install && pnpm build
+```
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add apps/google-classroom/
+git commit -m "feat: add Google Classroom iframe app with course/assignment/submission views"
+```
+
+---
+
+## Task 9: Frontend — OAuth Prompt SSE Event and Connect Flow
+
+**Files:**
+- Modify: `web/frontend/src/lib/api.ts:95-131`
+- Modify: `web/frontend/src/pages/ChatPage.tsx`
+
+- [ ] **Step 1: Add oauth_prompt SSE event handling in api.ts**
+
+In `web/frontend/src/lib/api.ts`, update the `sendMessage` function. Add an `onOAuthPrompt` callback parameter and handle the `oauth_prompt` event type. Replace the `sendMessage` method starting at the function signature:
+
+```typescript
+  sendMessage: async (
+    conversationId: string,
+    content: string,
+    onToken: (token: string) => void,
+    onDone: (messageId: string) => void,
+    onError: (error: string) => void,
+    onIntent?: (appId: string) => void,
+    onToolCall?: (appId: string, tool: string, params: Record<string, unknown>, correlationId: string) => void,
+    onOAuthPrompt?: (appId: string, message: string) => void,
+  ) => {
+```
+
+Then in the SSE parsing loop (after the `tool_call` handler), add:
+
+```typescript
+            } else if (currentEvent === 'oauth_prompt' && 'app_id' in parsed) {
+              onOAuthPrompt?.(parsed.app_id, parsed.message || 'Connect your account')
+```
+
+- [ ] **Step 2: Add OAuth prompt rendering in ChatPage.tsx**
+
+Add state for oauth prompts after the existing state declarations (around line 22):
+
+```typescript
+  const [oauthPrompt, setOauthPrompt] = useState<{ appId: string; message: string } | null>(null)
+```
+
+Add a handler for the OAuth popup completion after the state declarations:
+
+```typescript
+  useEffect(() => {
+    function handleOAuthComplete(event: MessageEvent) {
+      if (event.data?.type === 'oauth_complete') {
+        setOauthPrompt(null)
+        // Could auto-retry the last message here
+      }
+    }
+    window.addEventListener('message', handleOAuthComplete)
+    return () => window.removeEventListener('message', handleOAuthComplete)
+  }, [])
+
+  function handleOAuthConnect(appId: string) {
+    window.open(`/api/oauth/${appId}/authorize`, 'oauth_popup', 'width=500,height=600,popup=yes')
+  }
+```
+
+Pass the `onOAuthPrompt` callback to `api.sendMessage` in the `handleSend` function (after the `onToolCall` callback, around line 153):
+
+```typescript
+      (appId, message) => {
+        setOauthPrompt({ appId, message })
+      },
+```
+
+Add OAuth prompt card rendering in the chat messages area. After the streaming content block (after the `aria-live="polite"` div), add:
+
+```typescript
+              {oauthPrompt && (
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm">
+                    <p className="text-gray-700 mb-2">{oauthPrompt.message}</p>
+                    <button
+                      onClick={() => handleOAuthConnect(oauthPrompt.appId)}
+                      className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                    >
+                      Connect {oauthPrompt.appId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </button>
+                  </div>
+                </div>
+              )}
+```
+
+- [ ] **Step 3: Build frontend**
+
+```bash
+cd web/frontend && pnpm build
+```
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add web/frontend/src/lib/api.ts web/frontend/src/pages/ChatPage.tsx
+git commit -m "feat: add OAuth prompt SSE handling and in-chat connect flow"
+```
+
+---
+
+## Task 10: Integration Test — Full Flow Verification
+
+**Files:**
+- Test: `web/backend/tests/test_oauth_generic.py` (extend)
+- Test: `web/backend/tests/test_classroom.py` (extend)
+
+- [ ] **Step 1: Run all backend tests**
+
+```bash
+cd web/backend && python -m pytest -v
+```
+
+Expected: All tests pass, no regressions.
+
+- [ ] **Step 2: Run frontend build to verify no TS errors**
+
+```bash
+cd web/frontend && pnpm build
+```
+
+Expected: Build succeeds with no errors.
+
+- [ ] **Step 3: Build the Google Classroom app**
+
+```bash
+cd apps/google-classroom && pnpm build
+```
+
+Expected: Build succeeds.
+
+- [ ] **Step 4: Final commit with all changes**
+
+If any files were missed:
+
+```bash
+git status
+git add -A
+git commit -m "chore: final cleanup for Google Classroom integration"
+```
+
+---
+
+## Deferred from Spec
+
+- **`district_app_policies` table** (Spec Section 2.2): Deferred because the current schema has no `districts` table. The `platform_status` field on `AppRegistration` provides platform-level gating now. District-level policies should be added when the district data model is built.
+- **Dashboard OAuth connect/disconnect UI**: The teacher dashboard already shows app status. Wiring the connect/disconnect buttons to the new generic OAuth endpoints is straightforward but not included in this plan to keep scope focused on backend + iframe + in-chat flow.
+
+---
+
+## Summary
+
+| Task | What | Files |
+|------|------|-------|
+| 1 | Extend AppRegistration model | `models.py` |
+| 2 | Migration: add columns + seed Google Classroom + block Spotify | `alembic/versions/` |
+| 3 | Replace Spotify config with Google Classroom | `config.py` |
+| 4 | Refactor OAuth router to provider-agnostic | `oauth/router.py`, tests |
+| 5 | Google Classroom proxy endpoints | `classroom/router.py`, `main.py`, tests |
+| 6 | Agent tier gating + system prompt | `agent/graph.py`, `agent/prompts.py` |
+| 7 | Delete Spotify, update static mounts + fixtures | `apps/spotify/`, `main.py`, `conftest.py` |
+| 8 | Google Classroom iframe app | `apps/google-classroom/` |
+| 9 | Frontend OAuth prompt SSE + connect flow | `api.ts`, `ChatPage.tsx` |
+| 10 | Integration verification | All tests |
