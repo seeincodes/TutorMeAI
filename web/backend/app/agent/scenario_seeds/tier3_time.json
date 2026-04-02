@@ -1,0 +1,204 @@
+[
+  {
+    "id": "tier3_busy_week_juggler",
+    "title": "Busy Week Juggler",
+    "tier": 3,
+    "domain": "time",
+    "icon": "🤹",
+    "learning_objectives": [
+      "Balance multiple commitments with conflicts",
+      "Prioritize when everything feels important",
+      "Practice flexible scheduling"
+    ],
+    "initial_state": {
+      "day": "Monday",
+      "commitments": ["homework", "soccer", "friend_hangout", "chores", "family_dinner"],
+      "hours_per_day": 5
+    },
+    "events": [
+      {
+        "description": "This week is packed! You have soccer practice (Tue/Thu 4-5:30 PM), a big science project due Friday, daily homework (~1 hour), chores, and your friend wants to hang out Wednesday. Soccer and the friend hangout overlap with homework time. How do you start planning?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "fixed_first", "label": "Block out fixed commitments first (soccer, school)", "icon": "📌", "cost": null, "effect": "Smart! Fixed commitments go in first, then you fill around them."},
+          {"id": "priority_rank", "label": "Rank everything by importance", "icon": "📊", "cost": null, "effect": "Priorities clear! Science project and soccer are non-negotiable, rest is flexible."},
+          {"id": "time_map", "label": "Map out available hours each day", "icon": "🗺️", "cost": null, "effect": "You see exactly how much free time you have each day. Knowledge is power!"}
+        ]
+      },
+      {
+        "description": "Wednesday conflict: your friend wants to hang out 4-6 PM, but you planned to work on the science project then. The project is 40% done and due Friday.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "friend_short", "label": "See friend 4-5, project 5-7", "icon": "⏰", "cost": null, "effect": "Shorter hangout but you still see your friend AND make progress!"},
+          {"id": "reschedule_friend", "label": "Ask to move hangout to Saturday", "icon": "📅", "cost": null, "effect": "Friend totally understands! Now Wednesday is fully open for the project."},
+          {"id": "work_together", "label": "Invite friend to work on projects together", "icon": "📚👫", "cost": null, "effect": "Study session! You both get work done and hang out at the same time. Win-win!"}
+        ]
+      },
+      {
+        "description": "Thursday surprise: soccer practice runs 30 minutes late AND you have a math worksheet due tomorrow. You had planned to do it after practice. It's now 6 PM.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "homework_first", "label": "Math worksheet first (30 min), then science project", "icon": "🔢", "cost": null, "effect": "Math done! Due dates first is a solid strategy."},
+          {"id": "quick_dinner_then_work", "label": "Quick dinner, then power through both", "icon": "⚡", "cost": null, "effect": "Fuel up then focus! You knock out both assignments by 8 PM."},
+          {"id": "morning_math", "label": "Do math in the morning, science project tonight", "icon": "🌅", "cost": null, "effect": "Morning brain is fresh for math! Science gets your evening focus."}
+        ]
+      },
+      {
+        "description": "It's Friday! Science project is due today. You're 90% done but need 45 more minutes. You also have a soccer game at 4 PM. Let's figure out a plan.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "before_school", "label": "Wake up 45 min early to finish", "icon": "⏰", "cost": null, "effect": "Early bird gets the project done! Submitted before school even starts!"},
+          {"id": "lunch_time", "label": "Work on it during lunch", "icon": "🍽️", "cost": null, "effect": "A working lunch! Project finished with time to spare before the game!"},
+          {"id": "after_school", "label": "Quick finish right after school, before soccer", "icon": "🏃", "cost": null, "effect": "30 minutes of focused work after school! Done and submitted!"}
+        ]
+      }
+    ],
+    "recap_template": "You juggled a packed week with soccer, homework, friends, and a big project! You learned to handle conflicts, adjust plans, and prioritize what matters most.",
+    "positive_framing_rules": [
+      "Never say the student is overwhelmed or falling behind",
+      "Frame schedule conflicts as puzzles with multiple good solutions",
+      "Celebrate adaptability and planning"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific activities and commitments",
+      "Vary the surprise schedule changes",
+      "Add positive outcomes for good planning"
+    ],
+    "max_turns": 15
+  },
+  {
+    "id": "tier3_study_planner",
+    "title": "Study Planner",
+    "tier": 3,
+    "domain": "time",
+    "icon": "📖",
+    "learning_objectives": [
+      "Allocate study time across subjects by difficulty",
+      "Use weighted prioritization for exams",
+      "Balance study with rest"
+    ],
+    "initial_state": {
+      "days_until_exams": 5,
+      "subjects": {"math": "hard", "science": "medium", "english": "easy", "history": "medium"},
+      "hours_per_day": 3
+    },
+    "events": [
+      {
+        "description": "Exams start in 5 days! You have Math (hardest — worth 30% of grade), Science (medium — 25%), English (easiest — 20%), and History (medium — 25%). You can study 3 hours per day. How do you split Day 1?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "hardest_heavy", "label": "Math 1.5hr, Science 1hr, History 30min", "icon": "🔢", "cost": null, "effect": "Heavy math focus! Since it's the hardest and worth the most, front-loading makes sense."},
+          {"id": "even_split", "label": "45 minutes each subject", "icon": "⚖️", "cost": null, "effect": "Equal time for everyone! A balanced approach gives you a foundation in each subject."},
+          {"id": "weakest_first", "label": "Focus on your two weakest subjects first", "icon": "💪", "cost": null, "effect": "Tackling weak spots early gives you time to improve where you need it most!"}
+        ]
+      },
+      {
+        "description": "Day 3. You've been studying hard but you're getting tired. Your friend suggests a 2-hour study break to play basketball. Your history exam is tomorrow. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "short_break", "label": "30-minute basketball break, then study", "icon": "🏀", "cost": null, "effect": "Quick exercise refreshes your brain! You come back focused and energized."},
+          {"id": "study_first", "label": "Finish history review, then play", "icon": "📚", "cost": null, "effect": "History locked in! Now basketball is your reward. Well-earned!"},
+          {"id": "active_review", "label": "Quiz each other on history WHILE playing", "icon": "🧠🏀", "cost": null, "effect": "Movement helps memory! You're studying without even sitting at a desk!"}
+        ]
+      },
+      {
+        "description": "Day 4. You realize you understand English really well already. You could skip English review and use that time for extra math. Or stick to the plan. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "reallocate", "label": "Skip English, double down on math", "icon": "🔄", "cost": null, "effect": "Strategic reallocation! Why review what you already know? More math practice pays off!"},
+          {"id": "quick_review", "label": "15-minute English check, rest on math", "icon": "⚡", "cost": null, "effect": "Quick confidence check on English, then full focus on math. Thorough approach!"},
+          {"id": "stick_plan", "label": "Stick to the original plan", "icon": "📋", "cost": null, "effect": "Consistency matters! Your plan was solid and you're trusting the process."}
+        ]
+      },
+      {
+        "description": "Final day before exams! You have 3 hours. One last study session. How do you use it?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "review_all", "label": "Quick review of all subjects (45 min each)", "icon": "🔄", "cost": null, "effect": "A full sweep! Everything is fresh in your mind."},
+          {"id": "focus_hardest", "label": "Deep focus on your hardest exam tomorrow", "icon": "🎯", "cost": null, "effect": "Targeted prep for tomorrow's biggest challenge!"},
+          {"id": "practice_tests", "label": "Practice test questions only", "icon": "✏️", "cost": null, "effect": "Active recall! Practice tests are one of the best study methods!"}
+        ]
+      }
+    ],
+    "recap_template": "You created a study plan for 4 exams in 5 days! You learned to prioritize by difficulty, adjust your plan as you go, and balance study with rest.",
+    "positive_framing_rules": [
+      "Never say the student will do poorly or is unprepared",
+      "Frame study breaks as productive, not lazy",
+      "Celebrate strategic thinking about time allocation"
+    ],
+    "ai_variation_allowed": [
+      "Change the subjects and difficulty levels",
+      "Vary the study break scenarios",
+      "Add helpful study tips within the narrative"
+    ],
+    "max_turns": 15
+  },
+  {
+    "id": "tier3_event_coordinator",
+    "title": "Event Coordinator",
+    "tier": 3,
+    "domain": "time",
+    "icon": "📋",
+    "learning_objectives": [
+      "Plan a multi-day event timeline",
+      "Identify task dependencies",
+      "Handle schedule changes and delays"
+    ],
+    "initial_state": {
+      "event": "school talent show",
+      "days_until_event": 14,
+      "tasks": ["auditions", "rehearsals", "set_design", "tickets", "promotion"],
+      "volunteers": 8
+    },
+    "events": [
+      {
+        "description": "You're coordinating the school talent show in 2 weeks! Tasks: auditions (must be first, 3 days), rehearsals (need auditions done, 5 days), set design (can start anytime, 4 days), ticket sales (need acts confirmed, 5 days), and promotion (can start anytime). What happens first?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "parallel_start", "label": "Auditions + set design + promotion start together", "icon": "🔀", "cost": null, "effect": "Three things at once! While auditions happen, the set and posters are getting done."},
+          {"id": "sequential", "label": "Auditions first, then everything else", "icon": "1️⃣", "cost": null, "effect": "Auditions locked in! Now you know exactly who's performing before planning the rest."},
+          {"id": "critical_path", "label": "Auditions + promotion first (longest chain)", "icon": "🔗", "cost": null, "effect": "You identified the critical path! Auditions → rehearsals is the longest dependency chain."}
+        ]
+      },
+      {
+        "description": "Day 5: Auditions ran a day late because too many people signed up. Rehearsals were supposed to start today. How do you adjust?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "compress_rehearsal", "label": "Shorten rehearsals from 5 to 4 days", "icon": "⏩", "cost": null, "effect": "Tighter rehearsal schedule! One extra after-school session makes up for it."},
+          {"id": "overlap_tasks", "label": "Start rehearsals while finishing auditions", "icon": "🔄", "cost": null, "effect": "Early acts rehearse while last auditions happen! Parallel work saves time."},
+          {"id": "extend_hours", "label": "Add lunch rehearsals to make up time", "icon": "⏰", "cost": null, "effect": "Lunch rehearsals fill the gap! Volunteers bring snacks to make it fun."}
+        ]
+      },
+      {
+        "description": "Day 10: The art team says set design needs 2 more days — they want to add a cool backdrop. The show is in 4 days. What do you decide?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "simpler_set", "label": "Keep the simpler set — it's already great", "icon": "🎭", "cost": null, "effect": "The set looks wonderful as-is! Sometimes good enough on time beats perfect late."},
+          {"id": "extra_help", "label": "Recruit 3 more volunteers to finish faster", "icon": "👥", "cost": null, "effect": "More hands make light work! The backdrop gets done with a day to spare!"},
+          {"id": "partial_upgrade", "label": "Add backdrop to main stage only, skip sides", "icon": "🎨", "cost": null, "effect": "A smart compromise! The main stage looks amazing and it fits the timeline."}
+        ]
+      },
+      {
+        "description": "Show day! Everything came together. One last decision: a performer got stage fright and might not go on. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "encourage", "label": "Encourage them — they've practiced so hard!", "icon": "💪", "cost": null, "effect": "Your encouragement helps! They go on stage and do great!"},
+          {"id": "backup_plan", "label": "Offer to go on with them for moral support", "icon": "🤝", "cost": null, "effect": "You stand in the wings where they can see you. They feel safe and nail it!"},
+          {"id": "flexible_order", "label": "Move them later in the show for more prep time", "icon": "📋", "cost": null, "effect": "A few more minutes to breathe and watch others helps! They perform with confidence."}
+        ]
+      }
+    ],
+    "recap_template": "You coordinated a school talent show from start to finish! You managed timelines, handled delays, and led a team. Those are real project management skills!",
+    "positive_framing_rules": [
+      "Never say the event is at risk of being ruined",
+      "Frame delays as normal challenges to solve creatively",
+      "Celebrate leadership and teamwork"
+    ],
+    "ai_variation_allowed": [
+      "Change the event type",
+      "Vary the specific delays and challenges",
+      "Add surprise positive moments"
+    ],
+    "max_turns": 15
+  }
+]

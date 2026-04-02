@@ -1,0 +1,174 @@
+[
+  {
+    "id": "tier2_plan_school_day",
+    "title": "Plan My School Day",
+    "tier": 2,
+    "domain": "time",
+    "icon": "📅",
+    "learning_objectives": [
+      "Block out time for different activities",
+      "Balance homework, play, and chores",
+      "Practice visual scheduling"
+    ],
+    "initial_state": {
+      "hours_available": 6,
+      "tasks": ["homework", "play", "chores", "reading"],
+      "location": "home after school"
+    },
+    "events": [
+      {
+        "description": "You're home from school and have 6 hours before bedtime! You need to do homework (1 hour), chores (30 min), and you want to play and read. What do you do first?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "homework_first", "label": "Homework first, play later", "icon": "📝", "cost": null, "effect": "Homework done! Now you can relax without worrying about it!"},
+          {"id": "play_first", "label": "Play first while you have energy", "icon": "⚽", "cost": null, "effect": "Fun time first! You played hard and now you're ready to focus!"},
+          {"id": "chores_first", "label": "Quick chores to get them done", "icon": "🧹", "cost": null, "effect": "Chores done in 30 minutes! Nice work getting them out of the way!"}
+        ]
+      },
+      {
+        "description": "You've done one thing. Now your friend calls and wants to video chat for 30 minutes. How do you fit it in?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "chat_now", "label": "Chat now, do other stuff after", "icon": "📱", "cost": null, "effect": "Great chat with your friend! Now back to your plan!"},
+          {"id": "chat_later", "label": "Ask to chat after homework", "icon": "⏰", "cost": null, "effect": "Your friend says sure! Now you can look forward to it!"},
+          {"id": "short_chat", "label": "Chat for 15 min instead of 30", "icon": "⏱️", "cost": null, "effect": "A quick catch-up! You saved time and still talked to your friend!"}
+        ]
+      },
+      {
+        "description": "It's getting close to dinner. You still have reading and one more activity to fit in. Let's plan!",
+        "event_type": "choice",
+        "choices": [
+          {"id": "read_then_play", "label": "Read now, play after dinner", "icon": "📖", "cost": null, "effect": "Quiet reading time before dinner is so peaceful!"},
+          {"id": "play_then_read", "label": "Play now, read before bed", "icon": "🏃", "cost": null, "effect": "Active time before dinner, then a calm book before bed. Nice flow!"}
+        ]
+      }
+    ],
+    "recap_template": "You planned your whole after-school day! You fit in homework, chores, play, reading, and friend time. That's great scheduling!",
+    "positive_framing_rules": [
+      "Never say the student is wasting time",
+      "Celebrate all scheduling approaches as valid",
+      "Frame planning as empowering, not restrictive"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific activities available",
+      "Add a surprise event like a package delivery",
+      "Vary the friend interaction scenarios"
+    ],
+    "max_turns": 12
+  },
+  {
+    "id": "tier2_homework_scheduler",
+    "title": "Homework Scheduler",
+    "tier": 2,
+    "domain": "time",
+    "icon": "📝",
+    "learning_objectives": [
+      "Estimate how long tasks take",
+      "Plan the order of assignments",
+      "Learn to tackle big tasks in pieces"
+    ],
+    "initial_state": {
+      "assignments": 4,
+      "hours_available": 3,
+      "location": "desk at home"
+    },
+    "events": [
+      {
+        "description": "You have 4 assignments tonight: Math (30 min), Reading (20 min), Spelling words (15 min), and a Science drawing (45 min). You have 3 hours. What do you start with?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "hardest_first", "label": "Science drawing — biggest one first!", "icon": "🔬", "cost": null, "effect": "Tackling the big one first! Smart strategy — now everything else feels quick!"},
+          {"id": "easiest_first", "label": "Spelling — quick win!", "icon": "🔤", "cost": null, "effect": "Done in 15 minutes! One down, three to go! Nice momentum!"},
+          {"id": "favorite_first", "label": "Math — your favorite subject", "icon": "🔢", "cost": null, "effect": "Starting with what you enjoy! You zoomed right through it!"}
+        ]
+      },
+      {
+        "description": "One assignment done! You're feeling good. But you realize the science drawing might take longer than you thought. What's your plan?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "do_science_now", "label": "Do science next while you're focused", "icon": "🎨", "cost": null, "effect": "Good thinking! You gave the big project your best focus time!"},
+          {"id": "quick_ones", "label": "Knock out the quick ones first", "icon": "⚡", "cost": null, "effect": "Two more done! Now you can give science all your attention!"},
+          {"id": "break_first", "label": "Take a 10-minute break, then science", "icon": "☕", "cost": null, "effect": "A short break refreshed your brain! Now you're ready for the big one!"}
+        ]
+      },
+      {
+        "description": "You're on your last assignment! But your favorite show is about to start. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "finish_first", "label": "Finish homework, watch show later", "icon": "✅", "cost": null, "effect": "All done! Now you can watch your show with zero worries!"},
+          {"id": "record_show", "label": "Record the show, finish homework", "icon": "⏺️", "cost": null, "effect": "Great idea! You can watch it anytime after homework is done!"}
+        ]
+      }
+    ],
+    "recap_template": "You scheduled all 4 assignments and finished them! You learned about estimating time, picking an order, and staying on track.",
+    "positive_framing_rules": [
+      "Never say the student is behind or running out of time",
+      "Celebrate all approaches to task ordering",
+      "Frame breaks as a healthy part of studying"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific homework subjects",
+      "Add a surprise easy or fun assignment",
+      "Vary the time estimates slightly"
+    ],
+    "max_turns": 12
+  },
+  {
+    "id": "tier2_weekend_planner",
+    "title": "Weekend Planner",
+    "tier": 2,
+    "domain": "time",
+    "icon": "🗓️",
+    "learning_objectives": [
+      "Fit activities into time slots",
+      "Handle conflicts when two things overlap",
+      "Practice planning a full day"
+    ],
+    "initial_state": {
+      "day": "Saturday",
+      "hours_available": 8,
+      "activities_planned": 0
+    },
+    "events": [
+      {
+        "description": "It's Saturday! You have the whole day from 9 AM to 5 PM. Soccer practice is at 10 AM (1 hour). Your grandma invited you for lunch at noon. What do you want to do in the morning before soccer?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "cartoons", "label": "Watch cartoons 9-10 AM", "icon": "📺", "cost": null, "effect": "Cartoons before soccer! A relaxing start to Saturday!"},
+          {"id": "bike_ride", "label": "Bike ride 9-10 AM", "icon": "🚲", "cost": null, "effect": "A morning bike ride! You're warmed up for soccer!"},
+          {"id": "clean_room", "label": "Clean your room 9-10 AM", "icon": "🧹", "cost": null, "effect": "Room is clean! Now the rest of the day is all fun!"}
+        ]
+      },
+      {
+        "description": "Soccer is done at 11 AM and lunch with grandma is at noon. You have one free hour! Your friend also wants to meet at the park at 11 AM. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "park_quick", "label": "Park for 45 min, then head to grandma's", "icon": "🏞️", "cost": null, "effect": "Quick park hangout! You made it to grandma's right on time!"},
+          {"id": "rest_up", "label": "Rest and shower before lunch", "icon": "🚿", "cost": null, "effect": "Freshened up after soccer! Grandma loves seeing you looking sharp!"},
+          {"id": "friend_lunch", "label": "Ask if your friend can come to grandma's", "icon": "👫", "cost": null, "effect": "Grandma says yes! The more the merrier!"}
+        ]
+      },
+      {
+        "description": "After lunch, you have 2-5 PM free. There's a movie at 3 PM (2 hours) OR you could go swimming (1 hour) AND do a craft project (1 hour). What's your plan?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "movie", "label": "Movie from 3-5 PM", "icon": "🎬", "cost": null, "effect": "Great movie! The perfect way to end your Saturday!"},
+          {"id": "swim_craft", "label": "Swimming then craft project", "icon": "🏊", "cost": null, "effect": "Swimming AND crafts! You fit two fun things into the afternoon!"},
+          {"id": "free_play", "label": "Just hang out and see what happens", "icon": "🌈", "cost": null, "effect": "Sometimes the best plans are no plans! You had a spontaneous adventure!"}
+        ]
+      }
+    ],
+    "recap_template": "You planned an awesome Saturday! You fit in sports, family time, friends, and fun activities. That's some great time management!",
+    "positive_framing_rules": [
+      "Never say the student wasted their weekend",
+      "Celebrate both structured and spontaneous plans",
+      "Frame time conflicts as puzzles to solve, not problems"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific activities available",
+      "Add weather-related changes",
+      "Vary the family member or friend scenarios"
+    ],
+    "max_turns": 12
+  }
+]

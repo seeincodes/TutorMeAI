@@ -1,0 +1,297 @@
+[
+  {
+    "id": "tier4_first_apartment",
+    "title": "First Apartment",
+    "tier": 4,
+    "domain": "money",
+    "icon": "🏠",
+    "learning_objectives": [
+      "Build a real-world monthly budget",
+      "Understand fixed vs variable expenses",
+      "Make trade-offs between comfort and affordability",
+      "Plan for unexpected costs"
+    ],
+    "initial_state": {
+      "monthly_income": 1500,
+      "currency": "dollars",
+      "categories": {"rent": 0, "utilities": 0, "food": 0, "transport": 0, "savings": 0, "personal": 0}
+    },
+    "events": [
+      {
+        "description": "You're moving into your first apartment with $1,500/month income. Apartment A: $700/month, close to work (saves on transport). Apartment B: $550/month, farther out (bus pass needed, $75/month). Apartment C: $850/month, includes utilities. Where do you live?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "apt_a", "label": "Apartment A — $700, walk to work", "icon": "🏢", "cost": 700, "effect": "No transport costs! $800 left for everything else. Location saves you time and money."},
+          {"id": "apt_b", "label": "Apartment B — $550 + $75 bus = $625 total", "icon": "🚌", "cost": 625, "effect": "Cheapest housing+transport combo! $875 left. The commute is longer but the savings are real."},
+          {"id": "apt_c", "label": "Apartment C — $850, utilities included", "icon": "🏠", "cost": 850, "effect": "No surprise utility bills! Predictable costs. $650 left for food, savings, and personal."}
+        ]
+      },
+      {
+        "description": "Groceries and food. Cooking at home costs about $200/month. Eating out averages $400/month. A mix is around $300/month. How do you plan your food budget?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "cook_mostly", "label": "Mostly cook — $200/month + $50 occasional dining", "icon": "👨‍🍳", "cost": 250, "effect": "$250 on food. Takes time but saves the most money. Meal prep Sundays help!"},
+          {"id": "balanced_food", "label": "Cook weekdays, eat out weekends — $300/month", "icon": "🍽️", "cost": 300, "effect": "A balanced approach! Home cooking for savings, dining out for socializing."},
+          {"id": "convenience", "label": "Mostly prepared meals and takeout — $400/month", "icon": "🥡", "cost": 400, "effect": "Saves time but costs more. If your schedule is packed, convenience has value too."}
+        ]
+      },
+      {
+        "description": "You need to set a savings target. Financial advisors suggest saving at least 10-20% of income. That's $150-$300/month from your $1,500. But you also want spending money for fun. How much do you save?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "save_20", "label": "20% — $300/month into savings", "icon": "🏦", "cost": 300, "effect": "Aggressive saving! In 6 months you'll have an $1,800 emergency fund. That's financial security."},
+          {"id": "save_10", "label": "10% — $150/month, more flexibility", "icon": "💰", "cost": 150, "effect": "Steady saving with room for fun! $900 emergency fund in 6 months. Balanced approach."},
+          {"id": "save_15", "label": "15% — $225/month, middle ground", "icon": "⚖️", "cost": 225, "effect": "Right in the sweet spot! $1,350 saved in 6 months. Solid financial foundation."}
+        ]
+      },
+      {
+        "description": "Month 2 surprise: your car needs a $400 repair (or bus pass goes up $25/month permanently). How do you handle it?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "emergency_fund", "label": "Use your savings — this is what it's for", "icon": "🏦", "cost": null, "effect": "Emergency fund to the rescue! This is exactly why saving matters. Rebuild it over the next few months."},
+          {"id": "payment_plan", "label": "Ask the mechanic for a 3-month payment plan", "icon": "📋", "cost": null, "effect": "$133/month for 3 months. Spreads the cost but reduces your flexibility short-term."},
+          {"id": "cut_expenses", "label": "Cut personal spending this month to cover it", "icon": "✂️", "cost": null, "effect": "A tight month but you handled it without touching savings! Discipline pays off."}
+        ]
+      },
+      {
+        "description": "End of Month 3. Let's review your budget. Are you spending less than you earn? Do you have savings growing? What would you adjust?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "on_track", "label": "I'm on track — small tweaks only", "icon": "✅", "cost": null, "effect": "Three months of budgeting practice! You've built a sustainable system. Minor adjustments keep it working."},
+          {"id": "need_income", "label": "I need more income — look for a side gig", "icon": "💼", "cost": null, "effect": "Recognizing the income side of the equation! A weekend gig could add $200-400/month."},
+          {"id": "restructure", "label": "Major restructure — move or change habits", "icon": "🔄", "cost": null, "effect": "Big changes sometimes make the biggest impact. A cheaper apartment or meal prep could save hundreds."}
+        ]
+      }
+    ],
+    "recap_template": "You built a real-world monthly budget from scratch! You balanced rent, food, transport, savings, and surprises. Budgeting isn't about restriction — it's about making your money work for your goals.",
+    "positive_framing_rules": [
+      "Never say the student is struggling financially",
+      "Frame budget constraints as decisions, not deprivation",
+      "Celebrate awareness and adjustment, not just saving"
+    ],
+    "ai_variation_allowed": [
+      "Change the city and cost of living",
+      "Vary the surprise expenses",
+      "Add income opportunities"
+    ],
+    "max_turns": 18
+  },
+  {
+    "id": "tier4_summer_savings_interest",
+    "title": "Summer Savings + Interest",
+    "tier": 4,
+    "domain": "money",
+    "icon": "📈",
+    "learning_objectives": [
+      "Understand compound interest",
+      "Calculate growth over time",
+      "Compare saving strategies",
+      "Project future value of current decisions"
+    ],
+    "initial_state": {
+      "income": 400,
+      "currency": "dollars_per_week",
+      "weeks": 12,
+      "savings_account_rate": 5.0,
+      "total_saved": 0
+    },
+    "events": [
+      {
+        "description": "Summer job! You earn $400/week for 12 weeks ($4,800 total). You found a savings account offering 5% annual interest, compounded monthly. If you save $200/week, after 3 months you'd have about $2,430 (the extra $30 is interest). How much do you save weekly?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "save_half", "label": "Save $200/week (50%) — project: ~$2,430 in 3 months", "icon": "💰", "cost": null, "effect": "Half saved! At 5% APR compounded monthly, $2,400 grows to about $2,430 in 3 months. Interest starts small but builds!"},
+          {"id": "save_75", "label": "Save $300/week (75%) — project: ~$3,645 in 3 months", "icon": "📈", "cost": null, "effect": "Aggressive saving! $3,600 total deposits. With compound interest, you'll have about $3,645. Every dollar earns more dollars!"},
+          {"id": "save_25", "label": "Save $100/week (25%) — project: ~$1,215 in 3 months", "icon": "⚖️", "cost": null, "effect": "Steady saving with plenty of spending money! $1,200 grows to about $1,215. A balanced approach."}
+        ]
+      },
+      {
+        "description": "Week 4: Your friend says 'Why bother with 5% interest? It's only like $30 over the summer.' Are they right? Let's think long-term. If you kept that $2,400 in the account for 5 years at 5% compounded monthly, it would grow to about $3,080.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "long_view", "label": "That's $680 in free money over 5 years! Keep saving!", "icon": "🔭", "cost": null, "effect": "Long-term thinking! $680 from interest alone — money making money. And if you keep adding..."},
+          {"id": "compare_rates", "label": "What if I found a higher interest rate?", "icon": "🔍", "cost": null, "effect": "Great question! At 7%, that same $2,400 grows to ~$3,400 in 5 years. Rate shopping matters!"},
+          {"id": "invest_instead", "label": "What about investing in stocks instead?", "icon": "📊", "cost": null, "effect": "Stocks historically return ~10% long-term but with more risk. $2,400 could become ~$3,865 in 5 years — but could also drop temporarily."}
+        ]
+      },
+      {
+        "description": "Week 8: A concert you've been dreaming about costs $150. You've saved $1,600 so far. If you skip the concert, that $150 saved at 5% for 10 years becomes about $247. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "skip_concert", "label": "Skip it — $247 future value is worth it", "icon": "📈", "cost": null, "effect": "Delayed gratification! That $150 works for you over the next decade."},
+          {"id": "go_concert", "label": "Go — some experiences are priceless", "icon": "🎵", "cost": 150, "effect": "Memories matter too! Financial planning should leave room for things you love."},
+          {"id": "compromise", "label": "Find cheaper tickets or split with a friend", "icon": "🤝", "cost": 75, "effect": "Creative! $75 for the experience, $75 stays invested. Best of both worlds."}
+        ]
+      },
+      {
+        "description": "End of summer! Let's project forward. If you save $2,400 each summer for 4 years (college summers) at 5% compounded monthly, what would you have at graduation?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "calculate", "label": "Let me figure this out — about $10,400!", "icon": "🧮", "cost": null, "effect": "Close! With compound interest on rolling deposits, you'd have about $10,500. Four summers of discipline = a real financial cushion!"},
+          {"id": "automate", "label": "I'd set up automatic transfers so I never miss", "icon": "🔄", "cost": null, "effect": "Automation removes willpower from the equation! 'Pay yourself first' is the #1 savings strategy."},
+          {"id": "increase_savings", "label": "I'd try to save more each summer as I earn more", "icon": "📈", "cost": null, "effect": "Increasing contributions accelerates compound growth! If you add 10% more each year, you'd have over $11,500!"}
+        ]
+      }
+    ],
+    "recap_template": "You learned how compound interest turns small savings into real wealth over time! The key insight: time in the market matters more than timing the market. Start early, stay consistent.",
+    "positive_framing_rules": [
+      "Never shame spending on experiences or fun",
+      "Frame saving as empowering, not restrictive",
+      "Present investing concepts without promoting risk-taking"
+    ],
+    "ai_variation_allowed": [
+      "Change the job type and income",
+      "Vary the interest rates and scenarios",
+      "Add real-world financial product comparisons"
+    ],
+    "max_turns": 18
+  },
+  {
+    "id": "tier4_side_hustle_sim",
+    "title": "Side Hustle Simulator",
+    "tier": 4,
+    "domain": "money",
+    "icon": "💼",
+    "learning_objectives": [
+      "Calculate startup costs vs revenue",
+      "Understand profit margins",
+      "Make investment decisions for business growth",
+      "Manage cash flow over time"
+    ],
+    "initial_state": {
+      "wallet": 200,
+      "currency": "dollars",
+      "business": null,
+      "monthly_revenue": 0,
+      "monthly_expenses": 0
+    },
+    "events": [
+      {
+        "description": "You have $200 to start a side hustle. Option A: Lawn mowing — mower costs $150, charge $25/lawn, gas costs $3/lawn. Option B: Tutoring — $0 startup, charge $20/hour, 5 hours/week available. Option C: Custom stickers — printer ink $50, sticker paper $30, sell for $3 each. Which do you start?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "lawn_mowing", "label": "Lawn mowing — $22 profit per lawn", "icon": "🌿", "cost": 150, "effect": "Mower bought! $50 left. You need 7 lawns to break even on the mower. After that, it's $22 profit per lawn!"},
+          {"id": "tutoring", "label": "Tutoring — $0 startup, immediate profit", "icon": "📚", "cost": 0, "effect": "Pure profit from day one! $100/week potential. No equipment risk, but limited to your available hours."},
+          {"id": "stickers", "label": "Custom stickers — $80 startup, scalable", "icon": "🎨", "cost": 80, "effect": "$80 invested, $120 left. Each sticker costs about $0.50 to make and sells for $3. That's a 500% markup!"}
+        ]
+      },
+      {
+        "description": "Month 1 results are in! You've been working hard. Now you have a choice: reinvest profits to grow, or pocket the earnings. Growing means spending money to make more money.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "reinvest_50", "label": "Reinvest 50% of profits", "icon": "🔄", "cost": null, "effect": "Half back into the business! Better equipment/marketing means more customers next month."},
+          {"id": "reinvest_all", "label": "Reinvest everything — grow fast", "icon": "🚀", "cost": null, "effect": "All-in on growth! No pocket money this month but next month's revenue could double."},
+          {"id": "pocket_all", "label": "Keep all profits — business stays the same size", "icon": "💰", "cost": null, "effect": "Money in your pocket! The business stays at current capacity. Sustainable and steady."}
+        ]
+      },
+      {
+        "description": "Month 3: A competitor appears, offering the same service for 20% less. Your customers are asking about it. What's your strategy?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "lower_prices", "label": "Match their prices to keep customers", "icon": "💲", "cost": null, "effect": "Price matching keeps customers but cuts your margin. Volume becomes more important."},
+          {"id": "add_value", "label": "Keep prices but add extra value (better quality, faster service)", "icon": "⭐", "cost": null, "effect": "Premium positioning! Some customers leave, but loyal ones stay for the quality. Higher margin, fewer customers."},
+          {"id": "niche_down", "label": "Specialize — find a niche they don't serve", "icon": "🎯", "cost": null, "effect": "Smart differentiation! You found an underserved market. Less competition, loyal customers."}
+        ]
+      },
+      {
+        "description": "Month 6 review: you've earned consistently. A friend wants to partner and split the work AND profits 50/50. They'd bring $300 in equipment. Is the partnership worth it?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "partner_up", "label": "Partner — double capacity, shared profits", "icon": "🤝", "cost": null, "effect": "With two people, you can take on twice as much work. Revenue could grow faster than the 50% split costs."},
+          {"id": "hire_instead", "label": "Hire them at $15/hour instead — keep ownership", "icon": "📋", "cost": null, "effect": "You keep control and most of the profit. They earn a wage. Clear boundaries!"},
+          {"id": "stay_solo", "label": "Stay solo — you've got a good thing going", "icon": "🧑", "cost": null, "effect": "Independence! Your business, your rules, your profits. Growth will be slower but it's all yours."}
+        ]
+      },
+      {
+        "description": "Year-end projection! Based on your choices, let's calculate your total profit and hourly rate. Was the hustle worth it compared to a regular part-time job at $15/hour?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "worth_it", "label": "My effective hourly rate is higher — worth it!", "icon": "📈", "cost": null, "effect": "Entrepreneurship paid more per hour! Plus you gained business skills no job could teach."},
+          {"id": "mixed", "label": "About the same money, but I learned a lot more", "icon": "🧠", "cost": null, "effect": "The skills — pricing, marketing, customer service, cash flow — are worth more than the extra dollars."},
+          {"id": "pivot", "label": "I'd try a different hustle next time with what I learned", "icon": "🔄", "cost": null, "effect": "Iteration! Every entrepreneur's second business is better than their first. You've got the playbook now."}
+        ]
+      }
+    ],
+    "recap_template": "You ran a side hustle for 6 months! You learned about startup costs, profit margins, competition, and growth decisions. Entrepreneurship is about solving problems and creating value.",
+    "positive_framing_rules": [
+      "Never say the business is failing",
+      "Frame competition as a healthy part of business",
+      "Celebrate learning from all outcomes, not just profit"
+    ],
+    "ai_variation_allowed": [
+      "Change the business type options",
+      "Vary the competitive scenarios",
+      "Add seasonal demand changes"
+    ],
+    "max_turns": 18
+  },
+  {
+    "id": "tier4_college_cost_planner",
+    "title": "College Cost Planner",
+    "tier": 4,
+    "domain": "money",
+    "icon": "🎓",
+    "learning_objectives": [
+      "Compare total cost of education options",
+      "Understand loans, interest, and scholarships",
+      "Calculate projected ROI of different paths",
+      "Make long-term financial planning decisions"
+    ],
+    "initial_state": {
+      "savings": 5000,
+      "currency": "dollars",
+      "options": 3,
+      "years": 4
+    },
+    "events": [
+      {
+        "description": "College planning! Option A: State university — $12,000/year (after aid). Option B: Community college 2 years ($4,000/year) then transfer to state ($12,000/year x 2). Option C: Private university — $30,000/year (but $15,000 scholarship, so $15,000/year). Total costs: A=$48,000, B=$32,000, C=$60,000. You have $5,000 saved. What's your plan?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "state_uni", "label": "State university — $48,000 over 4 years", "icon": "🏫", "cost": null, "effect": "Full campus experience! $48,000 total. After $5,000 savings, you need $43,000 in loans/work/aid."},
+          {"id": "cc_transfer", "label": "Community college + transfer — $32,000 total", "icon": "📚", "cost": null, "effect": "Smartest financial move! Same degree, $16,000 less than Option A. After savings, $27,000 needed."},
+          {"id": "private", "label": "Private university — $60,000 (with scholarship)", "icon": "🏛️", "cost": null, "effect": "Premium education, premium cost. The scholarship helps but $55,000 is still a lot. What's the career earning potential?"}
+        ]
+      },
+      {
+        "description": "Loan time. Federal student loans charge about 5% interest. If you borrow $40,000, the standard 10-year repayment means ~$424/month ($50,880 total — you pay $10,880 in interest). How do you minimize borrowing?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "work_study", "label": "Work part-time during school — earn $5,000/year", "icon": "💼", "cost": null, "effect": "$20,000 less in loans! Total borrowing drops to $20,000. Monthly payment becomes ~$212. Much more manageable!"},
+          {"id": "scholarship_hunt", "label": "Apply for 10 scholarships — average $2,000 each if you win 3", "icon": "📝", "cost": null, "effect": "Scholarship effort pays off! $6,000 in scholarships reduces loans by 15%. Every application is worth the time."},
+          {"id": "summer_work", "label": "Work summers and save aggressively", "icon": "☀️", "cost": null, "effect": "3 summers x $4,000 saved = $12,000 less borrowing. Combined with your initial $5,000, that's significant!"}
+        ]
+      },
+      {
+        "description": "Let's talk ROI. The average state university graduate earns $55,000/year starting salary. Community college transfer grads earn the same (same degree!). Private university grads average $62,000 starting. Over 10 years, which path has the best return?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "cc_best_roi", "label": "CC transfer — lowest cost, same salary as state = best ROI", "icon": "📊", "cost": null, "effect": "Correct! Same $55k salary but $16k less in costs. The ROI math strongly favors this path."},
+          {"id": "private_higher", "label": "Private — $7,000/year more salary might offset the higher cost", "icon": "🧮", "cost": null, "effect": "Over 10 years, $70,000 extra earnings vs $28,000 extra cost. Net benefit of $42,000! But only if you get that salary."},
+          {"id": "depends", "label": "It depends on my field — some careers need specific schools", "icon": "🤔", "cost": null, "effect": "Nuanced thinking! In some fields, school prestige matters more. In others, the degree itself is what counts. Research your specific career path."}
+        ]
+      },
+      {
+        "description": "Final question: you got into your top choice AND received unexpected financial aid reducing costs by $8,000/year. But your second choice offers a full-ride scholarship (free tuition). What do you choose?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "top_choice", "label": "Top choice with partial aid — follow your dream", "icon": "🌟", "cost": null, "effect": "Your dream school, more affordable now! The reduced cost makes the loan burden manageable."},
+          {"id": "full_ride", "label": "Full ride — graduate debt-free", "icon": "🎓", "cost": null, "effect": "Zero debt at graduation! That financial freedom means more choices after college. Grad school, travel, or save immediately."},
+          {"id": "negotiate", "label": "Use the full-ride offer to negotiate with top choice", "icon": "🤝", "cost": null, "effect": "Smart! Many schools will match or improve offers. Your top choice increases aid by $3,000/year."}
+        ]
+      }
+    ],
+    "recap_template": "You planned for college costs using loans, scholarships, work, and ROI analysis! Education is an investment — understanding the math helps you make the best choice for your future.",
+    "positive_framing_rules": [
+      "Never say a school choice is wrong or too expensive",
+      "Frame loans as tools, not traps",
+      "Celebrate all educational paths equally"
+    ],
+    "ai_variation_allowed": [
+      "Change the school types and costs",
+      "Vary scholarship amounts",
+      "Add different career salary projections"
+    ],
+    "max_turns": 18
+  }
+]

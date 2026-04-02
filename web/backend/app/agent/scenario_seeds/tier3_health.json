@@ -1,0 +1,196 @@
+[
+  {
+    "id": "tier3_nutrition_label",
+    "title": "Nutrition Label Detective",
+    "tier": 3,
+    "domain": "health",
+    "icon": "🔍",
+    "learning_objectives": [
+      "Read and compare nutrition labels",
+      "Understand serving sizes and daily values",
+      "Make informed choices using label data"
+    ],
+    "initial_state": {
+      "items_to_compare": 3,
+      "location": "grocery store"
+    },
+    "events": [
+      {
+        "description": "You're at the grocery store comparing two cereals. Cereal A: 120 calories, 12g sugar, 3g fiber per serving. Cereal B: 150 calories, 6g sugar, 8g fiber per serving. Cereal A costs $3, Cereal B costs $4. Which gives you more lasting energy?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "cereal_b", "label": "Cereal B — more fiber, less sugar", "icon": "🥣", "cost": 4, "effect": "Fiber keeps you full longer! Cereal B has less sugar too. Great label reading!"},
+          {"id": "cereal_a", "label": "Cereal A — fewer calories, lower cost", "icon": "🥣", "cost": 3, "effect": "Budget-friendly choice! Sometimes the simpler option works great."},
+          {"id": "mix_both", "label": "Get both and mix them!", "icon": "🥣🥣", "cost": 7, "effect": "Creative! Mixing gives you the taste you like with extra fiber."}
+        ]
+      },
+      {
+        "description": "Juice aisle! Orange Juice A says '100% juice' with 22g sugar per serving. Orange Juice B says 'juice drink' with 15g sugar but only 20% real juice. Which label tells you more?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "oj_100", "label": "100% juice — natural sugar from oranges", "icon": "🍊", "cost": null, "effect": "The sugar in 100% juice comes from the fruit itself. Label knowledge!"},
+          {"id": "oj_less_sugar", "label": "Juice drink — less sugar overall", "icon": "🧃", "cost": null, "effect": "Less sugar per serving is worth noting! But check what replaces the juice."},
+          {"id": "water_instead", "label": "Just grab water — no label needed!", "icon": "💧", "cost": null, "effect": "Water is always a great choice! Zero sugar and your body loves it."}
+        ]
+      },
+      {
+        "description": "Snack comparison! Trail mix A: serving size 1/4 cup (140 cal, 9g protein). Trail mix B: serving size 1/2 cup (250 cal, 6g protein). Which is a better value per serving?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "trail_a", "label": "Trail Mix A — more protein per calorie", "icon": "🥜", "cost": null, "effect": "Great catch! Same amount gives you more protein and fewer calories. Label detective!"},
+          {"id": "trail_b", "label": "Trail Mix B — bigger serving size", "icon": "🥜", "cost": null, "effect": "The bigger serving means more food, but check the protein-to-calorie ratio!"},
+          {"id": "per_cup", "label": "Calculate per cup to compare fairly", "icon": "🧮", "cost": null, "effect": "Brilliant! Normalizing to the same serving size makes a fair comparison. Trail A: 560cal/36g protein per cup vs Trail B: 500cal/12g. A wins on protein!"}
+        ]
+      },
+      {
+        "description": "Last challenge: a food claims 'low fat' on the front, but the nutrition label shows 8g of added sugar per serving. The regular version has 5g fat but only 2g sugar. What did you learn?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "check_labels", "label": "Front labels can be misleading — always check the back!", "icon": "🔍", "cost": null, "effect": "Exactly! Marketing claims on the front don't tell the whole story. The nutrition label does!"},
+          {"id": "balance_matters", "label": "Reducing one thing sometimes increases another", "icon": "⚖️", "cost": null, "effect": "Great insight! 'Low fat' doesn't mean better if sugar goes way up. Context matters!"},
+          {"id": "compare_both", "label": "Compare total nutrition, not just one number", "icon": "📊", "cost": null, "effect": "Looking at the whole picture is the smartest approach! No single number tells the full story."}
+        ]
+      }
+    ],
+    "recap_template": "You became a nutrition label detective! You learned to compare serving sizes, spot marketing tricks, and use real data to make informed choices.",
+    "positive_framing_rules": [
+      "Never label foods as bad or junk food",
+      "Focus on what nutrients do for your body, not calories",
+      "Frame all choices as learning opportunities"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific products being compared",
+      "Add real-world nutrition facts",
+      "Include fun facts about nutrients"
+    ],
+    "max_turns": 15
+  },
+  {
+    "id": "tier3_recipe_cost_calculator",
+    "title": "Recipe Cost Calculator",
+    "tier": 3,
+    "domain": "health",
+    "icon": "🧮",
+    "learning_objectives": [
+      "Calculate the cost of a recipe",
+      "Find cheaper ingredient substitutions",
+      "Balance nutrition and cost"
+    ],
+    "initial_state": {
+      "wallet": 25,
+      "currency": "dollars",
+      "servings": 4,
+      "location": "kitchen"
+    },
+    "events": [
+      {
+        "description": "You're making dinner for your family of 4! Chicken stir-fry recipe: chicken ($8), rice ($3), vegetables ($5), soy sauce ($4) = $20 total, or $5 per person. But you only have $15. What do you adjust?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "swap_protein", "label": "Use eggs ($3) instead of chicken ($8)", "icon": "🥚", "cost": null, "effect": "Eggs are a great protein swap! New total: $15. Fits the budget perfectly!"},
+          {"id": "frozen_veggies", "label": "Use frozen veggies ($3) instead of fresh ($5)", "icon": "🥦", "cost": null, "effect": "Frozen veggies are just as nutritious and cheaper! New total: $18. Getting closer!"},
+          {"id": "both_swaps", "label": "Eggs + frozen veggies — total under $15!", "icon": "💡", "cost": null, "effect": "Both swaps bring it to $13! Under budget with the same nutrition. Smart cooking!"}
+        ]
+      },
+      {
+        "description": "Your recipe serves 4, but your neighbor asks if they can join for dinner (now 5 people). You don't want to spend more money. How do you stretch the meal?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "more_rice", "label": "Add more rice — cheap and filling", "icon": "🍚", "cost": 1, "effect": "Extra rice stretches the meal! Cost per person drops from $3.25 to $2.80."},
+          {"id": "add_beans", "label": "Add a can of beans for protein + volume", "icon": "🫘", "cost": 1, "effect": "Beans add protein and make the stir-fry heartier! Everyone gets a full plate."},
+          {"id": "side_salad", "label": "Make a quick side salad from what you have", "icon": "🥗", "cost": 0, "effect": "A no-cost side! Lettuce, tomatoes, and dressing you already had. Resourceful!"}
+        ]
+      },
+      {
+        "description": "You want to make this recipe again next week but save even more. The store has bulk rice (5 lbs for $6 vs 1 lb for $3) and a family-pack of chicken ($15 for 3 meals vs $8 for 1 meal). What's the smart buy?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "bulk_both", "label": "Buy both in bulk — save over 3 weeks", "icon": "📦", "cost": 21, "effect": "Bulk rice + family chicken = $21 now but saves $12 over 3 weeks! Long-term thinking!"},
+          {"id": "bulk_rice_only", "label": "Bulk rice only — less money upfront", "icon": "🍚", "cost": 6, "effect": "Bulk rice saves $3 over time. Smaller upfront cost keeps your budget flexible."},
+          {"id": "no_bulk", "label": "Stick with regular sizes for now", "icon": "🛒", "cost": 11, "effect": "No extra spending right now! Sometimes staying flexible is the smart play."}
+        ]
+      }
+    ],
+    "recap_template": "You cooked dinner, managed a food budget, made smart substitutions, and learned about bulk buying! These are real skills for feeding yourself and others.",
+    "positive_framing_rules": [
+      "Never suggest the family can only afford certain foods",
+      "Frame budget cooking as creative and smart, not restrictive",
+      "Celebrate resourcefulness and nutrition equally"
+    ],
+    "ai_variation_allowed": [
+      "Change the recipe and ingredients",
+      "Vary the budget constraints",
+      "Add nutrition tips alongside cost comparisons"
+    ],
+    "max_turns": 15
+  },
+  {
+    "id": "tier3_meal_prep_challenge",
+    "title": "Meal Prep Challenge",
+    "tier": 3,
+    "domain": "health",
+    "icon": "🍱",
+    "learning_objectives": [
+      "Plan 5 dinners within a budget",
+      "Hit nutrition targets across a week",
+      "Make trade-offs between variety and cost"
+    ],
+    "initial_state": {
+      "wallet": 60,
+      "currency": "dollars",
+      "days": 5,
+      "servings_per_day": 4,
+      "nutrition_targets": {"protein": true, "vegetables": true, "grains": true}
+    },
+    "events": [
+      {
+        "description": "Meal prep challenge! Plan 5 dinners for a family of 4 with $60. That's $12 per meal or $3 per plate. Monday: what's for dinner?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "pasta_night", "label": "Pasta with meat sauce + salad ($10)", "icon": "🍝", "cost": 10, "effect": "Pasta night! Grains, protein, and veggies covered. $50 remaining for 4 meals."},
+          {"id": "rice_beans", "label": "Rice and beans with roasted veggies ($7)", "icon": "🍚", "cost": 7, "effect": "Affordable and complete! Protein from beans, grains from rice, plus veggies. $53 left!"},
+          {"id": "soup", "label": "Homemade vegetable soup with bread ($8)", "icon": "🍲", "cost": 8, "effect": "Warm soup with lots of veggies! And it makes great leftovers. $52 remaining."}
+        ]
+      },
+      {
+        "description": "It's Wednesday and you've spent $25 so far. You have $35 left for 3 dinners. A friend gave you extra tomatoes and peppers from their garden — free veggies! How does this change your plan?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "use_free", "label": "Build meals around the free veggies", "icon": "🌶️", "cost": null, "effect": "Stuffed peppers and tomato sauce! Free ingredients lower your costs. Smart adaptation!"},
+          {"id": "splurge_one", "label": "Save money on one meal, splurge on another", "icon": "✨", "cost": null, "effect": "Free veggie stir-fry Wednesday ($4) means you can do tacos Thursday ($14)! Strategic!"},
+          {"id": "save_extra", "label": "Keep costs low and save the extra for next week", "icon": "💰", "cost": null, "effect": "Under budget! The extra money rolls into next week's meal plan."}
+        ]
+      },
+      {
+        "description": "Friday is the last dinner. You have $18 left. Your family wants something special but you also want to keep it balanced. What do you make?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "homemade_pizza", "label": "Homemade pizza night ($12) — everyone picks toppings", "icon": "🍕", "cost": 12, "effect": "Pizza night! Veggies, cheese, and whole wheat dough. Fun AND nutritious. $6 saved!"},
+          {"id": "taco_bar", "label": "Taco bar ($15) — build your own!", "icon": "🌮", "cost": 15, "effect": "Tacos with beans, veggies, cheese, and salsa! Interactive dinner. $3 left!"},
+          {"id": "stir_fry_fancy", "label": "Fancy stir-fry with shrimp ($18)", "icon": "🍤", "cost": 18, "effect": "A special end to the week! Shrimp is a great protein. You used exactly your budget!"}
+        ]
+      },
+      {
+        "description": "Week's done! Let's review: did your meals cover all the nutrition targets across the 5 days?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "review_proud", "label": "Every meal had protein, veggies, and grains!", "icon": "✅", "cost": null, "effect": "Balanced every single day! Your family got great nutrition all week."},
+          {"id": "review_improve", "label": "I could add more variety next week", "icon": "📝", "cost": null, "effect": "Self-reflection! Noticing where to improve is a sign of a great planner."},
+          {"id": "review_budget", "label": "I stayed under budget — more to save!", "icon": "💪", "cost": null, "effect": "Under budget AND well-fed! Those are real-world cooking skills."}
+        ]
+      }
+    ],
+    "recap_template": "You planned 5 dinners for a family of 4 within a $60 budget! You balanced nutrition, cost, and variety. Meal planning is a skill that saves money and keeps you energized.",
+    "positive_framing_rules": [
+      "Never suggest the budget is too tight or meals are inadequate",
+      "Frame budget cooking as creative and empowering",
+      "Use 'energy-giving' language for nutrition, not calorie-counting"
+    ],
+    "ai_variation_allowed": [
+      "Change the specific meals and ingredients",
+      "Add seasonal ingredient availability",
+      "Include nutrition tips about food groups"
+    ],
+    "max_turns": 15
+  }
+]

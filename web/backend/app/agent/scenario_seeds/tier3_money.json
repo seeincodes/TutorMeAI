@@ -1,0 +1,275 @@
+[
+  {
+    "id": "tier3_school_dance_budget",
+    "title": "School Dance Budget",
+    "tier": 3,
+    "domain": "money",
+    "icon": "💃",
+    "learning_objectives": [
+      "Manage a multi-category budget",
+      "Handle unexpected expenses",
+      "Make trade-offs between categories"
+    ],
+    "initial_state": {
+      "wallet": 50,
+      "currency": "dollars",
+      "categories": {"decorations": 0, "snacks": 0, "music": 0, "supplies": 0}
+    },
+    "events": [
+      {
+        "description": "You're in charge of the school dance budget — $50 total! You need decorations, snacks, and music. The DJ app costs $10, basic decorations are $15, and snacks for 30 people cost $20. That's $45 — leaving only $5 for extras. How do you allocate?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "balanced", "label": "DJ ($10) + Decor ($15) + Snacks ($20) + $5 buffer", "icon": "⚖️", "cost": 45, "effect": "A balanced plan with a small buffer! Smart to keep $5 for surprises."},
+          {"id": "upgrade_music", "label": "Better DJ ($20) + Basic decor ($10) + Snacks ($20)", "icon": "🎵", "cost": 50, "effect": "Great music can make the dance! You spent it all but the vibe will be amazing."},
+          {"id": "diy_decor", "label": "DJ ($10) + DIY decor ($5) + Snacks ($20) + $15 buffer", "icon": "✂️", "cost": 35, "effect": "DIY decorations save money! You have $15 for unexpected needs. Resourceful!"}
+        ]
+      },
+      {
+        "description": "Surprise! The snack prices went up by 15%. Your $20 snack budget now covers fewer items. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "use_buffer", "label": "Use your buffer money for snacks", "icon": "💰", "cost": null, "effect": "Good thing you planned ahead! The buffer covers the price increase."},
+          {"id": "fewer_snacks", "label": "Buy fewer but better snacks", "icon": "🍕", "cost": null, "effect": "Quality over quantity! Fewer items but everyone loves them."},
+          {"id": "ask_donations", "label": "Ask classmates to bring a snack each", "icon": "🤝", "cost": null, "effect": "Potluck style! Everyone contributes and you save money. Community solution!"}
+        ]
+      },
+      {
+        "description": "A classmate suggests adding a photo booth. A DIY version costs $8, a fancy rental costs $25. Is it worth it?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "diy_booth", "label": "DIY photo booth ($8)", "icon": "📸", "cost": 8, "effect": "Props and a backdrop for $8! Everyone loves taking silly photos!"},
+          {"id": "skip_booth", "label": "Skip it — use phones instead", "icon": "📱", "cost": 0, "effect": "Phone cameras work great! You saved the money for other things."},
+          {"id": "fundraise", "label": "Quick fundraiser to cover it", "icon": "💡", "cost": null, "effect": "You raised extra money with a quick bake sale! The booth is funded!"}
+        ]
+      },
+      {
+        "description": "Dance night! Everything is set up. You have some money left over. What do you do with it?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "save_next", "label": "Save it for the next school event", "icon": "🐷", "cost": null, "effect": "Thinking ahead! The next event already has a head start on its budget."},
+          {"id": "thank_helpers", "label": "Buy thank-you treats for the helpers", "icon": "🎁", "cost": null, "effect": "What a thoughtful leader! Your team feels appreciated."},
+          {"id": "last_minute", "label": "Add a last-minute surprise for everyone", "icon": "✨", "cost": null, "effect": "Glow sticks for everyone! A surprise hit at the dance!"}
+        ]
+      }
+    ],
+    "recap_template": "You managed a real event budget! You handled multiple categories, dealt with price changes, and made trade-offs. These are skills you'll use your whole life.",
+    "positive_framing_rules": [
+      "Never say the student went over budget or messed up",
+      "Frame budget surprises as problem-solving opportunities",
+      "Celebrate creative solutions and adaptability"
+    ],
+    "ai_variation_allowed": [
+      "Change the event type",
+      "Vary the surprise expense scenario",
+      "Add different classmate suggestions"
+    ],
+    "max_turns": 15
+  },
+  {
+    "id": "tier3_comparison_shopper",
+    "title": "Comparison Shopper",
+    "tier": 3,
+    "domain": "money",
+    "icon": "🛒",
+    "learning_objectives": [
+      "Compare prices across different options",
+      "Calculate unit price for value comparison",
+      "Make informed purchasing decisions"
+    ],
+    "initial_state": {
+      "wallet": 30,
+      "currency": "dollars",
+      "shopping_list": ["backpack", "notebooks", "pens"]
+    },
+    "events": [
+      {
+        "description": "Back-to-school shopping! You need a backpack, notebooks, and pens with $30. Store A has a backpack for $18, Store B has one for $22 but it's waterproof and has a warranty. What do you pick?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "store_a", "label": "Store A — $18 basic backpack", "icon": "🎒", "cost": 18, "effect": "Good value! $12 left for the rest of your list."},
+          {"id": "store_b", "label": "Store B — $22 waterproof with warranty", "icon": "🎒💧", "cost": 22, "effect": "Might last longer and protect your stuff in rain! $8 left."},
+          {"id": "online", "label": "Search online — $15 with free shipping (1 week wait)", "icon": "📦", "cost": 15, "effect": "Best price! But you'll have to wait a week. $15 left for other items."}
+        ]
+      },
+      {
+        "description": "Notebook time! A 3-pack costs $6, or you can buy singles for $2.50 each. You need 3 notebooks. Which is the better deal?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "three_pack", "label": "3-pack for $6 ($2.00 each)", "icon": "📓", "cost": 6, "effect": "The 3-pack saves you $1.50! Unit price comparison for the win!"},
+          {"id": "singles", "label": "3 singles for $7.50 ($2.50 each)", "icon": "📒", "cost": 7, "effect": "You got to pick 3 different colors! Sometimes variety is worth a little more."},
+          {"id": "two_pack_plus", "label": "2-pack ($4) + 1 fancy notebook ($4)", "icon": "📔", "cost": 8, "effect": "Two regular ones and one special one! A nice mix of value and quality."}
+        ]
+      },
+      {
+        "description": "Last item: pens! A 10-pack of basic pens is $3. A 5-pack of gel pens is $5. A single fancy pen is $4. What's the best value for you?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "basic_10", "label": "10 basic pens — $0.30 each", "icon": "🖊️", "cost": 3, "effect": "Best unit price! You'll have pens for months!"},
+          {"id": "gel_5", "label": "5 gel pens — $1.00 each", "icon": "✒️", "cost": 5, "effect": "Gel pens are so smooth! Sometimes paying more for quality is worth it."},
+          {"id": "fancy_1", "label": "1 fancy refillable pen — $4.00", "icon": "🖋️", "cost": 4, "effect": "One great pen you can refill! Costs more upfront but less over time."}
+        ]
+      },
+      {
+        "description": "Shopping done! Let's look at your total spending and what you got. Was there a way to get even better value?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "review_happy", "label": "I'm happy with my choices!", "icon": "😊", "cost": null, "effect": "You made thoughtful decisions at every step! That's what smart shopping is about."},
+          {"id": "review_learn", "label": "I'd do some things differently next time", "icon": "🤔", "cost": null, "effect": "Reflecting on your choices helps you shop smarter next time! Great self-awareness."},
+          {"id": "review_save", "label": "I saved money — let's see how much!", "icon": "💰", "cost": null, "effect": "Let's count it up! Every dollar saved is a dollar you can use for something else."}
+        ]
+      }
+    ],
+    "recap_template": "You practiced comparison shopping! You learned about unit prices, quality vs cost trade-offs, and making thoughtful purchasing decisions.",
+    "positive_framing_rules": [
+      "Never say the student wasted money or bought the wrong thing",
+      "Frame both budget and quality choices as valid strategies",
+      "Celebrate the thinking process, not just the outcome"
+    ],
+    "ai_variation_allowed": [
+      "Change the shopping items",
+      "Vary store names and prices",
+      "Add coupons or sales as surprises"
+    ],
+    "max_turns": 15
+  },
+  {
+    "id": "tier3_club_treasurer",
+    "title": "Club Treasurer",
+    "tier": 3,
+    "domain": "money",
+    "icon": "📊",
+    "learning_objectives": [
+      "Manage a shared budget across multiple events",
+      "Balance different stakeholder needs",
+      "Track spending and communicate about money"
+    ],
+    "initial_state": {
+      "wallet": 500,
+      "currency": "dollars",
+      "club": "Science Club",
+      "members": 20,
+      "events_planned": 3
+    },
+    "events": [
+      {
+        "description": "You're the Science Club treasurer with $500 for the semester. The club wants 3 events: a field trip ($200), a science fair booth ($150), and an end-of-year pizza party ($100). That's $450 — but what about supplies for weekly meetings? Those cost about $10/week for 10 weeks ($100). The math doesn't add up! What's your plan?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "cut_trip", "label": "Cheaper field trip ($150) to cover supplies", "icon": "🚌", "cost": null, "effect": "A closer field trip saves $50! Now everything fits in the budget."},
+          {"id": "fundraise", "label": "Fundraise $100 for supplies separately", "icon": "💡", "cost": null, "effect": "A candy sale raises $120! Supplies covered and $20 extra!"},
+          {"id": "reduce_all", "label": "Trim 10% from each event budget", "icon": "✂️", "cost": null, "effect": "Small cuts across the board save $45! Every category still gets most of its budget."}
+        ]
+      },
+      {
+        "description": "The science fair is coming up. Your $150 booth budget needs to cover materials ($80), a poster ($30), and prizes ($40). A club member found cheaper materials for $50. Do you keep the savings or upgrade something?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "save_buffer", "label": "Save the $30 as a buffer", "icon": "🐷", "cost": null, "effect": "A $30 buffer for unexpected costs. Treasurer thinking!"},
+          {"id": "better_prizes", "label": "Upgrade prizes to $70", "icon": "🏆", "cost": null, "effect": "Better prizes will attract more visitors! The booth will be a hit!"},
+          {"id": "both_small", "label": "Better poster ($45) and save $15", "icon": "📊", "cost": null, "effect": "A more eye-catching poster plus a small buffer. Balanced upgrade!"}
+        ]
+      },
+      {
+        "description": "Two members want to spend leftover money differently. One wants extra lab supplies, the other wants matching club t-shirts ($8 each for 20 people = $160). You only have $80 left.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "lab_supplies", "label": "Lab supplies — serves the club's mission", "icon": "🔬", "cost": null, "effect": "Lab supplies help everyone learn! Aligned with the club's purpose."},
+          {"id": "cheaper_shirts", "label": "Find $4 shirts instead — $80 total!", "icon": "👕", "cost": null, "effect": "Creative budgeting! Everyone gets a shirt at half the price!"},
+          {"id": "vote", "label": "Put it to a club vote", "icon": "🗳️", "cost": null, "effect": "The club votes and the decision feels fair to everyone!"}
+        ]
+      },
+      {
+        "description": "End of semester! Time to present your financial report to the club advisor. How did you manage the $500?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "detailed_report", "label": "Show a detailed breakdown of all spending", "icon": "📋", "cost": null, "effect": "Your clear report impresses the advisor! They see exactly where every dollar went."},
+          {"id": "highlight_wins", "label": "Highlight what you accomplished within budget", "icon": "🌟", "cost": null, "effect": "Three events, weekly supplies, and money saved! The advisor is proud of your work."},
+          {"id": "next_semester", "label": "Present a plan for next semester too", "icon": "📅", "cost": null, "effect": "Forward thinking! The advisor loves that you're already planning ahead."}
+        ]
+      }
+    ],
+    "recap_template": "You managed a club budget for a whole semester! You balanced competing needs, handled surprises, and made fair decisions. Real-world treasurer skills!",
+    "positive_framing_rules": [
+      "Never say the student mismanaged money",
+      "Frame budget constraints as creative challenges",
+      "Celebrate communication and fairness in budget decisions"
+    ],
+    "ai_variation_allowed": [
+      "Change the club type",
+      "Vary the specific events and costs",
+      "Add unexpected fundraising opportunities"
+    ],
+    "max_turns": 15
+  },
+  {
+    "id": "tier3_savings_goal_tracker",
+    "title": "Savings Goal Tracker",
+    "tier": 3,
+    "domain": "money",
+    "icon": "🎯",
+    "learning_objectives": [
+      "Set and track a long-term savings goal",
+      "Handle competing wants while saving",
+      "Calculate progress toward a target"
+    ],
+    "initial_state": {
+      "wallet": 0,
+      "currency": "dollars",
+      "goal_item": "gaming headset",
+      "goal_price": 200,
+      "weekly_income": 25,
+      "weeks": 8
+    },
+    "events": [
+      {
+        "description": "You want a $200 gaming headset and earn $25/week from chores. If you save everything, you'd have it in 8 weeks. But life happens! Week 1: your friend invites you to the movies ($15). Do you go?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "skip_movie", "label": "Skip the movie, save $25", "icon": "🐷", "cost": 0, "effect": "Full $25 saved! You're 12.5% of the way there already!"},
+          {"id": "go_movie", "label": "Go to the movie, save $10", "icon": "🎬", "cost": 15, "effect": "Fun movie with your friend! $10 saved this week. Experiences matter too!"},
+          {"id": "cheaper_option", "label": "Suggest a free hangout instead", "icon": "🏞️", "cost": 0, "effect": "Park hangout with your friend — just as fun AND you saved $25!"}
+        ]
+      },
+      {
+        "description": "Week 4 check-in! You've saved some money but you're behind your $100 target. A neighbor offers you a one-time $30 job raking leaves. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "take_job", "label": "Take the leaf-raking job", "icon": "🍂", "cost": null, "effect": "Extra $30! You're back on track or even ahead!"},
+          {"id": "negotiate", "label": "Ask if they have more jobs next week too", "icon": "💼", "cost": null, "effect": "They say yes! $30 this week and $20 next week. Entrepreneurial thinking!"},
+          {"id": "pass", "label": "You're already on track, skip it", "icon": "😌", "cost": null, "effect": "You checked your savings and you're doing fine! No need for extra work right now."}
+        ]
+      },
+      {
+        "description": "Week 6! The headset just went on sale for $170 — 15% off! But the sale ends this week and you have $155. What do you do?",
+        "event_type": "choice",
+        "choices": [
+          {"id": "wait", "label": "Keep saving — you'll have $200 in 2 weeks", "icon": "⏳", "cost": null, "effect": "Patience! In 2 weeks you'll have the full $200 and money to spare."},
+          {"id": "ask_advance", "label": "Ask parents for a $15 advance on next week's chores", "icon": "🤝", "cost": null, "effect": "Parents agree! You get the sale price and pay it back next week. Smart negotiating!"},
+          {"id": "different_headset", "label": "Look for a similar headset within your budget", "icon": "🔍", "cost": null, "effect": "You find a great option for $150! Under budget and highly rated!"}
+        ]
+      },
+      {
+        "description": "Goal complete! You got your headset. Let's reflect on the journey.",
+        "event_type": "choice",
+        "choices": [
+          {"id": "reflect_discipline", "label": "I learned that saving takes patience", "icon": "🧠", "cost": null, "effect": "Patience is a superpower! You proved you can work toward a big goal over time."},
+          {"id": "reflect_flexible", "label": "I learned to be flexible with my plan", "icon": "🌊", "cost": null, "effect": "Adapting to changes made you a better saver! Plans can shift and that's okay."},
+          {"id": "reflect_earn", "label": "I learned I can earn more when I need to", "icon": "💪", "cost": null, "effect": "Finding extra income showed real initiative! You took control of your goal."}
+        ]
+      }
+    ],
+    "recap_template": "You saved for a $200 goal over 8 weeks! You handled temptations, found extra income, and adapted when prices changed. Long-term saving is a powerful skill.",
+    "positive_framing_rules": [
+      "Never say the student spent carelessly or fell behind",
+      "Frame spending on experiences as valid alongside saving",
+      "Celebrate adaptability and persistence"
+    ],
+    "ai_variation_allowed": [
+      "Change the goal item",
+      "Vary the weekly temptation scenarios",
+      "Add different earning opportunities"
+    ],
+    "max_turns": 15
+  }
+]
