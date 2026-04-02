@@ -4,7 +4,9 @@
 
 **Goal:** Transform the Life Skills Toolkit (3 form-based calculators) into Level Up Life — a four-tier, four-domain interactive simulation engine driven by the AI tutor.
 
-**Architecture:** Five phases in dependency order: (1) PostMessage protocol upgrade, (2) Backend age-tier gating + scenario engine, (3) Iframe component rebuild, (4) Platform integration, (5) Scenario seed content. Each phase produces working, testable software.
+**Architecture:** Seven phases in dependency order: (0) Security hardening, (1) PostMessage protocol upgrade, (2) Backend age-tier gating + scenario engine, (3) Iframe component rebuild, (4) Platform integration, (5) Scenario seed content, (6) Integration + pen test. Security-first: Phase 0 must complete before any student-facing code ships.
+
+**Security council findings (14 vulnerabilities):** See `council-report-20260401-185547.html` for full audit. Critical fixes integrated into Phase 0.
 
 **Tech Stack:** React 18 + TypeScript (iframe app), Python FastAPI + LangGraph (backend agent), PostgreSQL + SQLAlchemy + Alembic (data), Vite (build), pnpm (packages)
 
