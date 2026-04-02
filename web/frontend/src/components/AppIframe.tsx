@@ -210,7 +210,7 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
   }
 
   return (
-    <div className="relative flex h-full flex-col">
+    <div className="relative flex h-full w-full flex-col overflow-hidden">
       {/* Error banner — dual error display (inline banner) */}
       {error && (
         <div
@@ -247,8 +247,7 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
         src={iframeUrl}
         sandbox="allow-scripts allow-same-origin allow-forms"
         title={`${appId} app`}
-        className="flex-1 border-0"
-        style={{ width: '100%', minHeight: '300px' }}
+        className="h-full w-full border-0"
       />
     </div>
   )
