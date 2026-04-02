@@ -77,6 +77,7 @@ export const api = {
     onError: (error: string) => void,
     onIntent?: (appId: string) => void,
     onToolCall?: (appId: string, tool: string, params: Record<string, unknown>, correlationId: string) => void,
+    onOAuthPrompt?: (appId: string, message: string) => void,
   ) => {
     const res = await fetch(`${BASE}/conversations/${conversationId}/messages`, {
       method: 'POST',
@@ -117,6 +118,8 @@ export const api = {
               onIntent?.(parsed.app_id)
             } else if (currentEvent === 'tool_call' && 'tool' in parsed) {
               onToolCall?.(parsed.app_id, parsed.tool, parsed.params, parsed.correlation_id)
+            } else if (currentEvent === 'oauth_prompt' && 'app_id' in parsed) {
+              onOAuthPrompt?.(parsed.app_id, parsed.message || 'Connect your account')
             } else if ('content' in parsed) {
               onToken(parsed.content)
             } else if ('message_id' in parsed) {

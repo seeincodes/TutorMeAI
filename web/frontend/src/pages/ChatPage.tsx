@@ -20,6 +20,7 @@ export default function ChatPage() {
   const [activeApp, setActiveApp] = useState<AppState | null>(null)
   const [pendingRestore, setPendingRestore] = useState<Record<string, unknown> | null>(null)
   const [chatDrawerOpen, setChatDrawerOpen] = useState(false)
+  const [oauthPrompt, setOauthPrompt] = useState<{ appId: string; message: string } | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const appIframeRef = useRef<AppIframeHandle>(null)
@@ -40,6 +41,20 @@ export default function ChatPage() {
   }, [chatDrawerOpen, menuOpen])
 
   useEffect(() => { scrollToBottom() }, [messages, streamingContent, scrollToBottom])
+
+  useEffect(() => {
+    function handleOAuthComplete(event: MessageEvent) {
+      if (event.data?.type === 'oauth_complete') {
+        setOauthPrompt(null)
+      }
+    }
+    window.addEventListener('message', handleOAuthComplete)
+    return () => window.removeEventListener('message', handleOAuthComplete)
+  }, [])
+
+  function handleOAuthConnect(appId: string) {
+    window.open(`/api/oauth/${appId}/authorize`, 'oauth_popup', 'width=500,height=600,popup=yes')
+  }
 
   useEffect(() => {
     api.listConversations().then(setConversations).catch(() => {})
@@ -151,6 +166,9 @@ export default function ChatPage() {
           })
         }
       },
+      (appId: string, message: string) => {
+        setOauthPrompt({ appId, message })
+      },
     )
   }
 
@@ -201,6 +219,19 @@ export default function ChatPage() {
                 <div className="flex justify-start">
                   <div className="max-w-[80%] rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm" aria-live="polite">
                     <p className="whitespace-pre-wrap">{streamingContent}</p>
+                  </div>
+                </div>
+              )}
+              {oauthPrompt && (
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm">
+                    <p className="text-gray-700 mb-2">{oauthPrompt.message}</p>
+                    <button
+                      onClick={() => handleOAuthConnect(oauthPrompt.appId)}
+                      className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                    >
+                      Connect {oauthPrompt.appId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </button>
                   </div>
                 </div>
               )}
