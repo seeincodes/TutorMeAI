@@ -52,8 +52,16 @@ export default function ChatPage() {
     return () => window.removeEventListener('message', handleOAuthComplete)
   }, [])
 
-  function handleOAuthConnect(appId: string) {
-    window.open(`/api/oauth/${appId}/authorize`, 'oauth_popup', 'width=500,height=600,popup=yes')
+  async function handleOAuthConnect(appId: string) {
+    try {
+      const resp = await fetch(`/api/oauth/${appId}/authorize`, { credentials: 'include' })
+      const data = await resp.json()
+      if (data.authorize_url) {
+        window.open(data.authorize_url, 'oauth_popup', 'width=500,height=600,popup=yes')
+      }
+    } catch {
+      // fallback
+    }
   }
 
   useEffect(() => {
