@@ -1,4 +1,5 @@
 import os
+import uuid
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -19,6 +20,7 @@ from app.classroom.router import router as classroom_router
 from app.districts.router import router as districts_router
 from app.marketplace.router import router as marketplace_router
 from app.scaling.router import router as scaling_router
+from app.observability.router import router as observability_router
 from app.rate_limit import limiter
 
 app = FastAPI(
@@ -114,8 +116,38 @@ class AppAuthMiddleware:
         })
 
 
+class CorrelationIdMiddleware:
+    """ASGI middleware that adds X-Correlation-ID to every response.
+
+    If the client sends an X-Correlation-ID header, it is echoed back.
+    Otherwise, a new UUID is generated.
+    """
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        # Extract client-provided correlation ID
+        headers = dict(scope.get("headers", []))
+        client_cid = headers.get(b"x-correlation-id", b"").decode() or None
+        correlation_id = client_cid or str(uuid.uuid4())
+
+        async def send_with_cid(message):
+            if message["type"] == "http.response.start":
+                resp_headers = list(message.get("headers", []))
+                resp_headers.append((b"x-correlation-id", correlation_id.encode()))
+                message = {**message, "headers": resp_headers}
+            await send(message)
+
+        await self.app(scope, receive, send_with_cid)
+
+
 app.add_middleware(AppAuthMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CorrelationIdMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -136,6 +168,7 @@ app.include_router(classroom_router)
 app.include_router(districts_router)
 app.include_router(marketplace_router)
 app.include_router(scaling_router)
+app.include_router(observability_router)
 
 
 @app.get("/api/health")
