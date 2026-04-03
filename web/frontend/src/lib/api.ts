@@ -78,6 +78,9 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
+  deleteConversation: (conversationId: string) =>
+    request<void>(`/conversations/${conversationId}`, { method: 'DELETE' }),
+
   getMessages: (conversationId: string) =>
     request<Message[]>(`/conversations/${conversationId}/messages`),
 

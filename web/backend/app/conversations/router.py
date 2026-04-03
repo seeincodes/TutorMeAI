@@ -79,6 +79,17 @@ async def update_conversation(
     return ConversationResponse.model_validate(conversation)
 
 
+@router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_conversation(
+    conversation_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    conversation = await _get_user_conversation(conversation_id, current_user, db)
+    await db.delete(conversation)
+    await db.commit()
+
+
 @router.get("/{conversation_id}/messages")
 async def get_messages(
     conversation_id: str,

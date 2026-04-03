@@ -302,6 +302,15 @@ export default function ChatPage() {
             await api.updateConversation(id, { starred })
             setConversations(prev => prev.map(c => c.id === id ? { ...c, starred } : c))
           }}
+          onDelete={async (id) => {
+            await api.deleteConversation(id)
+            setConversations(prev => prev.filter(c => c.id !== id))
+            if (activeConversation === id) {
+              setActiveConversation(null)
+              setMessages([])
+              setActiveApp(null)
+            }
+          }}
           onAppLaunch={handleAppLaunch}
           availableApps={availableApps}
           username={user?.display_name || user?.username || ''}

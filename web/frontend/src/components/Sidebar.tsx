@@ -28,6 +28,7 @@ interface SidebarProps {
   onSelectConversation: (id: string) => void
   onNewConversation: () => void
   onToggleStar: (id: string, starred: boolean) => void
+  onDelete: (id: string) => void
   onAppLaunch: (appId: string) => void
   availableApps: AppInfo[]
   username: string
@@ -45,6 +46,7 @@ export default function Sidebar({
   onSelectConversation,
   onNewConversation,
   onToggleStar,
+  onDelete,
   onAppLaunch,
   availableApps,
   username,
@@ -144,25 +146,12 @@ export default function Sidebar({
               >
                 {conv.title || 'New conversation'}
               </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onToggleStar(conv.id, !conv.starred)
-                }}
-                className={cn(
-                  'shrink-0 rounded p-1 mr-1 transition-colors',
-                  conv.starred
-                    ? 'text-chatbox-tint-brand'
-                    : 'text-chatbox-tint-tertiary opacity-0 group-hover/conv:opacity-100'
-                )}
-                aria-label={conv.starred ? 'Unstar conversation' : 'Star conversation'}
-              >
-                {conv.starred ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                )}
-              </button>
+              <ConversationActions
+                conversationId={conv.id}
+                starred={conv.starred}
+                onToggleStar={onToggleStar}
+                onDelete={onDelete}
+              />
             </div>
           ))
         )}
@@ -192,6 +181,66 @@ export default function Sidebar({
         </div>
       </div>
     </aside>
+  )
+}
+
+function ConversationActions({
+  conversationId,
+  starred,
+  onToggleStar,
+  onDelete,
+}: {
+  conversationId: string
+  starred: boolean
+  onToggleStar: (id: string, starred: boolean) => void
+  onDelete: (id: string) => void
+}) {
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  return (
+    <div className="flex shrink-0 items-center mr-1">
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          onToggleStar(conversationId, !starred)
+        }}
+        className={cn(
+          'rounded p-1 transition-colors',
+          starred
+            ? 'text-chatbox-tint-brand'
+            : 'text-chatbox-tint-tertiary opacity-0 group-hover/conv:opacity-100'
+        )}
+        aria-label={starred ? 'Unstar' : 'Star'}
+      >
+        {starred ? (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        )}
+      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          if (confirmDelete) {
+            onDelete(conversationId)
+            setConfirmDelete(false)
+          } else {
+            setConfirmDelete(true)
+            setTimeout(() => setConfirmDelete(false), 2000)
+          }
+        }}
+        className={cn(
+          'rounded p-1 transition-colors',
+          confirmDelete
+            ? 'text-chatbox-tint-error'
+            : 'text-chatbox-tint-tertiary opacity-0 group-hover/conv:opacity-100'
+        )}
+        aria-label={confirmDelete ? 'Click again to confirm delete' : 'Delete conversation'}
+        title={confirmDelete ? 'Click again to confirm' : 'Delete'}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
+    </div>
   )
 }
 
