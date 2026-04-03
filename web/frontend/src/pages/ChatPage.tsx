@@ -354,7 +354,7 @@ export default function ChatPage() {
                 <p className="mb-6 text-center text-sm text-chatbox-tint-tertiary">
                   {user?.role === 'student'
                     ? 'What would you like to do today? Pick an app or just start chatting.'
-                    : 'Start a conversation or head to the dashboard.'}
+                    : <>Start a conversation or head to the <button onClick={() => navigate('/dashboard')} className="text-chatbox-tint-brand underline hover:text-chatbox-tint-primary transition-colors">dashboard</button>.</>}
                 </p>
                 {user?.role === 'student' && availableApps.length > 0 && (
                   <div className="grid w-full grid-cols-2 gap-2.5 sm:grid-cols-4">
