@@ -198,12 +198,18 @@ function ConversationActions({
   const [menuOpen, setMenuOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
 
   // Close menu on outside click
   useEffect(() => {
     if (!menuOpen) return
     function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      const inTrigger = menuRef.current?.contains(target)
+      const inDropdown = dropdownRef.current?.contains(target)
+      if (!inTrigger && !inDropdown) {
         setMenuOpen(false)
         setConfirmDelete(false)
       }
@@ -223,8 +229,13 @@ function ConversationActions({
     <div className="relative shrink-0 mr-1" ref={menuRef}>
       {/* Trigger: filled star if starred, dots if not */}
       <button
+        ref={triggerRef}
         onClick={(e) => {
           e.stopPropagation()
+          if (!menuOpen && triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect()
+            setMenuPos({ top: rect.bottom + 4, left: rect.right - 144 })
+          }
           setMenuOpen(m => !m)
           setConfirmDelete(false)
         }}
@@ -246,7 +257,11 @@ function ConversationActions({
 
       {/* Dropdown menu */}
       {menuOpen && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-36 rounded-md border border-chatbox-border-primary bg-chatbox-background-primary py-1 shadow-lg">
+        <div
+          ref={dropdownRef}
+          className="fixed z-50 w-36 rounded-md border border-chatbox-border-primary bg-chatbox-background-primary py-1 shadow-lg"
+          style={{ top: menuPos.top, left: menuPos.left }}
+        >
           <button
             onClick={(e) => {
               e.stopPropagation()
