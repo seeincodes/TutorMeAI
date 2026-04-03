@@ -6,7 +6,7 @@
  * i18n, task mode, image generation, copilots. Uses Tailwind + our
  * design tokens. Keeps the visual layout and conversation list pattern.
  */
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { Conversation, AppInfo } from '@/lib/api'
 
@@ -195,51 +195,106 @@ function ConversationActions({
   onToggleStar: (id: string, starred: boolean) => void
   onDelete: (id: string) => void
 }) {
+  const [menuOpen, setMenuOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+        setConfirmDelete(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [menuOpen])
+
+  // Reset confirm state after 5s (matches chatbox timeout)
+  useEffect(() => {
+    if (!confirmDelete) return
+    const tid = setTimeout(() => setConfirmDelete(false), 5000)
+    return () => clearTimeout(tid)
+  }, [confirmDelete])
 
   return (
-    <div className="flex shrink-0 items-center mr-1">
+    <div className="relative shrink-0 mr-1" ref={menuRef}>
+      {/* Trigger: filled star if starred, dots if not */}
       <button
         onClick={(e) => {
           e.stopPropagation()
-          onToggleStar(conversationId, !starred)
+          setMenuOpen(m => !m)
+          setConfirmDelete(false)
         }}
         className={cn(
           'rounded p-1 transition-colors',
           starred
             ? 'text-chatbox-tint-brand'
-            : 'text-chatbox-tint-tertiary opacity-0 group-hover/conv:opacity-100'
+            : 'text-chatbox-tint-tertiary opacity-0 group-hover/conv:opacity-100',
+          menuOpen && 'opacity-100'
         )}
-        aria-label={starred ? 'Unstar' : 'Star'}
+        aria-label="Conversation actions"
       >
         {starred ? (
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
         ) : (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
         )}
       </button>
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          if (confirmDelete) {
-            onDelete(conversationId)
-            setConfirmDelete(false)
-          } else {
-            setConfirmDelete(true)
-            setTimeout(() => setConfirmDelete(false), 2000)
-          }
-        }}
-        className={cn(
-          'rounded p-1 transition-colors',
-          confirmDelete
-            ? 'text-chatbox-tint-error'
-            : 'text-chatbox-tint-tertiary opacity-0 group-hover/conv:opacity-100'
-        )}
-        aria-label={confirmDelete ? 'Click again to confirm delete' : 'Delete conversation'}
-        title={confirmDelete ? 'Click again to confirm' : 'Delete'}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-      </button>
+
+      {/* Dropdown menu */}
+      {menuOpen && (
+        <div className="absolute right-0 top-full z-50 mt-1 w-36 rounded-md border border-chatbox-border-primary bg-chatbox-background-primary py-1 shadow-lg">
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggleStar(conversationId, !starred)
+              setMenuOpen(false)
+            }}
+            className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-chatbox-tint-secondary hover:bg-chatbox-background-secondary"
+          >
+            {starred ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            )}
+            {starred ? 'Unstar' : 'Star'}
+          </button>
+          <div className="mx-2 my-1 border-t border-chatbox-border-primary" />
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              if (confirmDelete) {
+                onDelete(conversationId)
+                setMenuOpen(false)
+                setConfirmDelete(false)
+              } else {
+                setConfirmDelete(true)
+              }
+            }}
+            className={cn(
+              'flex w-full items-center gap-2 px-3 py-1.5 text-xs',
+              confirmDelete
+                ? 'text-chatbox-tint-error font-medium'
+                : 'text-chatbox-tint-error hover:bg-chatbox-background-error-secondary'
+            )}
+          >
+            {confirmDelete ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5"/></svg>
+                Confirm?
+              </>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Delete
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
