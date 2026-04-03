@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useAuth } from '@/lib/AuthContext'
 
 const DEMO_ACCOUNTS = [
-  { username: 'admin', password: 'admin123', role: 'Admin' },
-  { username: 'teacher1', password: 'teacher123', role: 'Teacher' },
-  { username: 'student1', password: 'student123', role: 'Student' },
-  { username: 'student2', password: 'student234', role: 'Student' },
+  { username: 'admin', password: 'admin123', role: 'Admin', icon: '🛡️' },
+  { username: 'teacher1', password: 'teacher123', role: 'Teacher', icon: '👩‍🏫' },
+  { username: 'student1', password: 'student123', role: 'Student', icon: '🎓' },
+  { username: 'student2', password: 'student234', role: 'Student', icon: '🎓' },
 ]
 
 export default function LoginPage() {
@@ -35,68 +35,82 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-chatbox-background-secondary px-4">
       <div className="w-full max-w-sm">
-        <h1 className="mb-8 text-center text-2xl font-semibold text-gray-900">
-          ChatBridge
-        </h1>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              required
-              autoComplete="username"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
+        {/* Logo */}
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-chatbox-background-brand-primary">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           </div>
+          <h1 className="text-2xl font-bold text-chatbox-tint-primary">ChatBridge</h1>
+          <p className="mt-1 text-sm text-chatbox-tint-tertiary">Sign in to continue</p>
+        </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
+        {/* Login form */}
+        <div className="rounded-lg border border-chatbox-border-primary bg-chatbox-background-primary p-6 shadow-sm">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-chatbox-tint-secondary">
+                Username
+              </label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                required
+                autoComplete="username"
+                placeholder="Enter your username"
+                className="mt-1 block w-full rounded-md border border-chatbox-border-primary bg-chatbox-background-primary px-3 py-2 text-sm text-chatbox-tint-primary placeholder:text-chatbox-tint-placeholder focus:border-chatbox-border-brand focus:outline-none focus:ring-1 focus:ring-chatbox-border-brand"
+              />
+            </div>
 
-          {error && (
-            <p className="text-sm text-red-600" role="alert">{error}</p>
-          )}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-chatbox-tint-secondary">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                className="mt-1 block w-full rounded-md border border-chatbox-border-primary bg-chatbox-background-primary px-3 py-2 text-sm text-chatbox-tint-primary placeholder:text-chatbox-tint-placeholder focus:border-chatbox-border-brand focus:outline-none focus:ring-1 focus:ring-chatbox-border-brand"
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-          >
-            {loading ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
+            {error && (
+              <div className="rounded-md bg-chatbox-background-error-secondary px-3 py-2">
+                <p className="text-sm text-chatbox-tint-error" role="alert">{error}</p>
+              </div>
+            )}
 
-        <div className="mt-6 rounded-md border border-gray-200 bg-white p-4">
-          <p className="mb-2 text-xs font-medium text-gray-500 uppercase">Demo accounts</p>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-md bg-chatbox-background-brand-primary px-4 py-2.5 text-sm font-medium text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover focus:outline-none focus:ring-2 focus:ring-chatbox-border-brand focus:ring-offset-2 disabled:opacity-50 transition-colors"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+        </div>
+
+        {/* Demo accounts */}
+        <div className="mt-4 rounded-lg border border-chatbox-border-primary bg-chatbox-background-primary p-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-chatbox-tint-tertiary">Demo accounts</p>
           <div className="space-y-1">
-            {DEMO_ACCOUNTS.map(({ username: u, password: p, role }) => (
+            {DEMO_ACCOUNTS.map(({ username: u, password: p, role, icon }) => (
               <button
                 key={u}
                 type="button"
                 onClick={() => fillCredentials(u, p)}
-                className="flex w-full items-center justify-between rounded px-2 py-1 text-left text-sm text-gray-700 hover:bg-gray-50"
+                className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm transition-colors hover:bg-chatbox-background-secondary"
               >
-                <span className="font-mono">{u}</span>
-                <span className="text-xs text-gray-400">{role}</span>
+                <span className="text-base">{icon}</span>
+                <span className="flex-1 font-medium text-chatbox-tint-primary">{u}</span>
+                <span className="rounded bg-chatbox-background-secondary px-1.5 py-0.5 text-[11px] font-medium text-chatbox-tint-tertiary">{role}</span>
               </button>
             ))}
           </div>

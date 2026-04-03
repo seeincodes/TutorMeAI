@@ -346,11 +346,19 @@ export default function ChatPage() {
         <main className="flex flex-1 flex-col bg-chatbox-background-primary">
           <div className="flex-1 overflow-y-auto px-4 py-6">
             {visibleMessages.length === 0 && !streaming ? (
-              <div className="mx-auto max-w-2xl flex flex-col items-center justify-center h-full">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Hi{user?.display_name ? `, ${user.display_name}` : ''}!</h2>
-                <p className="text-gray-500 mb-6 text-center">What would you like to do today? Pick an app or just start chatting.</p>
+              /* ---- Welcome screen ---- */
+              <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-chatbox-background-brand-primary">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <h2 className="mb-1 text-2xl font-bold text-chatbox-tint-primary">
+                  Hi{user?.display_name ? `, ${user.display_name}` : ''}!
+                </h2>
+                <p className="mb-8 text-center text-sm text-chatbox-tint-tertiary">
+                  What would you like to do today? Pick an app or just start chatting.
+                </p>
                 {availableApps.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-lg mb-8">
+                  <div className="grid w-full max-w-lg grid-cols-2 gap-3 sm:grid-cols-3">
                     {availableApps.map(app => {
                       const display = APP_DISPLAY[app.app_id]
                       if (!display) return null
@@ -359,9 +367,9 @@ export default function ChatPage() {
                           key={app.app_id}
                           onClick={() => handleAppLaunch(app.app_id)}
                           disabled={streaming}
-                          className="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-4 text-sm font-medium text-gray-700 shadow-sm hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-colors disabled:opacity-50"
+                          className="group flex flex-col items-center gap-2.5 rounded-xl border border-chatbox-border-primary bg-chatbox-background-primary px-4 py-5 text-sm font-medium text-chatbox-tint-secondary shadow-sm transition-all hover:border-chatbox-border-brand hover:bg-chatbox-background-brand-secondary hover:text-chatbox-tint-brand hover:shadow-md disabled:opacity-50"
                         >
-                          <span className="text-2xl">{display.emoji}</span>
+                          <span className="text-3xl transition-transform group-hover:scale-110">{display.emoji}</span>
                           <span>{display.label}</span>
                         </button>
                       )
@@ -370,46 +378,76 @@ export default function ChatPage() {
                 )}
               </div>
             ) : (
-            <div className="mx-auto max-w-2xl space-y-4">
-              {visibleMessages.map(msg => (
-                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm ${msg.role === 'user' ? 'bg-chatbox-background-brand-primary text-chatbox-tint-white' : 'bg-chatbox-background-primary text-chatbox-tint-primary shadow-sm border border-chatbox-border-primary'}`}>
-                    <ChatMessage content={msg.content || ''} role={msg.role} onAppLaunch={handleAppLaunch} disabled={streaming} />
+              /* ---- Messages ---- */
+              <div className="mx-auto max-w-2xl space-y-4">
+                {visibleMessages.map(msg => (
+                  <div key={msg.id} className={`flex items-start gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    {/* Avatar */}
+                    {msg.role === 'user' ? (
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-chatbox-background-brand-primary">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      </div>
+                    ) : (
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-chatbox-background-success-primary">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      </div>
+                    )}
+                    {/* Bubble */}
+                    <div className={`max-w-[80%] rounded-lg px-4 py-2.5 text-sm ${msg.role === 'user' ? 'bg-chatbox-background-brand-primary text-chatbox-tint-white' : 'bg-chatbox-background-secondary text-chatbox-tint-primary'}`}>
+                      <ChatMessage content={msg.content || ''} role={msg.role} onAppLaunch={handleAppLaunch} disabled={streaming} />
+                    </div>
                   </div>
-                </div>
-              ))}
-              {streaming && streamingContent && (
-                <div className="flex justify-start">
-                  <div className="max-w-[80%] rounded-lg border border-chatbox-border-primary bg-chatbox-background-primary px-4 py-2 text-sm text-chatbox-tint-primary shadow-sm" aria-live="polite">
-                    <ChatMessage content={streamingContent} role="assistant" onAppLaunch={handleAppLaunch} disabled={streaming} />
+                ))}
+                {streaming && streamingContent && (
+                  <div className="flex items-start gap-2.5">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-chatbox-background-success-primary">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <div className="max-w-[80%] rounded-lg bg-chatbox-background-secondary px-4 py-2.5 text-sm text-chatbox-tint-primary" aria-live="polite">
+                      <ChatMessage content={streamingContent} role="assistant" onAppLaunch={handleAppLaunch} disabled={streaming} />
+                    </div>
                   </div>
-                </div>
-              )}
-              {oauthPrompt && (
-                <div className="flex justify-start">
-                  <div className="max-w-[80%] rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm">
-                    <p className="text-gray-700 mb-2">{oauthPrompt.message}</p>
-                    <button
-                      onClick={() => handleOAuthConnect(oauthPrompt.appId)}
-                      className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-                    >
-                      Connect {oauthPrompt.appId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </button>
+                )}
+                {oauthPrompt && (
+                  <div className="flex items-start gap-2.5">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-chatbox-background-brand-primary">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/></svg>
+                    </div>
+                    <div className="max-w-[80%] rounded-lg border border-chatbox-border-brand bg-chatbox-background-brand-secondary px-4 py-3 text-sm">
+                      <p className="mb-2 text-chatbox-tint-primary">{oauthPrompt.message}</p>
+                      <button
+                        onClick={() => handleOAuthConnect(oauthPrompt.appId)}
+                        className="rounded-md bg-chatbox-background-brand-primary px-3 py-1.5 text-xs font-medium text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover transition-colors"
+                      >
+                        Connect {oauthPrompt.appId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
             )}
           </div>
+
+          {/* Input bar */}
           <div className="border-t border-chatbox-border-primary bg-chatbox-background-primary px-4 py-3">
-            <form onSubmit={handleSend} className="mx-auto flex max-w-2xl gap-2">
+            <form onSubmit={handleSend} className="mx-auto flex max-w-2xl items-end gap-2">
               <label htmlFor="chat-input" className="sr-only">Message</label>
-              <input id="chat-input" type="text" value={input} onChange={e => setInput(e.target.value)}
-                placeholder="Type a message..." disabled={streaming}
-                className="flex-1 rounded-md border border-chatbox-border-primary bg-chatbox-background-primary px-3 py-2 text-sm text-chatbox-tint-primary placeholder:text-chatbox-tint-placeholder focus:border-chatbox-border-brand focus:outline-none focus:ring-1 focus:ring-chatbox-border-brand disabled:opacity-50" />
+              <textarea
+                id="chat-input"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e) } }}
+                placeholder="Type a message..."
+                disabled={streaming}
+                rows={1}
+                className="flex-1 resize-none rounded-lg border border-chatbox-border-primary bg-chatbox-background-secondary px-3 py-2.5 text-sm text-chatbox-tint-primary placeholder:text-chatbox-tint-placeholder focus:border-chatbox-border-brand focus:bg-chatbox-background-primary focus:outline-none focus:ring-1 focus:ring-chatbox-border-brand disabled:opacity-50"
+                style={{ maxHeight: '120px' }}
+              />
               <button type="submit" disabled={streaming || !input.trim()}
-                className="rounded-md bg-chatbox-background-brand-primary px-4 py-2 text-sm font-medium text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover disabled:opacity-50">Send</button>
+                className="rounded-lg bg-chatbox-background-brand-primary p-2.5 text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover disabled:opacity-50 transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              </button>
             </form>
           </div>
         </main>
@@ -421,23 +459,26 @@ export default function ChatPage() {
   // LAYOUT MODE 2: App active — app fills screen, chat is a drawer
   // ============================================================
   return (
-    <div className="relative flex h-screen flex-col bg-gray-50">
+    <div className="relative flex h-screen flex-col bg-chatbox-background-secondary">
       {/* Top bar */}
-      <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-2 z-20">
+      <header className="flex items-center justify-between border-b border-chatbox-border-primary bg-chatbox-background-primary px-4 py-2 z-20">
         <div className="flex items-center gap-3">
-          {/* Menu button */}
-          <button onClick={() => setMenuOpen(!menuOpen)} className="rounded p-1.5 text-gray-500 hover:bg-gray-100" aria-label="Menu">
+          <button onClick={() => setMenuOpen(!menuOpen)} className="rounded p-1.5 text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary transition-colors" aria-label="Menu">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
           </button>
-          <h1 className="text-sm font-semibold text-gray-900">ChatBridge</h1>
-          <span className="rounded bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{activeApp.appId}</span>
+          <span className="text-sm font-bold text-chatbox-tint-primary">ChatBridge</span>
+          <span className="rounded-md bg-chatbox-background-brand-secondary px-2 py-0.5 text-xs font-medium text-chatbox-tint-brand">
+            {APP_DISPLAY[activeApp.appId]?.label || activeApp.appId}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => { setActiveApp(null); setChatDrawerOpen(false) }}
-            className="rounded px-2.5 py-1 text-xs text-gray-500 hover:bg-gray-100 border border-gray-200">
+            className="rounded-md border border-chatbox-border-primary px-2.5 py-1 text-xs text-chatbox-tint-secondary hover:bg-chatbox-background-secondary transition-colors">
             Close app
           </button>
-          <span className="text-xs text-gray-400">{user?.display_name || user?.username}</span>
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-chatbox-background-brand-primary text-[10px] font-medium text-chatbox-tint-white">
+            {(user?.display_name || user?.username || '?').charAt(0).toUpperCase()}
+          </div>
         </div>
       </header>
 
@@ -445,23 +486,24 @@ export default function ChatPage() {
       {menuOpen && (
         <>
           <div className="fixed inset-0 bg-black/20 z-30" onClick={() => setMenuOpen(false)} />
-          <div className="absolute left-0 top-[45px] z-40 w-72 bg-white border border-gray-200 rounded-br-lg shadow-lg">
-            <div className="p-3 border-b border-gray-100">
+          <div className="absolute left-0 top-[45px] z-40 w-72 rounded-br-lg border border-chatbox-border-primary bg-chatbox-background-primary shadow-lg">
+            <div className="border-b border-chatbox-border-primary p-3">
               <button onClick={handleNewConversation}
-                className="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                + New Conversation
+                className="flex w-full items-center justify-center gap-2 rounded-md bg-chatbox-background-brand-primary px-3 py-2 text-sm font-medium text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover transition-colors">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                New Conversation
               </button>
             </div>
             <nav className="max-h-64 overflow-y-auto p-2" aria-label="Conversations">
               {conversations.map(conv => (
                 <button key={conv.id} onClick={() => { setActiveConversation(conv.id); setMenuOpen(false) }}
-                  className={`mb-1 w-full rounded-md px-3 py-2 text-left text-sm ${activeConversation === conv.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}>
+                  className={`mb-0.5 w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${activeConversation === conv.id ? 'bg-chatbox-background-brand-secondary text-chatbox-tint-brand font-medium' : 'text-chatbox-tint-secondary hover:bg-chatbox-background-secondary'}`}>
                   {conv.title || 'New conversation'}
                 </button>
               ))}
             </nav>
-            <div className="border-t border-gray-100 p-3">
-              <button onClick={logout} className="text-xs text-red-600 hover:underline">Not you? Sign out</button>
+            <div className="border-t border-chatbox-border-primary p-3">
+              <button onClick={logout} className="text-xs text-chatbox-tint-error hover:underline">Not you? Sign out</button>
             </div>
           </div>
         </>
@@ -545,13 +587,13 @@ export default function ChatPage() {
 
       {/* Chat drawer — slides up from bottom */}
       {chatDrawerOpen ? (
-        <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]"
+        <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col border-t border-chatbox-border-primary bg-chatbox-background-primary shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
           style={{ maxHeight: '50vh' }}>
           {/* Drawer handle */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 cursor-pointer"
+          <div className="flex items-center justify-between border-b border-chatbox-border-primary px-4 py-2 cursor-pointer"
             onClick={() => setChatDrawerOpen(false)}>
-            <span className="text-xs font-medium text-gray-500">Chat with your tutor</span>
-            <button className="rounded p-1 text-gray-400 hover:text-gray-600" aria-label="Close chat">
+            <span className="text-xs font-medium text-chatbox-tint-tertiary">Chat with your tutor</span>
+            <button className="rounded p-1 text-chatbox-tint-tertiary hover:text-chatbox-tint-primary transition-colors" aria-label="Close chat">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
             </button>
           </div>
@@ -559,15 +601,23 @@ export default function ChatPage() {
           <div className="flex-1 overflow-y-auto px-4 py-3">
             <div className="space-y-3">
               {visibleMessages.slice(-10).map(msg => (
-                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] rounded-lg px-3 py-1.5 text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'}`}>
+                <div key={msg.id} className={`flex items-start gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                  {msg.role !== 'user' && (
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chatbox-background-success-primary">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                  )}
+                  <div className={`max-w-[85%] rounded-lg px-3 py-1.5 text-sm ${msg.role === 'user' ? 'bg-chatbox-background-brand-primary text-chatbox-tint-white' : 'bg-chatbox-background-secondary text-chatbox-tint-primary'}`}>
                     <ChatMessage content={msg.content || ''} role={msg.role} onAppLaunch={handleAppLaunch} disabled={streaming} />
                   </div>
                 </div>
               ))}
               {streaming && streamingContent && (
-                <div className="flex justify-start">
-                  <div className="max-w-[85%] rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-900" aria-live="polite">
+                <div className="flex items-start gap-2">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chatbox-background-success-primary">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  </div>
+                  <div className="max-w-[85%] rounded-lg bg-chatbox-background-secondary px-3 py-1.5 text-sm text-chatbox-tint-primary" aria-live="polite">
                     <ChatMessage content={streamingContent} role="assistant" onAppLaunch={handleAppLaunch} disabled={streaming} />
                   </div>
                 </div>
@@ -576,28 +626,38 @@ export default function ChatPage() {
             </div>
           </div>
           {/* Input */}
-          <div className="border-t border-gray-100 px-4 py-2">
-            <form onSubmit={handleSend} className="flex gap-2">
-              <input type="text" value={input} onChange={e => setInput(e.target.value)}
-                placeholder="Ask your tutor..." disabled={streaming} autoFocus
-                className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50" />
+          <div className="border-t border-chatbox-border-primary px-4 py-2">
+            <form onSubmit={handleSend} className="flex items-end gap-2">
+              <textarea
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e) } }}
+                placeholder="Ask your tutor..."
+                disabled={streaming}
+                autoFocus
+                rows={1}
+                className="flex-1 resize-none rounded-lg border border-chatbox-border-primary bg-chatbox-background-secondary px-3 py-2 text-sm text-chatbox-tint-primary placeholder:text-chatbox-tint-placeholder focus:border-chatbox-border-brand focus:bg-chatbox-background-primary focus:outline-none focus:ring-1 focus:ring-chatbox-border-brand disabled:opacity-50"
+                style={{ maxHeight: '80px' }}
+              />
               <button type="submit" disabled={streaming || !input.trim()}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">Send</button>
+                className="rounded-lg bg-chatbox-background-brand-primary p-2 text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover disabled:opacity-50 transition-colors">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              </button>
             </form>
           </div>
         </div>
       ) : (
-        /* Floating "Ask your tutor" button */
+        /* Floating "Ask your tutor" FAB */
         <button
           onClick={() => setChatDrawerOpen(true)}
-          className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg hover:bg-blue-700 active:scale-95 transition-transform"
+          className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-full bg-chatbox-background-brand-primary px-5 py-3 text-sm font-medium text-chatbox-tint-white shadow-lg hover:bg-chatbox-background-brand-primary-hover active:scale-95 transition-all"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
           Ask your tutor
           {visibleMessages.length > 0 && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-[11px]">
               {visibleMessages.length}
             </span>
           )}
