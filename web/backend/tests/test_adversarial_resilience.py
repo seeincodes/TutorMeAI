@@ -145,6 +145,8 @@ class TestSchemaIntegrity:
                     select(AppSchemaAudit)
                     .where(AppSchemaAudit.app_id == "weather")
                     .where(AppSchemaAudit.decision == "auto_suspended")
+                    .order_by(AppSchemaAudit.created_at.desc())
+                    .limit(1)
                 )
                 audit = result.scalar_one_or_none()
                 assert audit is not None
