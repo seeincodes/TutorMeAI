@@ -27,6 +27,7 @@ interface SidebarProps {
   username: string
   role?: string
   onLogout: () => void
+  onNavigate?: (path: string) => void
   onToggleDarkMode?: () => void
   darkMode?: boolean
   collapsed?: boolean
@@ -47,11 +48,20 @@ export default function Sidebar({
   username,
   role,
   onLogout,
+  onNavigate,
   onToggleDarkMode,
   darkMode,
   collapsed,
   onToggleCollapse,
 }: SidebarProps) {
+  const [search, setSearch] = useState('')
+
+  const filteredConversations = search.trim()
+    ? conversations.filter(c =>
+        (c.title || '').toLowerCase().includes(search.toLowerCase())
+      )
+    : conversations
+
   return (
     <aside
       className={cn(
@@ -106,15 +116,34 @@ export default function Sidebar({
         <AppsSection apps={availableApps} onAppLaunch={onAppLaunch} />
       )}
 
-      {/* Conversation list */}
+      {/* Search + Conversation list */}
       <div className="px-3 pt-3">
-        <h3 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wider text-chatbox-tint-tertiary">Chat</h3>
+        <div className="relative mb-2">
+          <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-chatbox-tint-tertiary" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search chats..."
+            className="w-full rounded-md border border-chatbox-border-primary bg-chatbox-background-secondary py-1.5 pl-8 pr-3 text-xs text-chatbox-tint-primary placeholder:text-chatbox-tint-placeholder focus:border-chatbox-border-brand focus:bg-chatbox-background-primary focus:outline-none"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-chatbox-tint-tertiary hover:text-chatbox-tint-primary"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          )}
+        </div>
       </div>
       <nav className="flex-1 overflow-y-auto px-3 pb-2" aria-label="Conversations">
-        {conversations.length === 0 ? (
-          <p className="px-1 py-4 text-center text-xs text-chatbox-tint-tertiary">No conversations yet</p>
+        {filteredConversations.length === 0 ? (
+          <p className="px-1 py-4 text-center text-xs text-chatbox-tint-tertiary">
+            {search ? 'No matching chats' : 'No conversations yet'}
+          </p>
         ) : (
-          [...conversations]
+          [...filteredConversations]
             .sort((a, b) => {
               if (a.starred && !b.starred) return -1
               if (!a.starred && b.starred) return 1
@@ -131,12 +160,16 @@ export default function Sidebar({
               )}
               onClick={() => onSelectConversation(conv.id)}
             >
-              {/* Chat avatar */}
+              {/* Avatar — shows app emoji if conversation has an active app, chat bubble otherwise */}
               <div className={cn(
-                'flex h-5 w-5 shrink-0 items-center justify-center',
-                activeConversation === conv.id ? 'text-chatbox-tint-brand' : 'text-chatbox-tint-tertiary'
+                'flex h-5 w-5 shrink-0 items-center justify-center text-sm leading-none',
+                !conv.active_app_id && (activeConversation === conv.id ? 'text-chatbox-tint-brand' : 'text-chatbox-tint-tertiary')
               )}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                {conv.active_app_id && APP_DISPLAY[conv.active_app_id] ? (
+                  <span>{APP_DISPLAY[conv.active_app_id].emoji}</span>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                )}
               </div>
               <div className="flex flex-1 flex-col overflow-hidden">
                 <span className={cn(
@@ -165,11 +198,32 @@ export default function Sidebar({
         )}
       </nav>
 
-      {/* Footer */}
+      {/* Bottom nav — matches chatbox sidebar navigation links */}
+      <div className="border-t border-chatbox-border-primary px-3 py-2 space-y-0.5">
+        {role === 'teacher' && onNavigate && (
+          <button
+            onClick={() => onNavigate('/teacher')}
+            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-chatbox-tint-secondary hover:bg-chatbox-background-secondary transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Dashboard
+          </button>
+        )}
+        {role === 'admin' && onNavigate && (
+          <button
+            onClick={() => onNavigate('/teacher')}
+            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-chatbox-tint-secondary hover:bg-chatbox-background-secondary transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings
+          </button>
+        )}
+      </div>
+
+      {/* User footer */}
       <div className="border-t border-chatbox-border-primary px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {/* User avatar */}
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-chatbox-background-brand-primary text-xs font-medium text-chatbox-tint-white">
               {username.charAt(0).toUpperCase()}
             </div>

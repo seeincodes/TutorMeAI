@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/lib/AuthContext'
 import { api, type AppInfo, type Conversation, type Message } from '@/lib/api'
 import AppIframe, { type AppIframeHandle } from '@/components/AppIframe'
@@ -14,6 +15,7 @@ interface AppState {
 
 export default function ChatPage() {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [activeConversation, setActiveConversation] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -316,6 +318,7 @@ export default function ChatPage() {
           username={user?.display_name || user?.username || ''}
           role={user?.role}
           onLogout={logout}
+          onNavigate={(path) => navigate(path)}
           onToggleDarkMode={() => setDarkMode(d => !d)}
           darkMode={darkMode}
           collapsed={sidebarCollapsed}
