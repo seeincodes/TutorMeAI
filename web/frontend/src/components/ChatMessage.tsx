@@ -1,20 +1,6 @@
 import { type ReactNode } from 'react'
 import Markdown from './Markdown'
-
-interface AppDisplay {
-  label: string
-  emoji: string
-}
-
-const APP_DISPLAY: Record<string, AppDisplay> = {
-  calculator: { label: 'Math Helper', emoji: '🧮' },
-  chess: { label: 'Chess', emoji: '♟️' },
-  dictionary: { label: 'Reading & Vocabulary', emoji: '📖' },
-  weather: { label: 'Weather', emoji: '🌤️' },
-  flashcards: { label: 'Flashcards', emoji: '🗂️' },
-  'life-skills': { label: 'Level Up Life', emoji: '🎮' },
-  'google-classroom': { label: 'Google Classroom', emoji: '🎓' },
-}
+import { APP_DISPLAY } from '@/lib/apps'
 
 const APP_BUTTONS_RE = /\[APP_BUTTONS\](.*?)\[\/APP_BUTTONS\]/g
 
@@ -53,7 +39,7 @@ export default function ChatMessage({ content, role, onAppLaunch, disabled }: Ch
     // Parse app IDs
     const appIds = match[1].split(',').map(id => id.trim()).filter(Boolean)
     parts.push(
-      <div key={`apps-${match.index}`} className="my-2 flex flex-wrap gap-2">
+      <div key={`apps-${match.index}`} className="my-2 flex flex-wrap gap-1.5">
         {appIds.map(appId => {
           const display = APP_DISPLAY[appId]
           if (!display) return null
@@ -62,9 +48,9 @@ export default function ChatMessage({ content, role, onAppLaunch, disabled }: Ch
               key={appId}
               onClick={() => onAppLaunch?.(appId)}
               disabled={disabled}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-chatbox-border-primary bg-chatbox-background-primary px-3 py-1.5 text-sm font-medium text-chatbox-tint-secondary shadow-sm transition-colors hover:border-chatbox-border-brand hover:bg-chatbox-background-brand-secondary hover:text-chatbox-tint-brand disabled:opacity-50"
             >
-              <span>{display.emoji}</span>
+              <span className="text-sm leading-none">{display.emoji}</span>
               <span>{display.label}</span>
             </button>
           )
