@@ -198,9 +198,10 @@ export default function Sidebar({
         )}
       </nav>
 
-      {/* Bottom nav — matches chatbox sidebar navigation links */}
+      {/* Bottom nav — only renders for teacher/admin */}
+      {(role === 'teacher' || role === 'admin') && onNavigate && (
       <div className="border-t border-chatbox-border-primary px-3 py-2 space-y-0.5">
-        {role === 'teacher' && onNavigate && (
+        {role === 'teacher' && (
           <button
             onClick={() => onNavigate('/teacher')}
             className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-chatbox-tint-secondary hover:bg-chatbox-background-secondary transition-colors"
@@ -209,7 +210,7 @@ export default function Sidebar({
             Dashboard
           </button>
         )}
-        {role === 'admin' && onNavigate && (
+        {role === 'admin' && (
           <button
             onClick={() => onNavigate('/teacher')}
             className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-chatbox-tint-secondary hover:bg-chatbox-background-secondary transition-colors"
@@ -219,6 +220,7 @@ export default function Sidebar({
           </button>
         )}
       </div>
+      )}
 
       {/* User footer */}
       <div className="border-t border-chatbox-border-primary px-4 py-3">
