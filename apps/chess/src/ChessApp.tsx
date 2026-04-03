@@ -29,22 +29,33 @@ export default function ChessApp() {
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
   const [highlightSquares, setHighlightSquares] = useState<Record<string, React.CSSProperties>>({})
   const [thinking, setThinking] = useState(false)
+  const [moveHistory, setMoveHistory] = useState<string[]>([])
+  const [gameOver, setGameOver] = useState<{ result: 'win' | 'loss' | 'draw'; message: string } | null>(null)
 
-  const updateStatus = useCallback((g: Chess) => {
+  const updateStatus = useCallback((g: Chess, pColor: string = playerColor) => {
     if (g.isCheckmate()) {
-      const winner = g.turn() === 'w' ? 'Black' : 'White'
-      setStatus(`Checkmate! ${winner} wins!`)
+      const loserIsWhite = g.turn() === 'w'
+      const playerWon = (pColor === 'white' && !loserIsWhite) || (pColor === 'black' && loserIsWhite)
+      if (playerWon) {
+        setGameOver({ result: 'win', message: 'Checkmate — You win!' })
+      } else {
+        setGameOver({ result: 'loss', message: 'Checkmate — You lose!' })
+      }
+      setStatus('Game over')
       return true
     }
-    if (g.isDraw()) { setStatus('Draw!'); return true }
-    if (g.isStalemate()) { setStatus('Stalemate!'); return true }
+    if (g.isDraw() || g.isStalemate()) {
+      setGameOver({ result: 'draw', message: g.isStalemate() ? 'Stalemate — Draw!' : 'Draw!' })
+      setStatus('Game over')
+      return true
+    }
     if (g.isCheck()) {
       setStatus(`${g.turn() === 'w' ? 'White' : 'Black'} is in check!`)
       return false
     }
     setStatus(`${g.turn() === 'w' ? 'White' : 'Black'} to move`)
     return false
-  }, [])
+  }, [playerColor])
 
   function startGame(diff: Difficulty) {
     const newGame = new Chess()
@@ -54,8 +65,10 @@ export default function ChessApp() {
     setPlayerColor('white')
     setSelectedSquare(null)
     setHighlightSquares({})
+    setMoveHistory([])
+    setGameOver(null)
     stockfishNewGame()
-    setStatus('Your turn — click a piece, then click where to move')
+    setStatus('Your turn')
     sendToPlatform('state_update', '', {
       type: 'game_start',
       difficulty: diff,
@@ -109,6 +122,7 @@ export default function ChessApp() {
         return
       }
 
+      setMoveHistory(prev => [...prev, currentGame.fen()])
       setGame(gameCopy)
       setThinking(false)
 
@@ -146,6 +160,7 @@ export default function ChessApp() {
       const move = gameCopy.move({ from: from as Square, to: to as Square, promotion: 'q' })
       if (!move) return false
 
+      setMoveHistory(prev => [...prev, game.fen()])
       setGame(gameCopy)
       setSelectedSquare(null)
       setHighlightSquares({})
@@ -306,31 +321,85 @@ export default function ChessApp() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '12px', width: '364px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', height: '20px', width: '100%', overflow: 'hidden' }}>
-        <span style={{ background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '4px', fontWeight: 500 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '13px' }}>
+        <span style={{ background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '4px', fontWeight: 500, whiteSpace: 'nowrap' }}>
           {DIFFICULTY_CONFIG[difficulty!]?.emoji} {DIFFICULTY_CONFIG[difficulty!]?.label}
         </span>
-        <span style={{ color: '#6b7280' }}>{status}</span>
+        <span style={{ color: '#6b7280' }}>{thinking ? 'Thinking...' : status}</span>
       </div>
-      <div style={{ fontSize: '12px', color: '#6b7280', fontStyle: 'italic', height: '18px' }}>
-        {thinking ? 'Thinking...' : '\u00A0'}
+      <div style={{ position: 'relative', width: '340px', height: '340px' }}>
+        <Chessboard
+          position={game.fen()}
+          onPieceDrop={(s, t) => makeMove(s, t)}
+          onSquareClick={onSquareClick}
+          boardOrientation={playerColor}
+          boardWidth={340}
+          arePiecesDraggable={gameStarted && !thinking && !gameOver}
+          customSquareStyles={highlightSquares}
+          animationDuration={300}
+        />
+        {gameOver && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.7)', borderRadius: '4px', zIndex: 10,
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '8px' }}>
+              {gameOver.result === 'win' ? '🎉' : gameOver.result === 'loss' ? '😔' : '🤝'}
+            </div>
+            <div style={{
+              fontSize: '22px', fontWeight: 700, color: 'white', marginBottom: '4px', textAlign: 'center',
+            }}>
+              {gameOver.result === 'win' ? 'You Win!' : gameOver.result === 'loss' ? 'You Lose' : 'Draw'}
+            </div>
+            <div style={{ fontSize: '13px', color: '#d1d5db', marginBottom: '16px' }}>
+              {gameOver.message}
+            </div>
+            <button
+              onClick={() => { setGameStarted(false); setDifficulty(null); setGameOver(null) }}
+              style={{
+                fontSize: '15px', fontWeight: 600, color: 'white', background: '#3b82f6',
+                border: 'none', borderRadius: '8px', padding: '10px 28px', cursor: 'pointer',
+              }}
+            >
+              Play Again
+            </button>
+          </div>
+        )}
       </div>
-      <Chessboard
-        position={game.fen()}
-        onPieceDrop={(s, t) => makeMove(s, t)}
-        onSquareClick={onSquareClick}
-        boardOrientation={playerColor}
-        boardWidth={340}
-        arePiecesDraggable={gameStarted && !thinking}
-        customSquareStyles={highlightSquares}
-        animationDuration={300}
-      />
-      <button
-        onClick={() => { setGameStarted(false); setDifficulty(null) }}
-        style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: '1px solid #d1d5db', borderRadius: '6px', padding: '4px 12px', cursor: 'pointer' }}
-      >
-        New Game
-      </button>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={() => {
+            if (moveHistory.length === 0 || thinking) return
+            const prevFen = moveHistory[moveHistory.length - 1]
+            setGame(new Chess(prevFen))
+            setMoveHistory(prev => prev.slice(0, -1))
+            setSelectedSquare(null)
+            setHighlightSquares({})
+            setGameOver(null)
+            const g = new Chess(prevFen)
+            updateStatus(g)
+          }}
+          disabled={moveHistory.length === 0 || thinking}
+          style={{
+            fontSize: '14px', fontWeight: 500, color: moveHistory.length === 0 || thinking ? '#9ca3af' : '#374151',
+            background: 'none', border: '2px solid #d1d5db', borderRadius: '8px',
+            padding: '8px 20px', cursor: moveHistory.length === 0 || thinking ? 'not-allowed' : 'pointer',
+          }}
+        >
+          Undo
+        </button>
+        <button
+          onClick={() => { setGameStarted(false); setDifficulty(null); setGameOver(null) }}
+          style={{
+            fontSize: '14px', fontWeight: 500, color: '#374151',
+            background: 'none', border: '2px solid #d1d5db', borderRadius: '8px',
+            padding: '8px 20px', cursor: 'pointer',
+          }}
+        >
+          New Game
+        </button>
+      </div>
     </div>
   )
 }
