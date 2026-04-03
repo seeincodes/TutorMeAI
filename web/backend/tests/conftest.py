@@ -24,17 +24,14 @@ async def _setup():
 
         engine = get_engine()
 
-        # Create tables if they don't exist
+        # Drop and recreate all tables to pick up schema changes
         async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
 
         sf = get_session_factory()
-        # Check if already seeded
-        async with sf() as check:
-            result = await check.execute(select(User).limit(1))
-            already_seeded = result.scalar_one_or_none() is not None
 
-        if not already_seeded:
+        if True:  # Always re-seed after drop_all
             async with sf() as s:
                 for u, p, r, d in [("admin","admin123","admin","Admin"),("teacher1","teacher123","teacher","Teacher One"),("student1","student123","student","Student One"),("student2","student234","student","Student Two")]:
                     s.add(User(username=u, password_hash=hash_password(p), display_name=d, role=r, grade=5 if r=="student" else None, allowed_levels=["K-2","3-5"] if r=="student" else None))

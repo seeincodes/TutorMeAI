@@ -14,7 +14,7 @@ import time
 from app.apps.schema_hash import compute_schema_hash
 from app.auth.dependencies import get_current_user, require_role
 from app.database import get_db
-from app.models import AppRegistration, AppSchemaAudit, ToolInvocation, User
+from app.models import AppRegistration, AppSchemaAudit, DistrictAppApproval, ToolInvocation, User
 from app.rate_limit import limiter
 
 router = APIRouter(prefix="/api/apps", tags=["apps"])
@@ -32,9 +32,20 @@ async def list_apps(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[AppResponse]:
-    result = await db.execute(
-        select(AppRegistration).where(AppRegistration.is_active == True)  # noqa: E712
-    )
+    query = select(AppRegistration).where(AppRegistration.is_active == True)  # noqa: E712
+
+    # If user belongs to a district, filter to only district-approved apps
+    if current_user.district_id is not None:
+        approved_app_ids = (
+            select(DistrictAppApproval.app_id)
+            .where(
+                DistrictAppApproval.district_id == current_user.district_id,
+                DistrictAppApproval.status == "approved",
+            )
+        )
+        query = query.where(AppRegistration.app_id.in_(approved_app_ids))
+
+    result = await db.execute(query)
     apps = result.scalars().all()
     return [AppResponse.model_validate(a) for a in apps]
 

@@ -17,6 +17,19 @@ from sqlalchemy.sql import func
 from app.database import Base
 
 
+class District(Base):
+    __tablename__ = "districts"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    state: Mapped[str | None] = mapped_column(Text)
+    settings: Mapped[dict | None] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    users: Mapped[list["User"]] = relationship(back_populates="district")
+    app_approvals: Mapped[list["DistrictAppApproval"]] = relationship(back_populates="district", cascade="all, delete-orphan")
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -27,10 +40,12 @@ class User(Base):
     role: Mapped[str] = mapped_column(Text, nullable=False, default="student")
     grade: Mapped[int | None] = mapped_column(Integer)
     allowed_levels: Mapped[list | None] = mapped_column(JSONB)  # e.g. ["K-2", "3-5"]
+    district_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("districts.id"), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     capability_tier_override: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+    district: Mapped["District | None"] = relationship(back_populates="users")
     conversations: Mapped[list["Conversation"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     oauth_tokens: Mapped[list["OAuthToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
@@ -50,7 +65,7 @@ class User(Base):
         return 4
 
     __table_args__ = (
-        CheckConstraint("role IN ('student', 'teacher', 'admin')", name="ck_users_role"),
+        CheckConstraint("role IN ('student', 'teacher', 'admin', 'district_admin')", name="ck_users_role"),
     )
 
 
@@ -192,4 +207,22 @@ class AppSchemaAudit(Base):
             "decision IN ('approved', 'rejected', 'pending', 'auto_suspended')",
             name="ck_app_schema_audit_decision",
         ),
+    )
+
+
+class DistrictAppApproval(Base):
+    __tablename__ = "district_app_approvals"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    district_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("districts.id", ondelete="CASCADE"), nullable=False)
+    app_id: Mapped[str] = mapped_column(Text, nullable=False)
+    approved_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    status: Mapped[str] = mapped_column(Text, default="approved")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    district: Mapped["District"] = relationship(back_populates="app_approvals")
+
+    __table_args__ = (
+        UniqueConstraint("district_id", "app_id", name="uq_district_app_approvals_district_app"),
+        CheckConstraint("status IN ('approved', 'revoked', 'pending')", name="ck_district_app_approvals_status"),
     )

@@ -29,10 +29,11 @@ async def dashboard(
     current_user: User = Depends(require_role("teacher", "admin")),
     db: AsyncSession = Depends(get_db),
 ):
-    # Get all students
-    students_result = await db.execute(
-        select(User).where(User.role == "student", User.is_active == True)  # noqa: E712
-    )
+    # Get students — scoped to teacher's district if they belong to one
+    student_query = select(User).where(User.role == "student", User.is_active == True)  # noqa: E712
+    if current_user.district_id is not None:
+        student_query = student_query.where(User.district_id == current_user.district_id)
+    students_result = await db.execute(student_query)
     students = students_result.scalars().all()
 
     # Get conversation counts per student
