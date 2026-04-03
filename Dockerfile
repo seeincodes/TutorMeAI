@@ -25,9 +25,6 @@ RUN cd apps/flashcards && pnpm install && pnpm run build
 COPY apps/life-skills/ apps/life-skills/
 RUN cd apps/life-skills && pnpm install && pnpm run build
 
-COPY apps/spotify/ apps/spotify/
-RUN cd apps/spotify && pnpm install && pnpm run build
-
 COPY apps/weather/ apps/weather/
 RUN cd apps/weather && pnpm install && pnpm run build
 
@@ -50,7 +47,6 @@ COPY --from=frontend-build /build/apps/chess/dist/ apps/chess/dist/
 COPY --from=frontend-build /build/apps/dictionary/dist/ apps/dictionary/dist/
 COPY --from=frontend-build /build/apps/flashcards/dist/ apps/flashcards/dist/
 COPY --from=frontend-build /build/apps/life-skills/dist/ apps/life-skills/dist/
-COPY --from=frontend-build /build/apps/spotify/dist/ apps/spotify/dist/
 COPY --from=frontend-build /build/apps/weather/dist/ apps/weather/dist/
 
 # Alembic needs to run from the backend directory

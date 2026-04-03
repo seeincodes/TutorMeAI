@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '@/lib/AuthContext'
-import { api, type Conversation, type Message } from '@/lib/api'
+import { api, type AppInfo, type Conversation, type Message } from '@/lib/api'
 import AppIframe, { type AppIframeHandle } from '@/components/AppIframe'
 
 interface AppState {
@@ -22,8 +22,18 @@ export default function ChatPage() {
   const [chatDrawerOpen, setChatDrawerOpen] = useState(false)
   const [oauthPrompt, setOauthPrompt] = useState<{ appId: string; message: string } | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [availableApps, setAvailableApps] = useState<AppInfo[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const appIframeRef = useRef<AppIframeHandle>(null)
+  const userCityRef = useRef<string | null>(null)
+
+  // Detect user's city once via IP geolocation (used for weather app)
+  useEffect(() => {
+    fetch('https://ipwho.is/')
+      .then(r => r.json())
+      .then(data => { if (data.city) userCityRef.current = data.city })
+      .catch(() => {})
+  }, [])
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -66,6 +76,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     api.listConversations().then(setConversations).catch(() => {})
+    api.listApps().then(setAvailableApps).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -99,6 +110,96 @@ export default function ChatPage() {
     setActiveConversation(conv.id)
     setActiveApp(null)
     setMenuOpen(false)
+  }
+
+  function buildAppUrl(appId: string) {
+    const levels = user?.allowed_levels?.join(',') || ''
+    const grade = user?.grade || ''
+    const params = new URLSearchParams()
+    if (levels) params.set('levels', levels)
+    if (grade) params.set('grade', String(grade))
+    if (appId === 'weather' && userCityRef.current) {
+      params.set('city', userCityRef.current)
+    }
+    const qs = params.toString()
+    return `/apps/${appId}/index.html${qs ? `?${qs}` : ''}`
+  }
+
+  const APP_DISPLAY: Record<string, { label: string; emoji: string; prompt: string }> = {
+    calculator: { label: 'Math Helper', emoji: '🧮', prompt: 'I want to use the calculator' },
+    chess: { label: 'Chess', emoji: '♟️', prompt: 'Let\'s play chess' },
+    dictionary: { label: 'Reading & Vocabulary', emoji: '📖', prompt: 'I want to look up a word in the dictionary' },
+    weather: { label: 'Weather', emoji: '🌤️', prompt: 'Open the weather app' },
+    flashcards: { label: 'Flashcards', emoji: '🗂️', prompt: 'I want to study with flashcards' },
+    'life-skills': { label: 'Level Up Life', emoji: '🎮', prompt: 'I want to play Level Up Life' },
+    'google-classroom': { label: 'Google Classroom', emoji: '🎓', prompt: 'Open Google Classroom' },
+  }
+
+  async function handleAppLaunch(appId: string) {
+    const display = APP_DISPLAY[appId]
+    if (!display) return
+    const conv = await api.createConversation(display.label)
+    setConversations(prev => [conv, ...prev])
+    setActiveConversation(conv.id)
+    setActiveApp(null)
+
+    // Send a message that will trigger the intent classifier to open the app
+    const userMessage: Message = {
+      id: crypto.randomUUID(), role: 'user', content: display.prompt,
+      tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
+    }
+    setMessages([userMessage])
+    setInput('')
+    setStreaming(true)
+    setStreamingContent('')
+
+    await api.sendMessage(
+      conv.id,
+      display.prompt,
+      (token) => setStreamingContent(prev => prev + token),
+      (messageId) => {
+        setStreamingContent(prev => {
+          const assistantMessage: Message = {
+            id: messageId, role: 'assistant', content: prev,
+            tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
+          }
+          setMessages(msgs => [...msgs, assistantMessage])
+          return ''
+        })
+        setStreaming(false)
+      },
+      (error) => {
+        setStreamingContent('')
+        setStreaming(false)
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(), role: 'assistant', content: `Error: ${error}`,
+          tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
+        }])
+      },
+      (intentAppId) => {
+        setActiveApp({ appId: intentAppId, iframeUrl: buildAppUrl(intentAppId) })
+      },
+      async (toolAppId, tool, params, correlationId) => {
+        if (!appIframeRef.current) {
+          setActiveApp({ appId: toolAppId, iframeUrl: buildAppUrl(toolAppId) })
+          await new Promise(r => setTimeout(r, 2000))
+        }
+        try {
+          let result: Record<string, unknown> = { status: 'no_iframe' }
+          if (appIframeRef.current) {
+            result = await appIframeRef.current.invokeTool(tool, params)
+          }
+          await api.submitToolResult(conv.id, correlationId, result)
+        } catch (err) {
+          await api.submitToolResult(conv.id, correlationId, {
+            error: err instanceof Error ? err.message : 'Tool execution failed',
+          })
+        }
+      },
+      (oauthAppId: string, message: string) => {
+        setOauthPrompt({ appId: oauthAppId, message })
+      },
+    )
   }
 
   async function handleSend(e: React.FormEvent) {
@@ -149,17 +250,11 @@ export default function ChatPage() {
         }])
       },
       (appId) => {
-        const levels = user?.allowed_levels?.join(',') || ''
-        const grade = user?.grade || ''
-        const params = levels ? `?levels=${encodeURIComponent(levels)}&grade=${grade}` : ''
-        setActiveApp({ appId, iframeUrl: `/apps/${appId}/index.html${params}` })
+        setActiveApp({ appId, iframeUrl: buildAppUrl(appId) })
       },
       async (appId, tool, params, correlationId) => {
         if (!appIframeRef.current) {
-          const levels = user?.allowed_levels?.join(',') || ''
-          const grade = user?.grade || ''
-          const qp = levels ? `?levels=${encodeURIComponent(levels)}&grade=${grade}` : ''
-          setActiveApp({ appId, iframeUrl: `/apps/${appId}/index.html${qp}` })
+          setActiveApp({ appId, iframeUrl: buildAppUrl(appId) })
           await new Promise(r => setTimeout(r, 2000))
         }
         try {
@@ -215,6 +310,31 @@ export default function ChatPage() {
         {/* Full chat */}
         <main className="flex flex-1 flex-col">
           <div className="flex-1 overflow-y-auto px-4 py-6">
+            {visibleMessages.length === 0 && !streaming ? (
+              <div className="mx-auto max-w-2xl flex flex-col items-center justify-center h-full">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Hi{user?.display_name ? `, ${user.display_name}` : ''}!</h2>
+                <p className="text-gray-500 mb-6 text-center">What would you like to do today? Pick an app or just start chatting.</p>
+                {availableApps.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-lg mb-8">
+                    {availableApps.map(app => {
+                      const display = APP_DISPLAY[app.app_id]
+                      if (!display) return null
+                      return (
+                        <button
+                          key={app.app_id}
+                          onClick={() => handleAppLaunch(app.app_id)}
+                          disabled={streaming}
+                          className="flex flex-col items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-4 text-sm font-medium text-gray-700 shadow-sm hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-colors disabled:opacity-50"
+                        >
+                          <span className="text-2xl">{display.emoji}</span>
+                          <span>{display.label}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
             <div className="mx-auto max-w-2xl space-y-4">
               {visibleMessages.map(msg => (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -245,6 +365,7 @@ export default function ChatPage() {
               )}
               <div ref={messagesEndRef} />
             </div>
+            )}
           </div>
           <div className="border-t border-gray-200 bg-white px-4 py-3">
             <form onSubmit={handleSend} className="mx-auto flex max-w-2xl gap-2">

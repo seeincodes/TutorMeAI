@@ -39,6 +39,15 @@ export interface Message {
   created_at: string
 }
 
+export interface AppInfo {
+  app_id: string
+  name: string
+  description: string
+  auth_type: string
+  status: string
+  age_rating: string
+}
+
 export const api = {
   login: (username: string, password: string) =>
     request<{ user: User }>('/auth/login', {
@@ -51,6 +60,8 @@ export const api = {
   logout: () => request<{ message: string }>('/auth/logout', { method: 'POST' }),
 
   me: () => request<{ user: User }>('/users/me'),
+
+  listApps: () => request<AppInfo[]>('/apps'),
 
   listConversations: () => request<Conversation[]>('/conversations'),
 

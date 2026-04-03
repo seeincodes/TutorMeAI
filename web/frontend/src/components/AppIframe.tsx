@@ -212,6 +212,7 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
         ref={iframeRef}
         src={iframeUrl}
         sandbox="allow-scripts allow-same-origin allow-forms"
+        allow="geolocation"
         title={`${appId} app`}
         className="h-full w-full border-0"
       />

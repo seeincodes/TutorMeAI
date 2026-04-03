@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        app: [calculator, chess, dictionary, flashcards, life-skills, spotify, weather]
+        app: [calculator, chess, dictionary, flashcards, life-skills, weather]
     steps:
       - uses: actions/checkout@v4
 
