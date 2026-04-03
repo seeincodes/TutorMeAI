@@ -9,6 +9,7 @@ const TEACHING_NAV = [
 ]
 
 const ADMIN_NAV = [
+  { to: '/dashboard/teachers', label: 'Teachers', icon: TeacherIcon },
   { to: '/dashboard/districts', label: 'Districts', icon: BuildingIcon },
   { to: '/dashboard/marketplace', label: 'Marketplace', icon: StoreIcon },
   { to: '/dashboard/health', label: 'App Health', icon: HeartIcon },
@@ -106,6 +107,9 @@ function SidebarLink({ to, label, icon: Icon }: { to: string; label: string; ico
 }
 
 // SVG Icons (16x16, stroke-based)
+function TeacherIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+}
 function ArrowLeftIcon() {
   return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
 }

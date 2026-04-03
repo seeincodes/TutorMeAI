@@ -10,6 +10,7 @@ import DistrictsSection from '@/pages/dashboard/DistrictsSection'
 import MarketplaceSection from '@/pages/dashboard/MarketplaceSection'
 import HealthSection from '@/pages/dashboard/HealthSection'
 import CostsSection from '@/pages/dashboard/CostsSection'
+import TeachersSection from '@/pages/dashboard/TeachersSection'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -64,6 +65,7 @@ function AppRoutes() {
         <Route path="students" element={<StudentsSection />} />
         <Route path="apps" element={<AppsSection />} />
         <Route path="flags" element={<FlagsSection />} />
+        <Route path="teachers" element={<TeachersSection />} />
         <Route path="districts" element={<DistrictsSection />} />
         <Route path="marketplace" element={<MarketplaceSection />} />
         <Route path="health" element={<HealthSection />} />

@@ -60,3 +60,78 @@ async def test_district_admin_can_access_dashboard(client):
     resp = await client.get("/api/teacher/dashboard")
     assert resp.status_code == 200
     assert "students" in resp.json()
+
+
+@pytest.mark.asyncio
+async def test_admin_dashboard_includes_teachers(client):
+    """Admin dashboard response includes a teachers list."""
+    resp = await client.post("/api/auth/login", json={"username": "admin", "password": "admin123"})
+    for k, v in resp.cookies.items():
+        client.cookies.set(k, v)
+
+    resp = await client.get("/api/teacher/dashboard")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "teachers" in data
+    teachers = data["teachers"]
+    assert isinstance(teachers, list)
+    # teacher1 is seeded
+    assert any(t["username"] == "teacher1" for t in teachers)
+
+
+@pytest.mark.asyncio
+async def test_teacher_dashboard_does_not_include_teachers(client):
+    """Teacher role dashboard does NOT include the teachers list."""
+    resp = await client.post("/api/auth/login", json={"username": "teacher1", "password": "teacher123"})
+    for k, v in resp.cookies.items():
+        client.cookies.set(k, v)
+
+    resp = await client.get("/api/teacher/dashboard")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "teachers" not in data
+
+
+@pytest.mark.asyncio
+async def test_district_admin_sees_teachers_in_their_district(client):
+    """District admin sees only teachers from their own district."""
+    from app.models import District, User
+    from app.auth.passwords import hash_password
+    from app.database import get_session_factory
+
+    sf = get_session_factory()
+    async with sf() as s:
+        district = District(name="Teacher Visibility Test", state="PA")
+        s.add(district)
+        await s.flush()
+
+        da = User(
+            username="da_teacher_vis",
+            password_hash=hash_password("test123"),
+            role="district_admin",
+            district_id=district.id,
+        )
+        teacher_in = User(
+            username="teacher_in_district",
+            password_hash=hash_password("test123"),
+            role="teacher",
+            district_id=district.id,
+        )
+        teacher_out = User(
+            username="teacher_outside_district",
+            password_hash=hash_password("test123"),
+            role="teacher",
+        )
+        s.add_all([da, teacher_in, teacher_out])
+        await s.commit()
+
+    resp = await client.post("/api/auth/login", json={"username": "da_teacher_vis", "password": "test123"})
+    for k, v in resp.cookies.items():
+        client.cookies.set(k, v)
+
+    resp = await client.get("/api/teacher/dashboard")
+    assert resp.status_code == 200
+    teachers = resp.json()["teachers"]
+    usernames = [t["username"] for t in teachers]
+    assert "teacher_in_district" in usernames
+    assert "teacher_outside_district" not in usernames

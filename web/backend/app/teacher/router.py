@@ -60,7 +60,24 @@ async def dashboard(
     )
     oauth_connections = [{"user_id": str(r[0]), "app_id": r[1]} for r in oauth_result.all()]
 
-    return {
+    # Get teachers for admin/district_admin
+    teachers_list = None
+    if current_user.role in ("admin", "district_admin"):
+        teacher_query = select(User).where(User.role == "teacher", User.is_active == True)  # noqa: E712
+        if current_user.district_id is not None:
+            teacher_query = teacher_query.where(User.district_id == current_user.district_id)
+        teachers_result = await db.execute(teacher_query)
+        teachers = teachers_result.scalars().all()
+        teachers_list = [
+            {
+                "id": str(t.id),
+                "username": t.username,
+                "display_name": t.display_name,
+            }
+            for t in teachers
+        ]
+
+    result = {
         "students": [
             {
                 "id": str(s.id),
@@ -86,6 +103,9 @@ async def dashboard(
         ],
         "oauth_connections": oauth_connections,
     }
+    if teachers_list is not None:
+        result["teachers"] = teachers_list
+    return result
 
 
 @router.post("/flags")
