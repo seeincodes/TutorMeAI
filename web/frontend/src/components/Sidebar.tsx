@@ -24,6 +24,7 @@ interface SidebarProps {
   activeConversation: string | null
   onSelectConversation: (id: string) => void
   onNewConversation: () => void
+  onToggleStar: (id: string, starred: boolean) => void
   onAppLaunch: (appId: string) => void
   availableApps: AppInfo[]
   username: string
@@ -40,6 +41,7 @@ export default function Sidebar({
   activeConversation,
   onSelectConversation,
   onNewConversation,
+  onToggleStar,
   onAppLaunch,
   availableApps,
   username,
@@ -131,19 +133,53 @@ export default function Sidebar({
         {conversations.length === 0 ? (
           <p className="px-1 py-4 text-center text-xs text-chatbox-tint-tertiary">No conversations yet</p>
         ) : (
-          conversations.map(conv => (
-            <button
+          [...conversations]
+            .sort((a, b) => {
+              if (a.starred && !b.starred) return -1
+              if (!a.starred && b.starred) return 1
+              return 0
+            })
+            .map(conv => (
+            <div
               key={conv.id}
-              onClick={() => onSelectConversation(conv.id)}
               className={cn(
-                'mb-0.5 w-full rounded-md px-3 py-2 text-left text-sm transition-colors',
+                'group/conv mb-0.5 flex items-center rounded-md transition-colors',
                 activeConversation === conv.id
-                  ? 'bg-chatbox-background-brand-secondary text-chatbox-tint-brand font-medium'
-                  : 'text-chatbox-tint-secondary hover:bg-chatbox-background-secondary'
+                  ? 'bg-chatbox-background-brand-secondary'
+                  : 'hover:bg-chatbox-background-secondary'
               )}
             >
-              <span className="block truncate">{conv.title || 'New conversation'}</span>
-            </button>
+              <button
+                onClick={() => onSelectConversation(conv.id)}
+                className={cn(
+                  'flex-1 truncate px-3 py-2 text-left text-sm',
+                  activeConversation === conv.id
+                    ? 'text-chatbox-tint-brand font-medium'
+                    : 'text-chatbox-tint-secondary'
+                )}
+              >
+                {conv.title || 'New conversation'}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onToggleStar(conv.id, !conv.starred)
+                }}
+                className={cn(
+                  'shrink-0 rounded p-1 mr-1 transition-colors',
+                  conv.starred
+                    ? 'text-chatbox-tint-brand'
+                    : 'text-chatbox-tint-tertiary opacity-0 group-hover/conv:opacity-100'
+                )}
+                aria-label={conv.starred ? 'Unstar conversation' : 'Star conversation'}
+              >
+                {conv.starred ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                )}
+              </button>
+            </div>
           ))
         )}
       </nav>

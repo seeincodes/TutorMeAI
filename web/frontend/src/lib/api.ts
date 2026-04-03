@@ -26,6 +26,7 @@ export interface Conversation {
   id: string
   title: string | null
   active_app_id: string | null
+  starred: boolean
   created_at: string
   updated_at: string
 }
@@ -69,6 +70,12 @@ export const api = {
     request<Conversation>('/conversations', {
       method: 'POST',
       body: JSON.stringify({ title }),
+    }),
+
+  updateConversation: (conversationId: string, data: { title?: string; starred?: boolean }) =>
+    request<Conversation>(`/conversations/${conversationId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
     }),
 
   getMessages: (conversationId: string) =>

@@ -298,6 +298,10 @@ export default function ChatPage() {
           activeConversation={activeConversation}
           onSelectConversation={setActiveConversation}
           onNewConversation={handleNewConversation}
+          onToggleStar={async (id, starred) => {
+            await api.updateConversation(id, { starred })
+            setConversations(prev => prev.map(c => c.id === id ? { ...c, starred } : c))
+          }}
           onAppLaunch={handleAppLaunch}
           availableApps={availableApps}
           username={user?.display_name || user?.username || ''}

@@ -14,6 +14,7 @@ from app.conversations.schemas import (
     CreateConversationRequest,
     MessageResponse,
     SendMessageRequest,
+    UpdateConversationRequest,
 )
 from app.database import get_db, get_session_factory
 from app.models import AppRegistration, Conversation, Message, User
@@ -58,6 +59,23 @@ async def get_conversation(
     db: AsyncSession = Depends(get_db),
 ) -> ConversationResponse:
     conversation = await _get_user_conversation(conversation_id, current_user, db)
+    return ConversationResponse.model_validate(conversation)
+
+
+@router.patch("/{conversation_id}")
+async def update_conversation(
+    conversation_id: str,
+    body: UpdateConversationRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ConversationResponse:
+    conversation = await _get_user_conversation(conversation_id, current_user, db)
+    if body.title is not None:
+        conversation.title = body.title
+    if body.starred is not None:
+        conversation.starred = body.starred
+    await db.commit()
+    await db.refresh(conversation)
     return ConversationResponse.model_validate(conversation)
 
 
