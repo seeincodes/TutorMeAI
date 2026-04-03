@@ -7,26 +7,26 @@ WORKDIR /build
 
 # Build frontend
 COPY web/frontend/ web/frontend/
-RUN cd web/frontend && pnpm install && pnpm run build
+RUN cd web/frontend && pnpm install --no-frozen-lockfile && pnpm run build
 
 # Build each app
 COPY apps/calculator/ apps/calculator/
-RUN cd apps/calculator && pnpm install && pnpm run build
+RUN cd apps/calculator && pnpm install --no-frozen-lockfile && pnpm run build
 
 COPY apps/chess/ apps/chess/
-RUN cd apps/chess && pnpm install && pnpm run build
+RUN cd apps/chess && pnpm install --no-frozen-lockfile && pnpm run build
 
 COPY apps/dictionary/ apps/dictionary/
-RUN cd apps/dictionary && pnpm install && pnpm run build
+RUN cd apps/dictionary && pnpm install --no-frozen-lockfile && pnpm run build
 
 COPY apps/flashcards/ apps/flashcards/
-RUN cd apps/flashcards && pnpm install && pnpm run build
+RUN cd apps/flashcards && pnpm install --no-frozen-lockfile && pnpm run build
 
 COPY apps/life-skills/ apps/life-skills/
-RUN cd apps/life-skills && pnpm install && pnpm run build
+RUN cd apps/life-skills && pnpm install --no-frozen-lockfile && pnpm run build
 
 COPY apps/weather/ apps/weather/
-RUN cd apps/weather && pnpm install && pnpm run build
+RUN cd apps/weather && pnpm install --no-frozen-lockfile && pnpm run build
 
 # Stage 2: Python backend + static files
 FROM python:3.12-slim
