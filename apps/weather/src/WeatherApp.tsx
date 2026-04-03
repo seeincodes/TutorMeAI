@@ -43,21 +43,23 @@ interface CityWeather {
 
 // --- Helpers ---
 
-const WEATHER_ICONS: Record<string, string> = {
-  'Sunny': '☀️', 'Clear': '🌙', 'Partly cloudy': '⛅', 'Partly Cloudy': '⛅',
-  'Cloudy': '☁️', 'Overcast': '☁️', 'Mist': '🌫️', 'Fog': '🌫️',
-  'Patchy rain possible': '🌦️', 'Patchy rain nearby': '🌦️',
-  'Light rain': '🌧️', 'Light drizzle': '🌧️', 'Moderate rain': '🌧️',
-  'Heavy rain': '🌧️', 'Light rain shower': '🌦️',
-  'Moderate or heavy rain shower': '🌧️', 'Torrential rain shower': '🌧️',
-  'Thundery outbreaks possible': '⛈️', 'Patchy light rain with thunder': '⛈️',
-  'Moderate or heavy rain with thunder': '⛈️',
-  'Patchy light snow': '🌨️', 'Light snow': '🌨️',
-  'Moderate snow': '❄️', 'Heavy snow': '❄️', 'Blizzard': '🌨️',
-}
-
-function getIcon(desc: string): string {
-  return WEATHER_ICONS[desc.trim()] || '🌡️'
+// WMO weather code to description + icon
+function wmoToWeather(code: number): { description: string; icon: string } {
+  if (code === 0) return { description: 'Clear sky', icon: '☀️' }
+  if (code === 1) return { description: 'Mainly clear', icon: '🌤️' }
+  if (code === 2) return { description: 'Partly cloudy', icon: '⛅' }
+  if (code === 3) return { description: 'Overcast', icon: '☁️' }
+  if (code === 45 || code === 48) return { description: 'Fog', icon: '🌫️' }
+  if (code === 51 || code === 53 || code === 55) return { description: 'Drizzle', icon: '🌧️' }
+  if (code === 56 || code === 57) return { description: 'Freezing drizzle', icon: '🌧️' }
+  if (code >= 61 && code <= 65) return { description: 'Rain', icon: '🌧️' }
+  if (code === 66 || code === 67) return { description: 'Freezing rain', icon: '🌧️' }
+  if (code >= 71 && code <= 77) return { description: 'Snow', icon: '❄️' }
+  if (code >= 80 && code <= 82) return { description: 'Rain showers', icon: '🌦️' }
+  if (code === 85 || code === 86) return { description: 'Snow showers', icon: '🌨️' }
+  if (code === 95) return { description: 'Thunderstorm', icon: '⛈️' }
+  if (code === 96 || code === 99) return { description: 'Thunderstorm with hail', icon: '⛈️' }
+  return { description: 'Unknown', icon: '🌡️' }
 }
 
 function getGradient(desc: string): string {
@@ -70,8 +72,8 @@ function getGradient(desc: string): string {
   return 'linear-gradient(135deg, #56a8f7, #1d6ad8)'
 }
 
-function formatTime(t: string): string {
-  const h = parseInt(t) / 100
+function formatTime(isoTime: string): string {
+  const h = new Date(isoTime).getHours()
   if (h === 0) return '12 AM'
   if (h < 12) return `${h} AM`
   if (h === 12) return '12 PM'
@@ -85,65 +87,81 @@ function getDayName(dateStr: string, index: number): string {
   return d.toLocaleDateString('en-US', { weekday: 'short' })
 }
 
-function parseHourly(raw: Record<string, unknown>): HourlyData {
-  const desc = ((raw.weatherDesc as Array<{ value: string }>)?.[0]?.value || '').trim()
-  return {
-    time: raw.time as string,
-    tempF: parseInt(raw.tempF as string || '0'),
-    description: desc,
-    icon: getIcon(desc),
-    chanceOfRain: parseInt(raw.chanceofrain as string || '0'),
-    humidity: parseInt(raw.humidity as string || '0'),
-    wind: parseInt(raw.windspeedMiles as string || '0'),
-    feelsLike: parseInt(raw.FeelsLikeF as string || '0'),
-  }
-}
+const OPEN_METEO_PARAMS = 'current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,precipitation_probability&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=3'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseApiResponse(data: any, cityFallback: string, isLocal?: boolean): CityWeather {
-  const current = data.current_condition?.[0]
-  const areaName = data.nearest_area?.[0]?.areaName?.[0]?.value || cityFallback
-  const desc = (current?.weatherDesc?.[0]?.value || '').trim()
-  const forecast: DailyData[] = (data.weather || []).map(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (day: any, i: number) => {
-      const dayDesc = (day.hourly?.[4]?.weatherDesc?.[0]?.value || day.hourly?.[3]?.weatherDesc?.[0]?.value || '').trim()
-      return {
-        date: day.date,
-        dayName: getDayName(day.date, i),
-        high: parseInt(day.maxtempF || '0'),
-        low: parseInt(day.mintempF || '0'),
-        description: dayDesc,
-        icon: getIcon(dayDesc),
-        hourly: (day.hourly || []).map(parseHourly),
-      }
+function parseOpenMeteo(data: any, cityName: string, isLocal?: boolean): CityWeather {
+  const current = data.current
+  const curWeather = wmoToWeather(current.weather_code)
+
+  const daily = data.daily
+  const hourly = data.hourly
+  const forecast: DailyData[] = daily.time.map((date: string, i: number) => {
+    const dayWeather = wmoToWeather(daily.weather_code[i])
+    // Get hourly data for this day (24 entries per day)
+    const startIdx = i * 24
+    const dayHourly: HourlyData[] = []
+    for (let h = 0; h < 24; h++) {
+      const idx = startIdx + h
+      if (idx >= hourly.time.length) break
+      const hWeather = wmoToWeather(hourly.weather_code[idx])
+      dayHourly.push({
+        time: hourly.time[idx],
+        tempF: Math.round(hourly.temperature_2m[idx]),
+        description: hWeather.description,
+        icon: hWeather.icon,
+        chanceOfRain: hourly.precipitation_probability[idx] || 0,
+        humidity: hourly.relative_humidity_2m[idx] || 0,
+        wind: Math.round(hourly.wind_speed_10m[idx] || 0),
+        feelsLike: Math.round(hourly.temperature_2m[idx]),
+      })
     }
-  )
+    return {
+      date,
+      dayName: getDayName(date, i),
+      high: Math.round(daily.temperature_2m_max[i]),
+      low: Math.round(daily.temperature_2m_min[i]),
+      description: dayWeather.description,
+      icon: dayWeather.icon,
+      hourly: dayHourly,
+    }
+  })
+
   return {
-    city: areaName,
-    temp: parseInt(current?.temp_F || '0'),
-    description: desc,
-    humidity: parseInt(current?.humidity || '0'),
-    wind: parseInt(current?.windspeedMiles || '0'),
-    feelsLike: parseInt(current?.FeelsLikeF || '0'),
-    high: parseInt(data.weather?.[0]?.maxtempF || '0'),
-    low: parseInt(data.weather?.[0]?.mintempF || '0'),
-    icon: getIcon(desc),
+    city: cityName,
+    temp: Math.round(current.temperature_2m),
+    description: curWeather.description,
+    humidity: current.relative_humidity_2m,
+    wind: Math.round(current.wind_speed_10m),
+    feelsLike: Math.round(current.apparent_temperature),
+    high: Math.round(daily.temperature_2m_max[0]),
+    low: Math.round(daily.temperature_2m_min[0]),
+    icon: curWeather.icon,
     isLocal,
     forecast,
   }
 }
 
-async function fetchCity(city: string): Promise<CityWeather> {
-  const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`)
+async function geocodeCity(city: string): Promise<{ name: string; lat: number; lon: number }> {
+  const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en`)
   if (!res.ok) throw new Error('City not found')
-  return parseApiResponse(await res.json(), city)
+  const data = await res.json()
+  if (!data.results?.length) throw new Error('City not found')
+  const r = data.results[0]
+  return { name: r.name, lat: r.latitude, lon: r.longitude }
 }
 
-async function fetchCoords(lat: number, lon: number): Promise<CityWeather> {
-  const res = await fetch(`https://wttr.in/${lat},${lon}?format=j1`)
+async function fetchCity(city: string): Promise<CityWeather> {
+  const geo = await geocodeCity(city)
+  const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${geo.lat}&longitude=${geo.lon}&${OPEN_METEO_PARAMS}`)
+  if (!res.ok) throw new Error('Weather data unavailable')
+  return parseOpenMeteo(await res.json(), geo.name)
+}
+
+async function fetchCoords(lat: number, lon: number, cityName?: string): Promise<CityWeather> {
+  const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&${OPEN_METEO_PARAMS}`)
   if (!res.ok) throw new Error('Location not found')
-  return parseApiResponse(await res.json(), 'Your Location', true)
+  return parseOpenMeteo(await res.json(), cityName || 'Your Location', true)
 }
 
 // --- Components ---
