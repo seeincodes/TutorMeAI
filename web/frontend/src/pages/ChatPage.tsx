@@ -32,6 +32,7 @@ export default function ChatPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const appIframeRef = useRef<AppIframeHandle>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const userCityRef = useRef<string | null>(null)
 
   // Dark mode toggle — sync with <html> class and localStorage
@@ -153,6 +154,7 @@ export default function ChatPage() {
     }
     setMessages([userMessage])
     setInput('')
+    if (inputRef.current) inputRef.current.style.height = 'auto'
     setStreaming(true)
     setStreamingContent('')
 
@@ -223,6 +225,7 @@ export default function ChatPage() {
     }
     setMessages(prev => [...prev, userMessage])
     setInput('')
+    if (inputRef.current) inputRef.current.style.height = 'auto'
     setStreaming(true)
     setStreamingContent('')
 
@@ -429,8 +432,15 @@ export default function ChatPage() {
               <label htmlFor="chat-input" className="sr-only">Message</label>
               <textarea
                 id="chat-input"
+                ref={inputRef}
                 value={input}
-                onChange={e => setInput(e.target.value)}
+                onChange={e => {
+                  setInput(e.target.value)
+                  // Auto-resize: reset then expand to content
+                  const el = e.target
+                  el.style.height = 'auto'
+                  el.style.height = Math.min(el.scrollHeight, 120) + 'px'
+                }}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e) } }}
                 placeholder="Type a message..."
                 disabled={streaming}
