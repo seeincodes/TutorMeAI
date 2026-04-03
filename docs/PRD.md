@@ -33,6 +33,11 @@ TutorMeAI's existing chatbot is text-only. Teachers want interactive tools — c
 - [MVP12] Spotify app with OAuth2 PKCE flow (popup window, server-side token storage, embedded player)
 - [MVP13] K-12 safety: no PII sent to apps, content moderation via OpenAI filters + system prompt, sandbox enforcement
 - [MVP14] Error handling: iframe crash recovery, timeout handling (30s), dual error display (banner + chatbot acknowledgment)
+- [MVP15] Completion verification: LLM polls app `get_state` to verify completion claims before acting on them (defends against false "done" signals)
+- [MVP16] PostMessage rate limiting: frontend throttles incoming iframe messages to max 10/second per app, drops excess silently, reloads iframe on persistent abuse
+- [MVP17] Per-app rate limiting: extend slowapi to enforce per-app request ceilings on `/api/apps/{app_id}/invoke`
+- [MVP18] Schema integrity: compute SHA-256 hash of `tool_schemas` at registration, verify hash on each tool invocation, auto-suspend app on mismatch
+- [MVP19] Schema audit trail: `app_schema_audit` table logging schema changes with diff, reviewer, and decision for FERPA/COPPA auditability
 
 ## Final Submission Features
 
@@ -48,9 +53,16 @@ TutorMeAI's existing chatbot is text-only. Teachers want interactive tools — c
 - App suspension button
 - OAuth connection status visibility
 
+**Adversarial Resilience:**
+- Completion verification via state polling (MVP15)
+- PostMessage flood protection (MVP16)
+- Per-app invocation rate limiting (MVP17)
+- Schema integrity enforcement with auto-suspend on drift (MVP18)
+- Schema change audit trail (MVP19)
+
 **Observability & Cost:**
 - LangSmith tracing for every tool call, routing decision, and token usage
-- Rate limiting via slowapi (per-IP and per-user)
+- Rate limiting via slowapi (per-IP, per-user, and per-app)
 - Tool invocation logging with duration, token counts, and status
 
 **Documentation:**
@@ -85,5 +97,7 @@ TutorMeAI's existing chatbot is text-only. Teachers want interactive tools — c
 - Real-time collaborative features (multi-student same session)
 - Full WCAG audit (post-sprint)
 - Production key rotation (documented but not implemented in sprint)
+- Behavioral anomaly detection for compliant corruption (post-sprint, teacher dashboard observational)
+- District-level whitelisting governance workflow (post-sprint, designed in presearch)
 - Parent notification system
 - Mobile-native apps

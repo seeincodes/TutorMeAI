@@ -98,12 +98,16 @@ class AppRegistration(Base):
     auth_type: Mapped[str] = mapped_column(Text, nullable=False)
     iframe_url: Mapped[str] = mapped_column(Text, nullable=False)
     tool_schemas: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    schema_hash: Mapped[str | None] = mapped_column(Text)
+    schema_version: Mapped[int] = mapped_column(Integer, default=1)
     oauth_config: Mapped[dict | None] = mapped_column(JSONB)
     platform_status: Mapped[str] = mapped_column(Text, default="allowed")
     requires_admin_approval: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[str] = mapped_column(Text, default="pending_review")
     age_rating: Mapped[str] = mapped_column(Text, default="all")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    approved_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
@@ -165,3 +169,26 @@ class ContentFlag(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["User"] = relationship()
+
+
+class AppSchemaAudit(Base):
+    __tablename__ = "app_schema_audit"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    app_id: Mapped[str] = mapped_column(Text, nullable=False)
+    old_schema: Mapped[dict | None] = mapped_column(JSONB)
+    new_schema: Mapped[dict | None] = mapped_column(JSONB)
+    old_hash: Mapped[str | None] = mapped_column(Text)
+    new_hash: Mapped[str | None] = mapped_column(Text)
+    reviewed_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    decision: Mapped[str] = mapped_column(Text, default="pending")
+    reason: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        CheckConstraint(
+            "decision IN ('approved', 'rejected', 'pending', 'auto_suspended')",
+            name="ck_app_schema_audit_decision",
+        ),
+    )
