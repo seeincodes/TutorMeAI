@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react'
+import Markdown from './Markdown'
 
 interface AppDisplay {
   label: string
@@ -25,7 +26,11 @@ interface ChatMessageProps {
 }
 
 export default function ChatMessage({ content, role, onAppLaunch, disabled }: ChatMessageProps) {
-  if (role === 'user' || !content) {
+  if (!content) {
+    return null
+  }
+
+  if (role === 'user') {
     return <p className="whitespace-pre-wrap">{content}</p>
   }
 
@@ -39,9 +44,9 @@ export default function ChatMessage({ content, role, onAppLaunch, disabled }: Ch
     // Text before this match
     if (match.index > lastIndex) {
       parts.push(
-        <span key={`text-${lastIndex}`} className="whitespace-pre-wrap">
+        <Markdown key={`text-${lastIndex}`}>
           {content.slice(lastIndex, match.index)}
-        </span>
+        </Markdown>
       )
     }
 
@@ -73,15 +78,15 @@ export default function ChatMessage({ content, role, onAppLaunch, disabled }: Ch
   // Remaining text after last match
   if (lastIndex < content.length) {
     parts.push(
-      <span key={`text-${lastIndex}`} className="whitespace-pre-wrap">
+      <Markdown key={`text-${lastIndex}`}>
         {content.slice(lastIndex)}
-      </span>
+      </Markdown>
     )
   }
 
-  // No buttons found — plain text
+  // No buttons found — render full content as Markdown
   if (parts.length === 0) {
-    return <p className="whitespace-pre-wrap">{content}</p>
+    return <Markdown>{content}</Markdown>
   }
 
   return <div>{parts}</div>

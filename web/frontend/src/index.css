@@ -2,6 +2,99 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Design tokens ported from forked chatbox codebase (src/renderer/static/globals.css) */
+:root {
+  /* Radius */
+  --chatbox-radius-none: 0rem;
+  --chatbox-radius-xs: 0.125rem;
+  --chatbox-radius-sm: 0.25rem;
+  --chatbox-radius-md: 0.5rem;
+  --chatbox-radius-lg: 1rem;
+  --chatbox-radius-xl: 1.5rem;
+  --chatbox-radius-xxl: 2rem;
+
+  /* Spacing */
+  --chatbox-spacing-none: 0rem;
+  --chatbox-spacing-3xs: 0.125rem;
+  --chatbox-spacing-xxs: 0.25rem;
+  --chatbox-spacing-xs: 0.5rem;
+  --chatbox-spacing-sm: 0.75rem;
+  --chatbox-spacing-md: 1rem;
+  --chatbox-spacing-lg: 1.25rem;
+  --chatbox-spacing-xl: 1.5rem;
+  --chatbox-spacing-xxl: 2rem;
+
+  /* Tint colors */
+  --chatbox-tint-primary: #212529;
+  --chatbox-tint-secondary: #495057;
+  --chatbox-tint-tertiary: #868e96;
+  --chatbox-tint-white: #ffffff;
+  --chatbox-tint-black: #000000;
+  --chatbox-tint-gray: #868e96;
+  --chatbox-tint-disabled: #adb5bd;
+  --chatbox-tint-brand: #228be6;
+  --chatbox-tint-placeholder: #adb5bd;
+  --chatbox-tint-error: #fa5252;
+  --chatbox-tint-warning: #fab005;
+  --chatbox-tint-success: #12b886;
+
+  /* Border colors */
+  --chatbox-border-primary: #dee2e6;
+  --chatbox-border-secondary: #ced4da;
+  --chatbox-border-warning: #fab005;
+  --chatbox-border-error: #fa5252;
+  --chatbox-border-success: #12b886;
+  --chatbox-border-brand: #228be6;
+
+  /* Background colors */
+  --chatbox-background-primary: #ffffff;
+  --chatbox-background-primary-hover: #f8f9fa;
+  --chatbox-background-secondary: #f1f3f5;
+  --chatbox-background-secondary-hover: #e9ecef;
+  --chatbox-background-tertiary: #dee2e6;
+  --chatbox-background-tertiary-hover: #ced4da;
+  --chatbox-background-disabled: #e9ecef;
+  --chatbox-background-brand-primary: #228be6;
+  --chatbox-background-brand-primary-hover: #1c7ed6;
+  --chatbox-background-brand-secondary: rgb(34 139 230 / 0.08);
+  --chatbox-background-brand-secondary-hover: rgb(34 139 230 / 0.16);
+  --chatbox-background-error-primary: #fa5252;
+  --chatbox-background-error-secondary: rgb(250 82 82 / 0.1);
+  --chatbox-background-success-primary: #12b886;
+  --chatbox-background-success-secondary: rgb(18 184 134 / 0.1);
+  --chatbox-background-warning-primary: #fab005;
+  --chatbox-background-warning-secondary: rgb(250 176 5 / 0.1);
+}
+
+/* Dark mode tokens */
+.dark {
+  --chatbox-tint-primary: #ffffff;
+  --chatbox-tint-secondary: #ced4da;
+  --chatbox-tint-tertiary: #828282;
+  --chatbox-tint-disabled: #696969;
+  --chatbox-tint-brand: #4dabf7;
+  --chatbox-tint-placeholder: #828282;
+  --chatbox-tint-error: #f03e3e;
+  --chatbox-tint-warning: #ffe066;
+  --chatbox-tint-success: #63e6be;
+
+  --chatbox-border-primary: #495057;
+  --chatbox-border-secondary: #868e96;
+
+  --chatbox-background-primary: #242424;
+  --chatbox-background-primary-hover: #1f1f1f;
+  --chatbox-background-secondary: #3b3b3b;
+  --chatbox-background-secondary-hover: #495057;
+  --chatbox-background-tertiary: #424242;
+  --chatbox-background-tertiary-hover: #696969;
+  --chatbox-background-disabled: #2e2e2e;
+  --chatbox-background-brand-primary: #1971c2;
+  --chatbox-background-brand-primary-hover: #1864ab;
+  --chatbox-background-error-primary: #e03131;
+  --chatbox-background-success-primary: #099268;
+  --chatbox-background-warning-primary: #f08c00;
+}
+
 @layer base {
   /* Visible focus rings for keyboard navigation (WCAG 2.4.7) */
   *:focus-visible {
@@ -14,4 +107,15 @@
   *:focus:not(:focus-visible) {
     outline: none;
   }
+}
+
+/* KaTeX overflow handling (from forked codebase) */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.5rem;
+}
+
+.katex-display > .katex {
+  display: inline-block;
 }

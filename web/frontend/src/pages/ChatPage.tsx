@@ -3,6 +3,7 @@ import { useAuth } from '@/lib/AuthContext'
 import { api, type AppInfo, type Conversation, type Message } from '@/lib/api'
 import AppIframe, { type AppIframeHandle } from '@/components/AppIframe'
 import ChatMessage from '@/components/ChatMessage'
+import Sidebar from '@/components/Sidebar'
 
 interface AppState {
   appId: string
@@ -24,9 +25,17 @@ export default function ChatPage() {
   const [oauthPrompt, setOauthPrompt] = useState<{ appId: string; message: string } | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [availableApps, setAvailableApps] = useState<AppInfo[]>([])
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('theme') === 'dark')
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const appIframeRef = useRef<AppIframeHandle>(null)
   const userCityRef = useRef<string | null>(null)
+
+  // Dark mode toggle — sync with <html> class and localStorage
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode)
+    localStorage.setItem('theme', darkMode ? 'dark' : 'light')
+  }, [darkMode])
 
   // Detect user's city once via IP geolocation (used for weather app)
   useEffect(() => {
@@ -283,33 +292,36 @@ export default function ChatPage() {
   // ============================================================
   if (!activeApp) {
     return (
-      <div className="flex h-screen bg-gray-50">
-        {/* Sidebar */}
-        <aside className="flex w-64 flex-col border-r border-gray-200 bg-white">
-          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-            <h1 className="text-sm font-semibold text-gray-900">ChatBridge</h1>
-            <button onClick={handleNewConversation} className="rounded-md bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700" aria-label="New conversation">
-              + New
-            </button>
-          </div>
-          <nav className="flex-1 overflow-y-auto p-2" aria-label="Conversations">
-            {conversations.map(conv => (
-              <button key={conv.id} onClick={() => setActiveConversation(conv.id)}
-                className={`mb-1 w-full rounded-md px-3 py-2 text-left text-sm ${activeConversation === conv.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}>
-                {conv.title || 'New conversation'}
-              </button>
-            ))}
-          </nav>
-          <div className="border-t border-gray-200 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">{user?.display_name || user?.username}</span>
-              <button onClick={logout} className="rounded px-2 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50">Not you? Sign out</button>
-            </div>
-          </div>
-        </aside>
+      <div className="flex h-screen bg-chatbox-background-secondary">
+        <Sidebar
+          conversations={conversations}
+          activeConversation={activeConversation}
+          onSelectConversation={setActiveConversation}
+          onNewConversation={handleNewConversation}
+          onAppLaunch={handleAppLaunch}
+          availableApps={availableApps}
+          username={user?.display_name || user?.username || ''}
+          role={user?.role}
+          onLogout={logout}
+          onToggleDarkMode={() => setDarkMode(d => !d)}
+          darkMode={darkMode}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(c => !c)}
+        />
+
+        {/* Expand button when sidebar is collapsed */}
+        {sidebarCollapsed && (
+          <button
+            onClick={() => setSidebarCollapsed(false)}
+            className="absolute left-2 top-3 z-20 rounded p-1.5 text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary"
+            aria-label="Expand sidebar"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 5l7 7-7 7M6 5l7 7-7 7"/></svg>
+          </button>
+        )}
 
         {/* Full chat */}
-        <main className="flex flex-1 flex-col">
+        <main className="flex flex-1 flex-col bg-chatbox-background-primary">
           <div className="flex-1 overflow-y-auto px-4 py-6">
             {visibleMessages.length === 0 && !streaming ? (
               <div className="mx-auto max-w-2xl flex flex-col items-center justify-center h-full">
@@ -339,14 +351,14 @@ export default function ChatPage() {
             <div className="mx-auto max-w-2xl space-y-4">
               {visibleMessages.map(msg => (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white text-gray-900 shadow-sm border border-gray-200'}`}>
+                  <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm ${msg.role === 'user' ? 'bg-chatbox-background-brand-primary text-chatbox-tint-white' : 'bg-chatbox-background-primary text-chatbox-tint-primary shadow-sm border border-chatbox-border-primary'}`}>
                     <ChatMessage content={msg.content || ''} role={msg.role} onAppLaunch={handleAppLaunch} disabled={streaming} />
                   </div>
                 </div>
               ))}
               {streaming && streamingContent && (
                 <div className="flex justify-start">
-                  <div className="max-w-[80%] rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm" aria-live="polite">
+                  <div className="max-w-[80%] rounded-lg border border-chatbox-border-primary bg-chatbox-background-primary px-4 py-2 text-sm text-chatbox-tint-primary shadow-sm" aria-live="polite">
                     <ChatMessage content={streamingContent} role="assistant" onAppLaunch={handleAppLaunch} disabled={streaming} />
                   </div>
                 </div>
@@ -368,14 +380,14 @@ export default function ChatPage() {
             </div>
             )}
           </div>
-          <div className="border-t border-gray-200 bg-white px-4 py-3">
+          <div className="border-t border-chatbox-border-primary bg-chatbox-background-primary px-4 py-3">
             <form onSubmit={handleSend} className="mx-auto flex max-w-2xl gap-2">
               <label htmlFor="chat-input" className="sr-only">Message</label>
               <input id="chat-input" type="text" value={input} onChange={e => setInput(e.target.value)}
                 placeholder="Type a message..." disabled={streaming}
-                className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50" />
+                className="flex-1 rounded-md border border-chatbox-border-primary bg-chatbox-background-primary px-3 py-2 text-sm text-chatbox-tint-primary placeholder:text-chatbox-tint-placeholder focus:border-chatbox-border-brand focus:outline-none focus:ring-1 focus:ring-chatbox-border-brand disabled:opacity-50" />
               <button type="submit" disabled={streaming || !input.trim()}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">Send</button>
+                className="rounded-md bg-chatbox-background-brand-primary px-4 py-2 text-sm font-medium text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover disabled:opacity-50">Send</button>
             </form>
           </div>
         </main>
