@@ -131,6 +131,9 @@ class AppRegistration(Base):
     privacy_policy_url: Mapped[str | None] = mapped_column(Text)
     logo_url: Mapped[str | None] = mapped_column(Text)
     trust_tier: Mapped[str] = mapped_column(Text, default="new")
+    # Server-side relay
+    server_api_url: Mapped[str | None] = mapped_column(Text)
+    signing_secret: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (

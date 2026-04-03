@@ -11,6 +11,9 @@ from app.apps.schemas import (
 )
 import time
 
+import httpx as httpx_lib
+
+from app.apps.relay import relay_to_app
 from app.apps.schema_hash import compute_schema_hash
 from app.auth.dependencies import get_current_user, require_role
 from app.database import get_db
@@ -170,7 +173,79 @@ async def invoke_tool(
             detail=f"Tool '{body.tool}' not registered for app '{app_id}'. Available: {tool_names}",
         )
 
-    # Log tool invocation (if conversation context is available)
+    # Server-side relay: forward to app backend if configured
+    if app_reg.server_api_url:
+        start_time = time.monotonic()
+        try:
+            result = await relay_to_app(
+                server_api_url=app_reg.server_api_url,
+                signing_secret=app_reg.signing_secret,
+                tool=body.tool,
+                params=body.params,
+            )
+            duration_ms = int((time.monotonic() - start_time) * 1000)
+            inv_status = "success"
+        except httpx_lib.TimeoutException:
+            duration_ms = int((time.monotonic() - start_time) * 1000)
+            inv_status = "timeout"
+            # Log the timeout
+            if body.conversation_id:
+                invocation = ToolInvocation(
+                    conversation_id=body.conversation_id,
+                    app_id=app_id,
+                    tool_name=body.tool,
+                    params=body.params,
+                    status=inv_status,
+                    duration_ms=duration_ms,
+                )
+                db.add(invocation)
+                await db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                detail=f"App '{app_id}' did not respond within timeout",
+            )
+        except httpx_lib.HTTPStatusError as exc:
+            duration_ms = int((time.monotonic() - start_time) * 1000)
+            inv_status = "error"
+            if body.conversation_id:
+                invocation = ToolInvocation(
+                    conversation_id=body.conversation_id,
+                    app_id=app_id,
+                    tool_name=body.tool,
+                    params=body.params,
+                    status=inv_status,
+                    duration_ms=duration_ms,
+                )
+                db.add(invocation)
+                await db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"App '{app_id}' returned error: {exc.response.status_code}",
+            )
+
+        # Log successful relay invocation
+        if body.conversation_id:
+            invocation = ToolInvocation(
+                conversation_id=body.conversation_id,
+                app_id=app_id,
+                tool_name=body.tool,
+                params=body.params,
+                result=result,
+                status=inv_status,
+                duration_ms=duration_ms,
+            )
+            db.add(invocation)
+            await db.commit()
+
+        return {
+            "app_id": app_id,
+            "tool": body.tool,
+            "relay": True,
+            "result": result,
+            "correlation_id": body.correlation_id,
+        }
+
+    # PostMessage fallback: return params for frontend to dispatch
     if body.conversation_id:
         start_time = time.monotonic()
         invocation = ToolInvocation(
@@ -184,7 +259,6 @@ async def invoke_tool(
         db.add(invocation)
         await db.commit()
 
-    # Return the validated invocation for the frontend to dispatch via postMessage
     return {
         "app_id": app_id,
         "tool": body.tool,
