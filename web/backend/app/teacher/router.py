@@ -26,7 +26,7 @@ router = APIRouter(prefix="/api/teacher", tags=["teacher"])
 
 @router.get("/dashboard")
 async def dashboard(
-    current_user: User = Depends(require_role("teacher", "admin")),
+    current_user: User = Depends(require_role("teacher", "admin", "district_admin")),
     db: AsyncSession = Depends(get_db),
 ):
     # Get students — scoped to teacher's district if they belong to one
@@ -79,6 +79,8 @@ async def dashboard(
                 "is_active": a.is_active,
                 "status": a.status,
                 "usage_count": app_stats.get(a.app_id, 0),
+                "trust_tier": a.trust_tier,
+                "developer_name": a.developer_name,
             }
             for a in apps
         ],

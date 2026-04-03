@@ -2,7 +2,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/lib/AuthContext'
 import LoginPage from '@/pages/LoginPage'
 import ChatPage from '@/pages/ChatPage'
-import TeacherDashboard from '@/pages/TeacherDashboard'
+import DashboardLayout from '@/pages/dashboard/DashboardLayout'
+import StudentsSection from '@/pages/dashboard/StudentsSection'
+import AppsSection from '@/pages/dashboard/AppsSection'
+import FlagsSection from '@/pages/dashboard/FlagsSection'
+import DistrictsSection from '@/pages/dashboard/DistrictsSection'
+import MarketplaceSection from '@/pages/dashboard/MarketplaceSection'
+import HealthSection from '@/pages/dashboard/HealthSection'
+import CostsSection from '@/pages/dashboard/CostsSection'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -48,11 +55,20 @@ function AppRoutes() {
       <Route
         path="/dashboard"
         element={
-          <RequireRole roles={['teacher', 'admin']}>
-            <TeacherDashboard />
+          <RequireRole roles={['teacher', 'admin', 'district_admin']}>
+            <DashboardLayout />
           </RequireRole>
         }
-      />
+      >
+        <Route index element={<Navigate to="/dashboard/students" replace />} />
+        <Route path="students" element={<StudentsSection />} />
+        <Route path="apps" element={<AppsSection />} />
+        <Route path="flags" element={<FlagsSection />} />
+        <Route path="districts" element={<DistrictsSection />} />
+        <Route path="marketplace" element={<MarketplaceSection />} />
+        <Route path="health" element={<HealthSection />} />
+        <Route path="costs" element={<CostsSection />} />
+      </Route>
     </Routes>
   )
 }

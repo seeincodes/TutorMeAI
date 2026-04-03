@@ -18,7 +18,7 @@ export interface User {
   id: string
   username: string
   display_name: string | null
-  role: 'student' | 'teacher' | 'admin'
+  role: 'student' | 'teacher' | 'admin' | 'district_admin'
   grade: number | null
   allowed_levels: string[] | null
 }
@@ -48,6 +48,45 @@ export interface AppInfo {
   auth_type: string
   status: string
   age_rating: string
+}
+
+export interface District {
+  id: string
+  name: string
+  state: string | null
+}
+
+export interface CatalogApp {
+  app_id: string
+  name: string
+  description: string
+  status: string
+  trust_tier: string
+  developer_name: string | null
+  is_active: boolean
+}
+
+export interface AppHealthEntry {
+  app_id: string
+  invocation_count: number
+  success_count: number
+  error_count: number
+  timeout_count: number
+  avg_duration_ms: number | null
+}
+
+export interface CostDashboard {
+  total_input_tokens: number
+  total_output_tokens: number
+  per_app: { app_id: string; input_tokens: number; output_tokens: number; invocation_count: number }[]
+}
+
+export interface ScreeningQueueEntry {
+  app_id: string
+  name: string
+  flag_count: number
+  auto_suspend_threshold: number
+  is_active: boolean
 }
 
 export const api = {
@@ -160,4 +199,37 @@ export const api = {
       }
     }
   },
+
+  // Dashboard API
+  fetchDistricts: () => request<District[]>('/districts'),
+
+  approveDistrictApp: (districtId: string, appId: string) =>
+    request<{ app_id: string; status: string }>(`/districts/${districtId}/apps`, {
+      method: 'POST',
+      body: JSON.stringify({ app_id: appId }),
+    }),
+
+  revokeDistrictApp: (districtId: string, appId: string) =>
+    request<{ status: string }>(`/districts/${districtId}/apps/${appId}`, {
+      method: 'DELETE',
+    }),
+
+  fetchMarketplaceCatalog: () => request<CatalogApp[]>('/marketplace/catalog'),
+
+  updateTrustTier: (appId: string, trustTier: string) =>
+    request<{ app_id: string; trust_tier: string }>(`/marketplace/${appId}/trust`, {
+      method: 'PATCH',
+      body: JSON.stringify({ trust_tier: trustTier }),
+    }),
+
+  fetchScreeningQueue: () => request<ScreeningQueueEntry[]>('/marketplace/screening-queue'),
+
+  clearAppFlags: (appId: string) =>
+    request<{ app_id: string; flag_count: number; is_active: boolean }>(`/marketplace/${appId}/clear-flags`, {
+      method: 'POST',
+    }),
+
+  fetchAppHealth: () => request<AppHealthEntry[]>('/observability/app-health'),
+
+  fetchCostDashboard: () => request<CostDashboard>('/observability/cost-dashboard'),
 }
