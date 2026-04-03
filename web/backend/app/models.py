@@ -124,11 +124,19 @@ class AppRegistration(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     approved_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    # Marketplace metadata
+    developer_name: Mapped[str | None] = mapped_column(Text)
+    developer_email: Mapped[str | None] = mapped_column(Text)
+    website_url: Mapped[str | None] = mapped_column(Text)
+    privacy_policy_url: Mapped[str | None] = mapped_column(Text)
+    logo_url: Mapped[str | None] = mapped_column(Text)
+    trust_tier: Mapped[str] = mapped_column(Text, default="new")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
         CheckConstraint("auth_type IN ('none', 'api_key', 'oauth2')", name="ck_app_registrations_auth_type"),
         CheckConstraint("platform_status IN ('allowed', 'blocked', 'pending_review')", name="ck_app_registrations_platform_status"),
+        CheckConstraint("trust_tier IN ('new', 'classroom', 'school', 'district', 'verified')", name="ck_app_registrations_trust_tier"),
     )
 
 
