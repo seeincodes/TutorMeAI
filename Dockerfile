@@ -7,7 +7,8 @@ WORKDIR /build
 
 # Build frontend
 COPY web/frontend/ web/frontend/
-RUN cd web/frontend && pnpm install --no-frozen-lockfile && pnpm run build
+RUN cd web/frontend && pnpm install --no-frozen-lockfile
+RUN cd web/frontend && pnpm run build
 
 # Build each app
 COPY apps/calculator/ apps/calculator/
