@@ -85,6 +85,16 @@
 - [x] Verify `sandbox="allow-scripts"` blocks `window.parent.document` access
 - [x] Test per-user data isolation — student2 cannot see student1 data
 
+### 9.5. Adversarial Resilience [MVP15, MVP16, MVP17, MVP18, MVP19]
+- [x] Add postMessage rate limiter in `AppIframe.tsx` — track message count per second, drop messages exceeding 10/s, reload iframe after 100+ consecutive drops
+- [x] Add completion verification — when `completion` message received, LLM polls `get_state` to verify claim before acting (e.g., FEN must show checkmate, quiz must have all answers submitted). Ignore completion if state contradicts it.
+- [x] Add per-app rate limiting on `/api/apps/{app_id}/invoke` — extend slowapi with app-scoped limiter (30 requests/minute per app per user)
+- [x] Add `schema_hash` column to `AppRegistration` model — compute SHA-256 of `tool_schemas` JSON on registration
+- [x] Add schema hash verification in `invoke_tool` endpoint — recompute hash on each invocation, return 403 and set `is_active=False` if mismatch
+- [x] Create `AppSchemaAudit` model and Alembic migration — log schema changes with old/new hash, reviewer, decision, timestamp
+- [x] Add schema hash computation to `register_app` endpoint — store hash on creation
+- [x] Write tests: schema hash mismatch suspends app, audit row created on schema change, hash computed on registration
+
 ## Phase 2: Polish
 
 ### 10. Teacher Dashboard

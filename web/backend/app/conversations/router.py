@@ -14,6 +14,7 @@ from app.conversations.schemas import (
     CreateConversationRequest,
     MessageResponse,
     SendMessageRequest,
+    UpdateConversationRequest,
 )
 from app.database import get_db, get_session_factory
 from app.models import AppRegistration, Conversation, Message, User
@@ -59,6 +60,69 @@ async def get_conversation(
 ) -> ConversationResponse:
     conversation = await _get_user_conversation(conversation_id, current_user, db)
     return ConversationResponse.model_validate(conversation)
+
+
+@router.patch("/{conversation_id}")
+async def update_conversation(
+    conversation_id: str,
+    body: UpdateConversationRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ConversationResponse:
+    conversation = await _get_user_conversation(conversation_id, current_user, db)
+    if body.title is not None:
+        conversation.title = body.title
+    if body.starred is not None:
+        conversation.starred = body.starred
+    await db.commit()
+    await db.refresh(conversation)
+    return ConversationResponse.model_validate(conversation)
+
+
+@router.post("/{conversation_id}/copy", status_code=status.HTTP_201_CREATED)
+async def copy_conversation(
+    conversation_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ConversationResponse:
+    original = await _get_user_conversation(conversation_id, current_user, db)
+    copy = Conversation(
+        user_id=current_user.id,
+        title=f"{original.title or 'New conversation'} (copy)",
+    )
+    db.add(copy)
+    await db.flush()
+
+    # Copy all messages
+    result = await db.execute(
+        select(Message)
+        .where(Message.conversation_id == original.id)
+        .order_by(Message.created_at.asc())
+    )
+    for msg in result.scalars().all():
+        db.add(Message(
+            conversation_id=copy.id,
+            role=msg.role,
+            content=msg.content,
+            tool_call_id=msg.tool_call_id,
+            tool_name=msg.tool_name,
+            metadata_=msg.metadata_,
+        ))
+
+    await db.commit()
+    await db.refresh(copy)
+    return ConversationResponse.model_validate(copy)
+
+
+@router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_conversation(
+    conversation_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    conversation = await _get_user_conversation(conversation_id, current_user, db)
+    await db.delete(conversation)
+    await db.commit()
 
 
 @router.get("/{conversation_id}/messages")

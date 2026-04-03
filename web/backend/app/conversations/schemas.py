@@ -12,10 +12,16 @@ class ConversationResponse(BaseModel):
     id: uuid.UUID
     title: str | None
     active_app_id: str | None
+    starred: bool = False
     created_at: datetime
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class UpdateConversationRequest(BaseModel):
+    title: str | None = None
+    starred: bool | None = None
 
 
 class MessageResponse(BaseModel):

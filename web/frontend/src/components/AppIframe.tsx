@@ -7,6 +7,8 @@ import {
 } from '@/lib/postMessage'
 
 const TOOL_TIMEOUT_MS = 30_000
+const MAX_MESSAGES_PER_SECOND = 10
+const FLOOD_RELOAD_THRESHOLD = 100
 
 interface PendingInvocation {
   correlationId: string
@@ -44,6 +46,20 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
   const [loading, setLoading] = useState(true)
   const pendingRef = useRef<Map<string, PendingInvocation>>(new Map())
 
+  // PostMessage rate limiter — drop excess messages, reload iframe on persistent flood
+  const msgCountRef = useRef(0)
+  const droppedCountRef = useRef(0)
+  const rateLimitTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    rateLimitTimerRef.current = setInterval(() => {
+      msgCountRef.current = 0
+    }, 1000)
+    return () => {
+      if (rateLimitTimerRef.current) clearInterval(rateLimitTimerRef.current)
+    }
+  }, [])
+
   // Handle messages from iframe
   const handleMessage = useCallback(
     (event: MessageEvent) => {
@@ -52,6 +68,20 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
       const msg = event.data
 
       if (!isAppMessage(msg)) return
+
+      // Rate limit: drop messages exceeding MAX_MESSAGES_PER_SECOND
+      msgCountRef.current++
+      if (msgCountRef.current > MAX_MESSAGES_PER_SECOND) {
+        droppedCountRef.current++
+        // Reload iframe on persistent flood (adversarial behavior)
+        if (droppedCountRef.current >= FLOOD_RELOAD_THRESHOLD) {
+          droppedCountRef.current = 0
+          console.warn(`[AppIframe] ${appId}: postMessage flood detected, reloading iframe`)
+          handleRetry()
+        }
+        return
+      }
+      droppedCountRef.current = 0
 
       const appMsg = msg as AppMessage
 

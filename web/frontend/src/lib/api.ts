@@ -10,6 +10,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     const body = await res.json().catch(() => ({ detail: res.statusText }))
     throw new Error(body.detail || res.statusText)
   }
+  if (res.status === 204) return undefined as T
   return res.json()
 }
 
@@ -26,6 +27,7 @@ export interface Conversation {
   id: string
   title: string | null
   active_app_id: string | null
+  starred: boolean
   created_at: string
   updated_at: string
 }
@@ -70,6 +72,18 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ title }),
     }),
+
+  updateConversation: (conversationId: string, data: { title?: string; starred?: boolean }) =>
+    request<Conversation>(`/conversations/${conversationId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  copyConversation: (conversationId: string) =>
+    request<Conversation>(`/conversations/${conversationId}/copy`, { method: 'POST' }),
+
+  deleteConversation: (conversationId: string) =>
+    request<void>(`/conversations/${conversationId}`, { method: 'DELETE' }),
 
   getMessages: (conversationId: string) =>
     request<Message[]>(`/conversations/${conversationId}/messages`),

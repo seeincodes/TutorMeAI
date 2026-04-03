@@ -1,8 +1,83 @@
-/** @type {import('tailwindcss').Config} */
+/** @type {import('tailwindcss').Config}
+ * Design token system ported from the forked chatbox codebase (tailwind.config.js)
+ */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        chatbox: {
+          tint: {
+            primary: 'var(--chatbox-tint-primary)',
+            secondary: 'var(--chatbox-tint-secondary)',
+            tertiary: 'var(--chatbox-tint-tertiary)',
+            white: 'var(--chatbox-tint-white)',
+            black: 'var(--chatbox-tint-black)',
+            gray: 'var(--chatbox-tint-gray)',
+            disabled: 'var(--chatbox-tint-disabled)',
+            brand: 'var(--chatbox-tint-brand)',
+            placeholder: 'var(--chatbox-tint-placeholder)',
+            error: 'var(--chatbox-tint-error)',
+            warning: 'var(--chatbox-tint-warning)',
+            success: 'var(--chatbox-tint-success)',
+          },
+          border: {
+            primary: 'var(--chatbox-border-primary)',
+            secondary: 'var(--chatbox-border-secondary)',
+            warning: 'var(--chatbox-border-warning)',
+            error: 'var(--chatbox-border-error)',
+            success: 'var(--chatbox-border-success)',
+            brand: 'var(--chatbox-border-brand)',
+          },
+          background: {
+            primary: 'var(--chatbox-background-primary)',
+            'primary-hover': 'var(--chatbox-background-primary-hover)',
+            secondary: 'var(--chatbox-background-secondary)',
+            'secondary-hover': 'var(--chatbox-background-secondary-hover)',
+            tertiary: 'var(--chatbox-background-tertiary)',
+            disabled: 'var(--chatbox-background-disabled)',
+            'brand-primary': 'var(--chatbox-background-brand-primary)',
+            'brand-primary-hover': 'var(--chatbox-background-brand-primary-hover)',
+            'error-primary': 'var(--chatbox-background-error-primary)',
+            'error-secondary': 'var(--chatbox-background-error-secondary)',
+            'success-primary': 'var(--chatbox-background-success-primary)',
+            'success-secondary': 'var(--chatbox-background-success-secondary)',
+            'warning-primary': 'var(--chatbox-background-warning-primary)',
+            'warning-secondary': 'var(--chatbox-background-warning-secondary)',
+          },
+        },
+      },
+      spacing: {
+        none: 'var(--chatbox-spacing-none)',
+        '3xs': 'var(--chatbox-spacing-3xs)',
+        xxs: 'var(--chatbox-spacing-xxs)',
+        xs: 'var(--chatbox-spacing-xs)',
+        sm: 'var(--chatbox-spacing-sm)',
+        md: 'var(--chatbox-spacing-md)',
+        lg: 'var(--chatbox-spacing-lg)',
+        xl: 'var(--chatbox-spacing-xl)',
+        xxl: 'var(--chatbox-spacing-xxl)',
+      },
+      borderRadius: {
+        none: 'var(--chatbox-radius-none)',
+        xs: 'var(--chatbox-radius-xs)',
+        sm: 'var(--chatbox-radius-sm)',
+        md: 'var(--chatbox-radius-md)',
+        lg: 'var(--chatbox-radius-lg)',
+        xl: 'var(--chatbox-radius-xl)',
+        xxl: 'var(--chatbox-radius-xxl)',
+      },
+      animation: {
+        'fade-in': 'fadeIn 1s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+      },
+    },
   },
   plugins: [],
 }

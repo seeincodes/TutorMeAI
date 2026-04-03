@@ -6,6 +6,7 @@ os.environ["TESTING"] = "1"
 import pytest  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
 
+from app.apps.schema_hash import compute_schema_hash  # noqa: E402
 from app.database import Base, get_engine, get_session_factory, reset_engine  # noqa: E402
 
 _initialized = False
@@ -38,12 +39,14 @@ async def _setup():
                 for u, p, r, d in [("admin","admin123","admin","Admin"),("teacher1","teacher123","teacher","Teacher One"),("student1","student123","student","Student One"),("student2","student234","student","Student Two")]:
                     s.add(User(username=u, password_hash=hash_password(p), display_name=d, role=r, grade=5 if r=="student" else None, allowed_levels=["K-2","3-5"] if r=="student" else None))
                 for aid, n in [("chess","Chess"),("calculator","Math Calculator"),("dictionary","Dictionary"),("weather","Weather"),("flashcards","Flashcard Quiz"),("life-skills","Life Skills")]:
-                    s.add(AppRegistration(app_id=aid, name=n, description=f"{n} app", auth_type="none", iframe_url=f"/apps/{aid}/index.html", tool_schemas=[{"name":"test","description":"Test","parameters":[]}], status="active", is_active=True))
+                    schemas = [{"name":"test","description":"Test","parameters":[]}]
+                    s.add(AppRegistration(app_id=aid, name=n, description=f"{n} app", auth_type="none", iframe_url=f"/apps/{aid}/index.html", tool_schemas=schemas, schema_hash=compute_schema_hash(schemas), schema_version=1, status="active", is_active=True))
+                gc_schemas = [{"name":"test","description":"Test","parameters":[]}]
                 s.add(AppRegistration(
                     app_id="google-classroom", name="Google Classroom",
                     description="Google Classroom integration", auth_type="oauth2",
                     iframe_url="/apps/google-classroom/index.html",
-                    tool_schemas=[{"name":"test","description":"Test","parameters":[]}],
+                    tool_schemas=gc_schemas, schema_hash=compute_schema_hash(gc_schemas), schema_version=1,
                     oauth_config={
                         "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
                         "token_url": "https://oauth2.googleapis.com/token",
@@ -85,6 +88,15 @@ async def student2_client():
     from app.main import app
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", cookies={}) as ac:
         resp = await ac.post("/api/auth/login", json={"username":"student2","password":"student234"})
+        for k, v in resp.cookies.items():
+            ac.cookies.set(k, v)
+        yield ac
+
+@pytest.fixture
+async def admin_client():
+    from app.main import app
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", cookies={}) as ac:
+        resp = await ac.post("/api/auth/login", json={"username": "admin", "password": "admin123"})
         for k, v in resp.cookies.items():
             ac.cookies.set(k, v)
         yield ac

@@ -5,19 +5,18 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
 from app.apps.router import router as apps_router
 from app.auth.router import router as auth_router, users_router
+from app.auth.tokens import decode_token
 from app.config import settings
 from app.conversations.router import router as conversations_router
 from app.oauth.router import router as oauth_router
 from app.teacher.router import router as teacher_router
 from app.classroom.router import router as classroom_router
-
-limiter = Limiter(key_func=get_remote_address, enabled=not os.environ.get("TESTING"))
+from app.rate_limit import limiter
 
 app = FastAPI(
     title="ChatBridge API",
@@ -62,6 +61,57 @@ class SecurityHeadersMiddleware:
         await self.app(scope, receive, send_with_headers)
 
 
+class AppAuthMiddleware:
+    """ASGI middleware that requires a valid access_token cookie for /apps/* paths."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        path = scope.get("path", "")
+        if not path.startswith("/apps/"):
+            await self.app(scope, receive, send)
+            return
+
+        # Extract access_token from cookies
+        headers = dict(scope.get("headers", []))
+        cookie_header = headers.get(b"cookie", b"").decode()
+        token = None
+        for part in cookie_header.split(";"):
+            part = part.strip()
+            if part.startswith("access_token="):
+                token = part[len("access_token="):]
+                break
+
+        if not token:
+            await self._send_401(send)
+            return
+
+        payload = decode_token(token)
+        if payload is None or payload.get("type") != "access":
+            await self._send_401(send)
+            return
+
+        await self.app(scope, receive, send)
+
+    @staticmethod
+    async def _send_401(send):
+        await send({
+            "type": "http.response.start",
+            "status": 401,
+            "headers": [(b"content-type", b"application/json")],
+        })
+        await send({
+            "type": "http.response.body",
+            "body": b'{"detail":"Not authenticated"}',
+        })
+
+
+app.add_middleware(AppAuthMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 
 app.add_middleware(
