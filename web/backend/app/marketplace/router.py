@@ -7,7 +7,7 @@ from app.apps.schema_hash import compute_schema_hash
 from app.apps.schemas import ToolSchema
 from app.auth.dependencies import get_current_user, require_role
 from app.database import get_db
-from app.models import AppRegistration, ToolInvocation, User
+from app.models import AppContentScreen, AppRegistration, ToolInvocation, User
 
 router = APIRouter(prefix="/api/marketplace", tags=["marketplace"])
 
@@ -206,3 +206,45 @@ async def list_catalog(
         )
         for a in apps
     ]
+
+
+@router.get("/screening-queue")
+async def screening_queue(
+    current_user: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+) -> list[dict]:
+    """List apps with pending content screens or high flag counts."""
+    result = await db.execute(
+        select(AppRegistration).where(AppRegistration.flag_count > 0).order_by(AppRegistration.flag_count.desc())
+    )
+    apps = result.scalars().all()
+    return [
+        {
+            "app_id": a.app_id,
+            "name": a.name,
+            "flag_count": a.flag_count,
+            "auto_suspend_threshold": a.auto_suspend_threshold,
+            "is_active": a.is_active,
+        }
+        for a in apps
+    ]
+
+
+@router.post("/{app_id}/clear-flags")
+async def clear_flags(
+    app_id: str,
+    current_user: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Reset an app's flag count and reactivate it."""
+    result = await db.execute(
+        select(AppRegistration).where(AppRegistration.app_id == app_id)
+    )
+    app_reg = result.scalar_one_or_none()
+    if not app_reg:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
+
+    app_reg.flag_count = 0
+    app_reg.is_active = True
+    await db.commit()
+    return {"app_id": app_id, "flag_count": 0, "is_active": True}

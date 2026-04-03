@@ -100,6 +100,17 @@ async def create_flag(
         conversation_id=body.conversation_id,
     )
     db.add(flag)
+
+    # Increment flag_count and auto-suspend if threshold reached
+    result = await db.execute(
+        select(AppRegistration).where(AppRegistration.app_id == body.app_id)
+    )
+    app_reg = result.scalar_one_or_none()
+    if app_reg:
+        app_reg.flag_count = (app_reg.flag_count or 0) + 1
+        if app_reg.flag_count >= app_reg.auto_suspend_threshold:
+            app_reg.is_active = False
+
     await db.commit()
     return {"status": "flagged"}
 

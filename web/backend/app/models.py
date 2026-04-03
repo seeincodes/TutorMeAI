@@ -134,6 +134,9 @@ class AppRegistration(Base):
     # Server-side relay
     server_api_url: Mapped[str | None] = mapped_column(Text)
     signing_secret: Mapped[str | None] = mapped_column(Text)
+    # Content screening
+    flag_count: Mapped[int] = mapped_column(Integer, default=0)
+    auto_suspend_threshold: Mapped[int] = mapped_column(Integer, default=10)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
@@ -236,4 +239,21 @@ class DistrictAppApproval(Base):
     __table_args__ = (
         UniqueConstraint("district_id", "app_id", name="uq_district_app_approvals_district_app"),
         CheckConstraint("status IN ('approved', 'revoked', 'pending')", name="ck_district_app_approvals_status"),
+    )
+
+
+class AppContentScreen(Base):
+    __tablename__ = "app_content_screens"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    app_id: Mapped[str] = mapped_column(Text, nullable=False)
+    screen_type: Mapped[str] = mapped_column(Text, nullable=False)
+    result: Mapped[str] = mapped_column(Text, nullable=False)
+    flagged: Mapped[bool] = mapped_column(Boolean, default=False)
+    details: Mapped[dict | None] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        CheckConstraint("screen_type IN ('moderation_api', 'screenshot_diff', 'manual_review')", name="ck_app_content_screens_type"),
+        CheckConstraint("result IN ('pass', 'fail', 'review_needed')", name="ck_app_content_screens_result"),
     )
