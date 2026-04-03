@@ -28,6 +28,8 @@ interface SidebarProps {
   onSelectConversation: (id: string) => void
   onNewConversation: () => void
   onToggleStar: (id: string, starred: boolean) => void
+  onRename: (id: string, title: string) => void
+  onCopy: (id: string) => void
   onDelete: (id: string) => void
   onAppLaunch: (appId: string) => void
   availableApps: AppInfo[]
@@ -46,6 +48,8 @@ export default function Sidebar({
   onSelectConversation,
   onNewConversation,
   onToggleStar,
+  onRename,
+  onCopy,
   onDelete,
   onAppLaunch,
   availableApps,
@@ -129,27 +133,35 @@ export default function Sidebar({
             <div
               key={conv.id}
               className={cn(
-                'group/conv mb-0.5 flex items-center rounded-md transition-colors',
+                'group/conv mb-0.5 flex items-center gap-2.5 rounded-sm px-xs py-2.5 cursor-pointer transition-colors',
                 activeConversation === conv.id
                   ? 'bg-chatbox-background-brand-secondary'
                   : 'hover:bg-chatbox-background-secondary'
               )}
+              onClick={() => onSelectConversation(conv.id)}
             >
-              <button
-                onClick={() => onSelectConversation(conv.id)}
-                className={cn(
-                  'flex-1 truncate px-3 py-2 text-left text-sm',
-                  activeConversation === conv.id
-                    ? 'text-chatbox-tint-brand font-medium'
-                    : 'text-chatbox-tint-secondary'
-                )}
-              >
+              {/* Chat avatar — matches chatbox AssistantAvatar */}
+              <div className={cn(
+                'flex h-5 w-5 shrink-0 items-center justify-center',
+                activeConversation === conv.id ? 'text-chatbox-tint-brand' : 'text-chatbox-tint-tertiary'
+              )}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <span className={cn(
+                'flex-1 truncate text-sm',
+                activeConversation === conv.id
+                  ? 'text-chatbox-tint-brand font-medium'
+                  : 'text-chatbox-tint-primary'
+              )}>
                 {conv.title || 'New conversation'}
-              </button>
+              </span>
               <ConversationActions
                 conversationId={conv.id}
+                title={conv.title || 'New conversation'}
                 starred={conv.starred}
                 onToggleStar={onToggleStar}
+                onRename={onRename}
+                onCopy={onCopy}
                 onDelete={onDelete}
               />
             </div>
@@ -184,22 +196,57 @@ export default function Sidebar({
   )
 }
 
+/** Menu item row matching Mantine Menu.Item visual style */
+function MenuItem({
+  icon,
+  label,
+  color = 'text-chatbox-tint-primary',
+  onClick,
+}: {
+  icon: React.ReactNode
+  label: string
+  color?: string
+  onClick: (e: React.MouseEvent) => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'flex w-full items-center gap-2.5 rounded-sm px-3 py-[7px] text-[13px] transition-colors hover:bg-chatbox-background-secondary',
+        color
+      )}
+    >
+      <span className="flex h-[14px] w-[14px] shrink-0 items-center justify-center">{icon}</span>
+      {label}
+    </button>
+  )
+}
+
 function ConversationActions({
   conversationId,
+  title,
   starred,
   onToggleStar,
+  onRename,
+  onCopy,
   onDelete,
 }: {
   conversationId: string
+  title: string
   starred: boolean
   onToggleStar: (id: string, starred: boolean) => void
+  onRename: (id: string, title: string) => void
+  onCopy: (id: string) => void
   onDelete: (id: string) => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [renaming, setRenaming] = useState(false)
+  const [renameValue, setRenameValue] = useState(title)
   const menuRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const renameInputRef = useRef<HTMLInputElement>(null)
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
 
   // Close menu on outside click
@@ -212,73 +259,133 @@ function ConversationActions({
       if (!inTrigger && !inDropdown) {
         setMenuOpen(false)
         setConfirmDelete(false)
+        setRenaming(false)
       }
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [menuOpen])
 
-  // Reset confirm state after 5s (matches chatbox timeout)
+  // Reset confirm state after 5s (matches chatbox DoubleCheckMenuItem timeout)
   useEffect(() => {
     if (!confirmDelete) return
     const tid = setTimeout(() => setConfirmDelete(false), 5000)
     return () => clearTimeout(tid)
   }, [confirmDelete])
 
+  // Focus rename input when entering rename mode
+  useEffect(() => {
+    if (renaming) renameInputRef.current?.focus()
+  }, [renaming])
+
   return (
-    <div className="relative shrink-0 mr-1" ref={menuRef}>
-      {/* Trigger: filled star if starred, dots if not */}
+    <div className="relative shrink-0" ref={menuRef}>
+      {/* Trigger: filled star if starred, dots (⋯) if not — matches chatbox SessionItem */}
       <button
         ref={triggerRef}
         onClick={(e) => {
           e.stopPropagation()
           if (!menuOpen && triggerRef.current) {
             const rect = triggerRef.current.getBoundingClientRect()
-            setMenuPos({ top: rect.bottom + 4, left: rect.right - 144 })
+            setMenuPos({ top: rect.bottom + 4, left: Math.max(4, rect.right - 160) })
           }
           setMenuOpen(m => !m)
           setConfirmDelete(false)
+          setRenaming(false)
         }}
         className={cn(
-          'rounded p-1 transition-colors',
+          'rounded p-0.5 transition-colors',
           starred
             ? 'text-chatbox-tint-brand'
             : 'text-chatbox-tint-tertiary opacity-0 group-hover/conv:opacity-100',
-          menuOpen && 'opacity-100'
+          menuOpen && '!opacity-100'
         )}
         aria-label="Conversation actions"
       >
         {starred ? (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
         ) : (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
         )}
       </button>
 
-      {/* Dropdown menu */}
+      {/* Dropdown menu — styled to match Mantine Menu.Dropdown */}
       {menuOpen && (
         <div
           ref={dropdownRef}
-          className="fixed z-50 w-36 rounded-md border border-chatbox-border-primary bg-chatbox-background-primary py-1 shadow-lg"
+          className="fixed z-50 min-w-[150px] rounded-md border border-chatbox-border-primary bg-chatbox-background-primary py-1 shadow-lg"
           style={{ top: menuPos.top, left: menuPos.left }}
+          onClick={(e) => e.stopPropagation()}
         >
-          <button
+          {/* Rename — inline input when active, menu item otherwise */}
+          {renaming ? (
+            <form
+              className="px-2 py-1"
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (renameValue.trim()) {
+                  onRename(conversationId, renameValue.trim())
+                }
+                setRenaming(false)
+                setMenuOpen(false)
+              }}
+            >
+              <input
+                ref={renameInputRef}
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') { setRenaming(false); setMenuOpen(false) }
+                }}
+                className="w-full rounded border border-chatbox-border-brand bg-chatbox-background-primary px-2 py-1 text-[13px] text-chatbox-tint-primary outline-none"
+              />
+            </form>
+          ) : (
+            <MenuItem
+              icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>}
+              label="Edit"
+              onClick={() => { setRenameValue(title); setRenaming(true) }}
+            />
+          )}
+
+          {/* Copy */}
+          <MenuItem
+            icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>}
+            label="Copy"
+            onClick={(e) => {
+              e.stopPropagation()
+              onCopy(conversationId)
+              setMenuOpen(false)
+            }}
+          />
+
+          {/* Star/Unstar */}
+          <MenuItem
+            icon={starred ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            )}
+            label={starred ? 'Unstar' : 'Star'}
             onClick={(e) => {
               e.stopPropagation()
               onToggleStar(conversationId, !starred)
               setMenuOpen(false)
             }}
-            className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-chatbox-tint-secondary hover:bg-chatbox-background-secondary"
-          >
-            {starred ? (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            )}
-            {starred ? 'Unstar' : 'Star'}
-          </button>
+          />
+
+          {/* Divider */}
           <div className="mx-2 my-1 border-t border-chatbox-border-primary" />
-          <button
+
+          {/* Delete with double-check — matches chatbox DoubleCheckMenuItem */}
+          <MenuItem
+            icon={confirmDelete ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5"/></svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            )}
+            label={confirmDelete ? 'Confirm?' : 'Delete'}
+            color="text-chatbox-tint-error"
             onClick={(e) => {
               e.stopPropagation()
               if (confirmDelete) {
@@ -289,25 +396,7 @@ function ConversationActions({
                 setConfirmDelete(true)
               }
             }}
-            className={cn(
-              'flex w-full items-center gap-2 px-3 py-1.5 text-xs',
-              confirmDelete
-                ? 'text-chatbox-tint-error font-medium'
-                : 'text-chatbox-tint-error hover:bg-chatbox-background-error-secondary'
-            )}
-          >
-            {confirmDelete ? (
-              <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5"/></svg>
-                Confirm?
-              </>
-            ) : (
-              <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                Delete
-              </>
-            )}
-          </button>
+          />
         </div>
       )}
     </div>

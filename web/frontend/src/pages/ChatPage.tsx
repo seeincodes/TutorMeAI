@@ -302,6 +302,15 @@ export default function ChatPage() {
             await api.updateConversation(id, { starred })
             setConversations(prev => prev.map(c => c.id === id ? { ...c, starred } : c))
           }}
+          onRename={async (id, title) => {
+            await api.updateConversation(id, { title })
+            setConversations(prev => prev.map(c => c.id === id ? { ...c, title } : c))
+          }}
+          onCopy={async (id) => {
+            const copy = await api.copyConversation(id)
+            setConversations(prev => [copy, ...prev])
+            setActiveConversation(copy.id)
+          }}
           onDelete={async (id) => {
             await api.deleteConversation(id)
             setConversations(prev => prev.filter(c => c.id !== id))

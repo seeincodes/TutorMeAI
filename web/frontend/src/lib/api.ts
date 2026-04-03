@@ -79,6 +79,9 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
+  copyConversation: (conversationId: string) =>
+    request<Conversation>(`/conversations/${conversationId}/copy`, { method: 'POST' }),
+
   deleteConversation: (conversationId: string) =>
     request<void>(`/conversations/${conversationId}`, { method: 'DELETE' }),
 
