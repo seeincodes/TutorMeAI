@@ -4,6 +4,7 @@ import { api, type AppInfo, type Conversation, type Message } from '@/lib/api'
 import AppIframe, { type AppIframeHandle } from '@/components/AppIframe'
 import ChatMessage from '@/components/ChatMessage'
 import Sidebar from '@/components/Sidebar'
+import { APP_DISPLAY, sortApps } from '@/lib/apps'
 
 interface AppState {
   appId: string
@@ -133,16 +134,6 @@ export default function ChatPage() {
     }
     const qs = params.toString()
     return `/apps/${appId}/index.html${qs ? `?${qs}` : ''}`
-  }
-
-  const APP_DISPLAY: Record<string, { label: string; emoji: string; prompt: string }> = {
-    calculator: { label: 'Math Helper', emoji: '🧮', prompt: 'I want to use the calculator' },
-    chess: { label: 'Chess', emoji: '♟️', prompt: 'Let\'s play chess' },
-    dictionary: { label: 'Reading & Vocabulary', emoji: '📖', prompt: 'I want to look up a word in the dictionary' },
-    weather: { label: 'Weather', emoji: '🌤️', prompt: 'Open the weather app' },
-    flashcards: { label: 'Flashcards', emoji: '🗂️', prompt: 'I want to study with flashcards' },
-    'life-skills': { label: 'Level Up Life', emoji: '🎮', prompt: 'I want to play Level Up Life' },
-    'google-classroom': { label: 'Google Classroom', emoji: '🎓', prompt: 'Open Google Classroom' },
   }
 
   async function handleAppLaunch(appId: string) {
@@ -347,19 +338,19 @@ export default function ChatPage() {
           <div className="flex-1 overflow-y-auto px-4 py-6">
             {visibleMessages.length === 0 && !streaming ? (
               /* ---- Welcome screen ---- */
-              <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center">
+              <div className="mx-auto flex h-full max-w-xl flex-col items-center justify-center px-4">
                 <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-chatbox-background-brand-primary">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 </div>
                 <h2 className="mb-1 text-2xl font-bold text-chatbox-tint-primary">
                   Hi{user?.display_name ? `, ${user.display_name}` : ''}!
                 </h2>
-                <p className="mb-8 text-center text-sm text-chatbox-tint-tertiary">
+                <p className="mb-6 text-center text-sm text-chatbox-tint-tertiary">
                   What would you like to do today? Pick an app or just start chatting.
                 </p>
                 {availableApps.length > 0 && (
-                  <div className="grid w-full max-w-lg grid-cols-2 gap-3 sm:grid-cols-3">
-                    {availableApps.map(app => {
+                  <div className="grid w-full grid-cols-2 gap-2.5 sm:grid-cols-4">
+                    {sortApps(availableApps).map(app => {
                       const display = APP_DISPLAY[app.app_id]
                       if (!display) return null
                       return (
@@ -367,9 +358,9 @@ export default function ChatPage() {
                           key={app.app_id}
                           onClick={() => handleAppLaunch(app.app_id)}
                           disabled={streaming}
-                          className="group flex flex-col items-center gap-2.5 rounded-xl border border-chatbox-border-primary bg-chatbox-background-primary px-4 py-5 text-sm font-medium text-chatbox-tint-secondary shadow-sm transition-all hover:border-chatbox-border-brand hover:bg-chatbox-background-brand-secondary hover:text-chatbox-tint-brand hover:shadow-md disabled:opacity-50"
+                          className="group flex flex-col items-center gap-2 rounded-xl border border-chatbox-border-primary bg-chatbox-background-primary px-3 py-4 text-xs font-medium text-chatbox-tint-secondary shadow-sm transition-all hover:border-chatbox-border-brand hover:bg-chatbox-background-brand-secondary hover:text-chatbox-tint-brand hover:shadow-md disabled:opacity-50"
                         >
-                          <span className="text-3xl transition-transform group-hover:scale-110">{display.emoji}</span>
+                          <span className="flex h-8 w-8 items-center justify-center text-2xl leading-none transition-transform group-hover:scale-110">{display.emoji}</span>
                           <span>{display.label}</span>
                         </button>
                       )

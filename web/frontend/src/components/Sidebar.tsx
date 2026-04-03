@@ -8,19 +8,10 @@
  */
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { APP_DISPLAY, sortApps } from '@/lib/apps'
 import type { Conversation, AppInfo } from '@/lib/api'
 
 const MAX_VISIBLE_APPS = 4
-
-const APP_DISPLAY: Record<string, { label: string; emoji: string }> = {
-  calculator: { label: 'Math Helper', emoji: '🧮' },
-  chess: { label: 'Chess', emoji: '♟️' },
-  dictionary: { label: 'Reading & Vocab', emoji: '📖' },
-  weather: { label: 'Weather', emoji: '🌤️' },
-  flashcards: { label: 'Flashcards', emoji: '🗂️' },
-  'life-skills': { label: 'Level Up Life', emoji: '🎮' },
-  'google-classroom': { label: 'Classroom', emoji: '🎓' },
-}
 
 interface SidebarProps {
   conversations: Conversation[]
@@ -140,21 +131,26 @@ export default function Sidebar({
               )}
               onClick={() => onSelectConversation(conv.id)}
             >
-              {/* Chat avatar — matches chatbox AssistantAvatar */}
+              {/* Chat avatar */}
               <div className={cn(
                 'flex h-5 w-5 shrink-0 items-center justify-center',
                 activeConversation === conv.id ? 'text-chatbox-tint-brand' : 'text-chatbox-tint-tertiary'
               )}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               </div>
-              <span className={cn(
-                'flex-1 truncate text-sm',
-                activeConversation === conv.id
-                  ? 'text-chatbox-tint-brand font-medium'
-                  : 'text-chatbox-tint-primary'
-              )}>
-                {conv.title || 'New conversation'}
-              </span>
+              <div className="flex flex-1 flex-col overflow-hidden">
+                <span className={cn(
+                  'truncate text-sm',
+                  activeConversation === conv.id
+                    ? 'text-chatbox-tint-brand font-medium'
+                    : 'text-chatbox-tint-primary'
+                )}>
+                  {conv.title || 'New conversation'}
+                </span>
+                <span className="text-[11px] text-chatbox-tint-tertiary">
+                  {formatRelativeTime(conv.updated_at)}
+                </span>
+              </div>
               <ConversationActions
                 conversationId={conv.id}
                 title={conv.title || 'New conversation'}
@@ -403,10 +399,24 @@ function ConversationActions({
   )
 }
 
+function formatRelativeTime(dateStr: string): string {
+  const now = Date.now()
+  const then = new Date(dateStr).getTime()
+  const diff = now - then
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d ago`
+  return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
 function AppsSection({ apps, onAppLaunch }: { apps: AppInfo[]; onAppLaunch: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false)
 
-  const displayableApps = apps.filter(a => APP_DISPLAY[a.app_id])
+  const displayableApps = sortApps(apps.filter(a => APP_DISPLAY[a.app_id]))
   const needsExpand = displayableApps.length > MAX_VISIBLE_APPS
   const visibleApps = expanded ? displayableApps : displayableApps.slice(0, MAX_VISIBLE_APPS)
   const hiddenCount = displayableApps.length - MAX_VISIBLE_APPS
@@ -421,11 +431,11 @@ function AppsSection({ apps, onAppLaunch }: { apps: AppInfo[]; onAppLaunch: (id:
             <button
               key={app.app_id}
               onClick={() => onAppLaunch(app.app_id)}
-              className="flex items-center gap-1 rounded-md border border-chatbox-border-primary bg-chatbox-background-primary px-2 py-1 text-xs text-chatbox-tint-secondary hover:border-chatbox-border-brand hover:bg-chatbox-background-brand-secondary transition-colors"
+              className="flex items-center gap-1.5 rounded-md border border-chatbox-border-primary bg-chatbox-background-primary px-2.5 py-1.5 text-xs text-chatbox-tint-secondary hover:border-chatbox-border-brand hover:bg-chatbox-background-brand-secondary transition-colors"
               title={display.label}
             >
-              <span>{display.emoji}</span>
-              <span className="max-w-[5rem] truncate">{display.label}</span>
+              <span className="text-sm leading-none">{display.emoji}</span>
+              <span>{display.shortLabel}</span>
             </button>
           )
         })}
