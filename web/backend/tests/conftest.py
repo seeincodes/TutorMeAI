@@ -1,6 +1,7 @@
 import os
 
-os.environ["DATABASE_URL"] = "postgresql+asyncpg://xian@localhost:5432/chatbridge_test"
+if "DATABASE_URL" not in os.environ:
+    os.environ["DATABASE_URL"] = "postgresql+asyncpg://xian@localhost:5432/chatbridge_test"
 os.environ["TESTING"] = "1"
 
 import pytest  # noqa: E402
