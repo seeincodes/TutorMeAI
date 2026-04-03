@@ -18,6 +18,7 @@ from app.teacher.router import router as teacher_router
 from app.classroom.router import router as classroom_router
 from app.districts.router import router as districts_router
 from app.marketplace.router import router as marketplace_router
+from app.scaling.router import router as scaling_router
 from app.rate_limit import limiter
 
 app = FastAPI(
@@ -134,6 +135,7 @@ app.include_router(teacher_router)
 app.include_router(classroom_router)
 app.include_router(districts_router)
 app.include_router(marketplace_router)
+app.include_router(scaling_router)
 
 
 @app.get("/api/health")

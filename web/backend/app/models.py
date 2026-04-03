@@ -24,6 +24,8 @@ class District(Base):
     name: Mapped[str] = mapped_column(Text, nullable=False)
     state: Mapped[str | None] = mapped_column(Text)
     settings: Mapped[dict | None] = mapped_column(JSONB)
+    daily_token_budget: Mapped[int] = mapped_column(Integer, default=100000)
+    tokens_used_today: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     users: Mapped[list["User"]] = relationship(back_populates="district")
