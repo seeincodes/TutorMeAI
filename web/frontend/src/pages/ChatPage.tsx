@@ -352,9 +352,11 @@ export default function ChatPage() {
                   Hi{user?.display_name ? `, ${user.display_name}` : ''}!
                 </h2>
                 <p className="mb-6 text-center text-sm text-chatbox-tint-tertiary">
-                  What would you like to do today? Pick an app or just start chatting.
+                  {user?.role === 'student'
+                    ? 'What would you like to do today? Pick an app or just start chatting.'
+                    : 'Start a conversation or head to the dashboard.'}
                 </p>
-                {availableApps.length > 0 && (
+                {user?.role === 'student' && availableApps.length > 0 && (
                   <div className="grid w-full grid-cols-2 gap-2.5 sm:grid-cols-4">
                     {sortApps(availableApps).map(app => {
                       const display = APP_DISPLAY[app.app_id]
