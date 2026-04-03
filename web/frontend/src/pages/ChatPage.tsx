@@ -424,7 +424,7 @@ export default function ChatPage() {
           </div>
 
           {/* Input bar */}
-          <div className="border-t border-chatbox-border-primary bg-chatbox-background-primary px-4 py-3">
+          <div className="bg-chatbox-background-primary px-4 py-3">
             <form onSubmit={handleSend} className="mx-auto flex max-w-2xl items-end gap-2">
               <label htmlFor="chat-input" className="sr-only">Message</label>
               <textarea
