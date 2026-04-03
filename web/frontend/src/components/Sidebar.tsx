@@ -111,8 +111,8 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* Apps section */}
-      {availableApps.length > 0 && (
+      {/* Apps section — students only */}
+      {role === 'student' && availableApps.length > 0 && (
         <AppsSection apps={availableApps} onAppLaunch={onAppLaunch} />
       )}
 
