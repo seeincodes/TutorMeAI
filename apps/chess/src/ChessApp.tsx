@@ -11,12 +11,12 @@ type Difficulty = 'beginner' | 'intermediate' | 'advanced' | 'grandmaster'
 
 const DIFFICULTY_CONFIG: Record<Difficulty, {
   label: string; emoji: string; desc: string;
-  skillLevel: number; depth: number; moveTime: number
+  skillLevel: number; depth: number; moveTime: number; randomChance: number
 }> = {
-  beginner:     { label: 'Beginner',     emoji: '🌱', desc: 'Makes mistakes on purpose',  skillLevel: 0,  depth: 1,  moveTime: 100 },
-  intermediate: { label: 'Intermediate', emoji: '⭐', desc: 'Plays decent moves',        skillLevel: 5,  depth: 5,  moveTime: 300 },
-  advanced:     { label: 'Advanced',     emoji: '🔥', desc: 'Strong positional play',    skillLevel: 12, depth: 10, moveTime: 500 },
-  grandmaster:  { label: 'Grandmaster',  emoji: '👑', desc: 'Best move every time',      skillLevel: 20, depth: 15, moveTime: 1000 },
+  beginner:     { label: 'Beginner',     emoji: '🌱', desc: 'Makes mistakes on purpose',  skillLevel: 0,  depth: 1,  moveTime: 50,   randomChance: 0.6 },
+  intermediate: { label: 'Intermediate', emoji: '⭐', desc: 'Plays decent moves',        skillLevel: 3,  depth: 3,  moveTime: 150,  randomChance: 0.15 },
+  advanced:     { label: 'Advanced',     emoji: '🔥', desc: 'Strong positional play',    skillLevel: 10, depth: 10, moveTime: 500,  randomChance: 0 },
+  grandmaster:  { label: 'Grandmaster',  emoji: '👑', desc: 'Best move every time',      skillLevel: 20, depth: 20, moveTime: 2000, randomChance: 0 },
 }
 
 export default function ChessApp() {
@@ -71,21 +71,37 @@ export default function ChessApp() {
     setThinking(true)
     setStatus('AI is thinking...')
 
+    // Minimum delay so AI moves feel deliberate, not instant
+    const minDelay = diff === 'beginner' ? 800 : diff === 'intermediate' ? 600 : 400
+    const delayPromise = new Promise(r => setTimeout(r, minDelay))
+
     try {
       const config = DIFFICULTY_CONFIG[diff]
-      const bestMoveUci = await getBestMove(currentGame.fen(), {
-        skillLevel: config.skillLevel,
-        depth: config.depth,
-        moveTime: config.moveTime,
-      })
-
-      // bestMoveUci is in long algebraic notation e.g. "e2e4" or "e7e8q"
-      const from = bestMoveUci.slice(0, 2)
-      const to = bestMoveUci.slice(2, 4)
-      const promotion = bestMoveUci.length > 4 ? bestMoveUci[4] : undefined
-
       const gameCopy = new Chess(currentGame.fen())
-      const aiMove = gameCopy.move({ from, to, promotion } as { from: Square; to: Square; promotion?: string })
+      let aiMove
+
+      // At lower difficulties, sometimes pick a random legal move instead of using Stockfish
+      if (config.randomChance > 0 && Math.random() < config.randomChance) {
+        const legalMoves = gameCopy.moves({ verbose: true })
+        aiMove = legalMoves[Math.floor(Math.random() * legalMoves.length)]
+        await delayPromise
+        gameCopy.move(aiMove.san)
+      } else {
+        const [bestMoveUci] = await Promise.all([
+          getBestMove(currentGame.fen(), {
+            skillLevel: config.skillLevel,
+            depth: config.depth,
+            moveTime: config.moveTime,
+          }),
+          delayPromise,
+        ])
+
+        // bestMoveUci is in long algebraic notation e.g. "e2e4" or "e7e8q"
+        const from = bestMoveUci.slice(0, 2)
+        const to = bestMoveUci.slice(2, 4)
+        const promotion = bestMoveUci.length > 4 ? bestMoveUci[4] : undefined
+        aiMove = gameCopy.move({ from, to, promotion } as { from: Square; to: Square; promotion?: string })
+      }
 
       if (!aiMove) {
         setThinking(false)
@@ -289,18 +305,16 @@ export default function ChessApp() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '12px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '12px', width: '364px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', height: '20px', width: '100%', overflow: 'hidden' }}>
         <span style={{ background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '4px', fontWeight: 500 }}>
           {DIFFICULTY_CONFIG[difficulty!]?.emoji} {DIFFICULTY_CONFIG[difficulty!]?.label}
         </span>
         <span style={{ color: '#6b7280' }}>{status}</span>
       </div>
-      {thinking && (
-        <div style={{ fontSize: '12px', color: '#6b7280', fontStyle: 'italic' }}>
-          Thinking...
-        </div>
-      )}
+      <div style={{ fontSize: '12px', color: '#6b7280', fontStyle: 'italic', height: '18px' }}>
+        {thinking ? 'Thinking...' : '\u00A0'}
+      </div>
       <Chessboard
         position={game.fen()}
         onPieceDrop={(s, t) => makeMove(s, t)}
@@ -309,6 +323,7 @@ export default function ChessApp() {
         boardWidth={340}
         arePiecesDraggable={gameStarted && !thinking}
         customSquareStyles={highlightSquares}
+        animationDuration={300}
       />
       <button
         onClick={() => { setGameStarted(false); setDifficulty(null) }}
