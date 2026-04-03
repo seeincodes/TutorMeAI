@@ -6,8 +6,11 @@
  * i18n, task mode, image generation, copilots. Uses Tailwind + our
  * design tokens. Keeps the visual layout and conversation list pattern.
  */
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { Conversation, AppInfo } from '@/lib/api'
+
+const MAX_VISIBLE_APPS = 4
 
 const APP_DISPLAY: Record<string, { label: string; emoji: string }> = {
   calculator: { label: 'Math Helper', emoji: '🧮' },
@@ -103,26 +106,7 @@ export default function Sidebar({
 
       {/* Apps section */}
       {availableApps.length > 0 && (
-        <div className="px-3 pt-3">
-          <h3 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wider text-chatbox-tint-tertiary">Apps</h3>
-          <div className="flex flex-wrap gap-1.5">
-            {availableApps.map(app => {
-              const display = APP_DISPLAY[app.app_id]
-              if (!display) return null
-              return (
-                <button
-                  key={app.app_id}
-                  onClick={() => onAppLaunch(app.app_id)}
-                  className="flex items-center gap-1 rounded-md border border-chatbox-border-primary bg-chatbox-background-primary px-2 py-1 text-xs text-chatbox-tint-secondary hover:border-chatbox-border-brand hover:bg-chatbox-background-brand-secondary transition-colors"
-                  title={display.label}
-                >
-                  <span>{display.emoji}</span>
-                  <span className="max-w-[5rem] truncate">{display.label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
+        <AppsSection apps={availableApps} onAppLaunch={onAppLaunch} />
       )}
 
       {/* Conversation list */}
@@ -208,5 +192,54 @@ export default function Sidebar({
         </div>
       </div>
     </aside>
+  )
+}
+
+function AppsSection({ apps, onAppLaunch }: { apps: AppInfo[]; onAppLaunch: (id: string) => void }) {
+  const [expanded, setExpanded] = useState(false)
+
+  const displayableApps = apps.filter(a => APP_DISPLAY[a.app_id])
+  const needsExpand = displayableApps.length > MAX_VISIBLE_APPS
+  const visibleApps = expanded ? displayableApps : displayableApps.slice(0, MAX_VISIBLE_APPS)
+  const hiddenCount = displayableApps.length - MAX_VISIBLE_APPS
+
+  return (
+    <div className="px-3 pt-3">
+      <h3 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wider text-chatbox-tint-tertiary">Apps</h3>
+      <div className="flex flex-wrap gap-1.5">
+        {visibleApps.map(app => {
+          const display = APP_DISPLAY[app.app_id]!
+          return (
+            <button
+              key={app.app_id}
+              onClick={() => onAppLaunch(app.app_id)}
+              className="flex items-center gap-1 rounded-md border border-chatbox-border-primary bg-chatbox-background-primary px-2 py-1 text-xs text-chatbox-tint-secondary hover:border-chatbox-border-brand hover:bg-chatbox-background-brand-secondary transition-colors"
+              title={display.label}
+            >
+              <span>{display.emoji}</span>
+              <span className="max-w-[5rem] truncate">{display.label}</span>
+            </button>
+          )
+        })}
+        {needsExpand && (
+          <button
+            onClick={() => setExpanded(e => !e)}
+            className="flex items-center gap-1 rounded-md border border-chatbox-border-primary bg-chatbox-background-secondary px-2 py-1 text-xs text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary-hover transition-colors"
+          >
+            {expanded ? (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6"/></svg>
+                Less
+              </>
+            ) : (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+                +{hiddenCount} more
+              </>
+            )}
+          </button>
+        )}
+      </div>
+    </div>
   )
 }
