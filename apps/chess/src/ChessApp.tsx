@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
-import { Chess, type Square, type Move } from 'chess.js'
+import { useState, useCallback, useEffect } from 'react'
+import { Chess, type Square } from 'chess.js'
 import { Chessboard } from 'react-chessboard'
+import { useStockfish } from './useStockfish'
 
 function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
   window.parent.postMessage({ type, correlationId, data }, '*')
@@ -8,94 +9,18 @@ function sendToPlatform(type: string, correlationId: string, data: Record<string
 
 type Difficulty = 'beginner' | 'intermediate' | 'advanced' | 'grandmaster'
 
-const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; emoji: string; desc: string; depth: number; randomness: number }> = {
-  beginner:     { label: 'Beginner',     emoji: '🌱', desc: 'Makes mistakes on purpose',  depth: 1, randomness: 0.7 },
-  intermediate: { label: 'Intermediate', emoji: '⭐', desc: 'Plays decent moves',        depth: 2, randomness: 0.3 },
-  advanced:     { label: 'Advanced',     emoji: '🔥', desc: 'Strong positional play',    depth: 3, randomness: 0.05 },
-  grandmaster:  { label: 'Grandmaster',  emoji: '👑', desc: 'Best move every time',      depth: 4, randomness: 0 },
-}
-
-// Piece values for evaluation
-const PIECE_VALUES: Record<string, number> = { p: 1, n: 3, b: 3.2, r: 5, q: 9, k: 0 }
-
-function evaluateBoard(chess: Chess): number {
-  let score = 0
-  const board = chess.board()
-  for (const row of board) {
-    for (const sq of row) {
-      if (!sq) continue
-      const val = PIECE_VALUES[sq.type] || 0
-      // Center bonus
-      const centerBonus = sq.square && ['d4','d5','e4','e5'].includes(sq.square) ? 0.3 : 0
-      score += (sq.color === 'w' ? 1 : -1) * (val + centerBonus)
-    }
-  }
-  if (chess.isCheckmate()) score += chess.turn() === 'w' ? -1000 : 1000
-  if (chess.isCheck()) score += chess.turn() === 'w' ? -0.5 : 0.5
-  return score
-}
-
-function minimax(chess: Chess, depth: number, alpha: number, beta: number, maximizing: boolean): number {
-  if (depth === 0 || chess.isGameOver()) return evaluateBoard(chess)
-  const moves = chess.moves()
-  if (maximizing) {
-    let maxEval = -Infinity
-    for (const move of moves) {
-      chess.move(move)
-      const eval_ = minimax(chess, depth - 1, alpha, beta, false)
-      chess.undo()
-      maxEval = Math.max(maxEval, eval_)
-      alpha = Math.max(alpha, eval_)
-      if (beta <= alpha) break
-    }
-    return maxEval
-  } else {
-    let minEval = Infinity
-    for (const move of moves) {
-      chess.move(move)
-      const eval_ = minimax(chess, depth - 1, alpha, beta, true)
-      chess.undo()
-      minEval = Math.min(minEval, eval_)
-      beta = Math.min(beta, eval_)
-      if (beta <= alpha) break
-    }
-    return minEval
-  }
-}
-
-function pickAIMove(chess: Chess, difficulty: Difficulty): Move | null {
-  const moves = chess.moves({ verbose: true })
-  if (moves.length === 0) return null
-
-  const config = DIFFICULTY_CONFIG[difficulty]
-
-  // Score each move with minimax
-  const scored = moves.map(m => {
-    const copy = new Chess(chess.fen())
-    copy.move(m.san)
-    const score = minimax(copy, config.depth - 1, -Infinity, Infinity, copy.turn() === 'w')
-    return { move: m, score }
-  })
-
-  // Sort: if AI is black, prefer lower scores; if white, prefer higher
-  const isBlack = chess.turn() === 'b'
-  scored.sort((a, b) => isBlack ? a.score - b.score : b.score - a.score)
-
-  // Add randomness based on difficulty — sometimes pick a suboptimal move
-  if (Math.random() < config.randomness && scored.length > 1) {
-    // Pick a random move from the bottom half (beginner) or middle (intermediate)
-    const pool = difficulty === 'beginner'
-      ? scored.slice(Math.floor(scored.length / 2))
-      : scored.slice(Math.floor(scored.length / 3), Math.floor(scored.length * 2 / 3))
-    if (pool.length > 0) {
-      return pool[Math.floor(Math.random() * pool.length)].move
-    }
-  }
-
-  return scored[0].move
+const DIFFICULTY_CONFIG: Record<Difficulty, {
+  label: string; emoji: string; desc: string;
+  skillLevel: number; depth: number; moveTime: number
+}> = {
+  beginner:     { label: 'Beginner',     emoji: '🌱', desc: 'Makes mistakes on purpose',  skillLevel: 0,  depth: 1,  moveTime: 100 },
+  intermediate: { label: 'Intermediate', emoji: '⭐', desc: 'Plays decent moves',        skillLevel: 5,  depth: 5,  moveTime: 300 },
+  advanced:     { label: 'Advanced',     emoji: '🔥', desc: 'Strong positional play',    skillLevel: 12, depth: 10, moveTime: 500 },
+  grandmaster:  { label: 'Grandmaster',  emoji: '👑', desc: 'Best move every time',      skillLevel: 20, depth: 15, moveTime: 1000 },
 }
 
 export default function ChessApp() {
+  const { ready: stockfishReady, getBestMove, newGame: stockfishNewGame } = useStockfish()
   const [game, setGame] = useState<Chess>(new Chess())
   const [gameStarted, setGameStarted] = useState(false)
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null)
@@ -104,7 +29,6 @@ export default function ChessApp() {
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null)
   const [highlightSquares, setHighlightSquares] = useState<Record<string, React.CSSProperties>>({})
   const [thinking, setThinking] = useState(false)
-  const aiTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const updateStatus = useCallback((g: Chess) => {
     if (g.isCheckmate()) {
@@ -130,6 +54,7 @@ export default function ChessApp() {
     setPlayerColor('white')
     setSelectedSquare(null)
     setHighlightSquares({})
+    stockfishNewGame()
     setStatus('Your turn — click a piece, then click where to move')
     sendToPlatform('state_update', '', {
       type: 'game_start',
@@ -140,20 +65,34 @@ export default function ChessApp() {
   }
 
   // AI makes a move after the player
-  const playAI = useCallback((currentGame: Chess, diff: Difficulty) => {
+  const playAI = useCallback(async (currentGame: Chess, diff: Difficulty) => {
     if (currentGame.isGameOver()) return
 
     setThinking(true)
     setStatus('AI is thinking...')
 
-    // Small delay so the player sees their move first
-    const delay = diff === 'beginner' ? 800 : diff === 'intermediate' ? 600 : 400
-    aiTimeoutRef.current = setTimeout(() => {
-      const aiMove = pickAIMove(currentGame, diff)
-      if (!aiMove) { setThinking(false); return }
+    try {
+      const config = DIFFICULTY_CONFIG[diff]
+      const bestMoveUci = await getBestMove(currentGame.fen(), {
+        skillLevel: config.skillLevel,
+        depth: config.depth,
+        moveTime: config.moveTime,
+      })
+
+      // bestMoveUci is in long algebraic notation e.g. "e2e4" or "e7e8q"
+      const from = bestMoveUci.slice(0, 2)
+      const to = bestMoveUci.slice(2, 4)
+      const promotion = bestMoveUci.length > 4 ? bestMoveUci[4] : undefined
 
       const gameCopy = new Chess(currentGame.fen())
-      gameCopy.move(aiMove.san)
+      const aiMove = gameCopy.move({ from, to, promotion } as { from: Square; to: Square; promotion?: string })
+
+      if (!aiMove) {
+        setThinking(false)
+        setStatus('AI error — your turn')
+        return
+      }
+
       setGame(gameCopy)
       setThinking(false)
 
@@ -177,13 +116,12 @@ export default function ChessApp() {
           difficulty: diff,
         })
       }
-    }, delay)
-  }, [updateStatus])
+    } catch {
+      setThinking(false)
+      setStatus('AI error — your turn')
+    }
+  }, [updateStatus, getBestMove])
 
-  // Cleanup AI timeout on unmount
-  useEffect(() => {
-    return () => { if (aiTimeoutRef.current) clearTimeout(aiTimeoutRef.current) }
-  }, [])
 
   function makeMove(from: string, to: string) {
     if (thinking) return false
@@ -323,16 +261,21 @@ export default function ChessApp() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '24px' }}>
         <div style={{ fontSize: '20px', fontWeight: 600, color: '#374151' }}>Choose Difficulty</div>
-        <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>Pick one that matches your skill level</div>
+        <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
+          {stockfishReady ? 'Pick one that matches your skill level' : 'Loading chess engine...'}
+        </div>
         {(Object.entries(DIFFICULTY_CONFIG) as [Difficulty, typeof DIFFICULTY_CONFIG[Difficulty]][]).map(([key, cfg]) => (
           <button
             key={key}
             onClick={() => startGame(key)}
+            disabled={!stockfishReady}
             style={{
               width: '280px', padding: '16px', borderRadius: '12px', border: '2px solid #e5e7eb',
-              background: 'white', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.15s',
+              background: 'white', cursor: stockfishReady ? 'pointer' : 'not-allowed',
+              textAlign: 'left', transition: 'border-color 0.15s',
+              opacity: stockfishReady ? 1 : 0.5,
             }}
-            onMouseOver={e => (e.currentTarget.style.borderColor = '#3b82f6')}
+            onMouseOver={e => stockfishReady && (e.currentTarget.style.borderColor = '#3b82f6')}
             onMouseOut={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
           >
             <div style={{ fontSize: '18px', marginBottom: '4px' }}>
