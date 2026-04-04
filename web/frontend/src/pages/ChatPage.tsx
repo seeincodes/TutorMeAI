@@ -472,6 +472,29 @@ export default function ChatPage() {
             )}
           </div>
 
+          {/* TTS toolbar */}
+          {ttsSupported && (
+            <div className="flex items-center gap-2 border-t border-chatbox-border-primary bg-chatbox-background-primary px-4 py-1.5">
+              <div className="mx-auto flex max-w-2xl items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-chatbox-tint-tertiary"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                <span className="text-xs text-chatbox-tint-tertiary">Read Aloud</span>
+                <button type="button" onClick={() => setAutoRead(!autoRead)}
+                  title={autoRead ? 'Turn off auto read' : 'Turn on auto read'}
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${autoRead ? 'bg-chatbox-background-brand-primary text-chatbox-tint-white' : 'bg-chatbox-background-secondary text-chatbox-tint-tertiary hover:bg-chatbox-background-brand-secondary'}`}
+                  aria-label={autoRead ? 'Turn off read aloud' : 'Turn on read aloud'}>
+                  {autoRead ? 'On' : 'Off'}
+                </button>
+                <span className="text-chatbox-border-primary">|</span>
+                <button type="button" onClick={() => setSpeed(speed === 'slow' ? 'regular' : 'slow')}
+                  title={speed === 'slow' ? 'Switch to regular speed' : 'Switch to slow speed'}
+                  className="rounded-full bg-chatbox-background-secondary px-2.5 py-0.5 text-xs font-medium text-chatbox-tint-tertiary hover:bg-chatbox-background-brand-secondary transition-colors"
+                  aria-label={speed === 'slow' ? 'Switch to regular speed' : 'Switch to slow speed'}>
+                  {speed === 'slow' ? 'Slow' : 'Fast'}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Input bar */}
           <div className="bg-chatbox-background-primary px-4 py-3">
             <form onSubmit={handleSend} className="mx-auto flex max-w-2xl items-end gap-2">
@@ -483,26 +506,6 @@ export default function ChatPage() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                 )}
               </button>
-              {ttsSupported && (
-                <>
-                  <button type="button" onClick={() => setAutoRead(!autoRead)}
-                    title={autoRead ? 'Turn off read aloud' : 'Turn on read aloud'}
-                    className={`rounded-lg p-2.5 transition-colors ${autoRead ? 'text-chatbox-tint-brand bg-chatbox-background-brand-secondary' : 'text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary'}`}
-                    aria-label={autoRead ? 'Turn off read aloud' : 'Turn on read aloud'}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M11 5L6 9H2v6h4l5 4V5z"/>
-                      {autoRead && <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>}
-                      {!autoRead && <><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></>}
-                    </svg>
-                  </button>
-                  <button type="button" onClick={() => setSpeed(speed === 'slow' ? 'regular' : 'slow')}
-                    title={speed === 'slow' ? 'Switch to regular speed' : 'Switch to slow speed'}
-                    className="rounded-lg px-2 py-1.5 text-xs font-medium text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary transition-colors"
-                    aria-label={speed === 'slow' ? 'Switch to regular speed' : 'Switch to slow speed'}>
-                    {speed === 'slow' ? 'Slow' : 'Fast'}
-                  </button>
-                </>
-              )}
               <label htmlFor="chat-input" className="sr-only">Message</label>
               <textarea
                 id="chat-input"
@@ -694,9 +697,32 @@ export default function ChatPage() {
     </div>
   )
 
+  // Shared TTS toolbar (used above chat input in app mode)
+  const ttsToolbar = ttsSupported ? (
+    <div className="flex items-center gap-2 py-1">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-chatbox-tint-tertiary"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      <span className="text-xs text-chatbox-tint-tertiary">Read Aloud</span>
+      <button type="button" onClick={() => setAutoRead(!autoRead)}
+        title={autoRead ? 'Turn off auto read' : 'Turn on auto read'}
+        className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${autoRead ? 'bg-chatbox-background-brand-primary text-chatbox-tint-white' : 'bg-chatbox-background-secondary text-chatbox-tint-tertiary hover:bg-chatbox-background-brand-secondary'}`}
+        aria-label={autoRead ? 'Turn off read aloud' : 'Turn on read aloud'}>
+        {autoRead ? 'On' : 'Off'}
+      </button>
+      <span className="text-chatbox-border-primary">|</span>
+      <button type="button" onClick={() => setSpeed(speed === 'slow' ? 'regular' : 'slow')}
+        title={speed === 'slow' ? 'Switch to regular speed' : 'Switch to slow speed'}
+        className="rounded-full bg-chatbox-background-secondary px-2.5 py-0.5 text-xs font-medium text-chatbox-tint-tertiary hover:bg-chatbox-background-brand-secondary transition-colors"
+        aria-label={speed === 'slow' ? 'Switch to regular speed' : 'Switch to slow speed'}>
+        {speed === 'slow' ? 'Slow' : 'Fast'}
+      </button>
+    </div>
+  ) : null
+
   // Shared chat input bar
   const chatInputBar = (
-    <form onSubmit={handleSend} className="flex items-end gap-2">
+    <div>
+      {ttsToolbar}
+      <form onSubmit={handleSend} className="flex items-end gap-2">
       <textarea
         value={input}
         onChange={e => setInput(e.target.value)}
@@ -712,6 +738,7 @@ export default function ChatPage() {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
       </button>
     </form>
+    </div>
   )
 
   return (
@@ -736,26 +763,6 @@ export default function ChatPage() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
             )}
           </button>
-          {ttsSupported && (
-            <>
-              <button onClick={() => setAutoRead(!autoRead)}
-                title={autoRead ? 'Turn off read aloud' : 'Turn on read aloud'}
-                className={`rounded p-1.5 transition-colors ${autoRead ? 'text-chatbox-tint-brand bg-chatbox-background-brand-secondary' : 'text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary'}`}
-                aria-label={autoRead ? 'Turn off read aloud' : 'Turn on read aloud'}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M11 5L6 9H2v6h4l5 4V5z"/>
-                  {autoRead && <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>}
-                  {!autoRead && <><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></>}
-                </svg>
-              </button>
-              <button onClick={() => setSpeed(speed === 'slow' ? 'regular' : 'slow')}
-                title={speed === 'slow' ? 'Switch to regular speed' : 'Switch to slow speed'}
-                className="rounded px-2 py-1 text-xs font-medium text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary transition-colors"
-                aria-label={speed === 'slow' ? 'Switch to regular speed' : 'Switch to slow speed'}>
-                {speed === 'slow' ? 'Slow' : 'Fast'}
-              </button>
-            </>
-          )}
           <button onClick={() => { setActiveApp(null); setChatDrawerOpen(false) }}
             className="rounded-md border border-chatbox-border-primary px-2.5 py-1 text-xs text-chatbox-tint-secondary hover:bg-chatbox-background-secondary transition-colors">
             Close app
