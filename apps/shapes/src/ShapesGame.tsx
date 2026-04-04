@@ -121,6 +121,7 @@ export default function ShapesGame() {
   const [score, setScore] = useState(0)
   const [feedback, setFeedback] = useState<{ correct: boolean; message: string } | null>(null)
   const [streak, setStreak] = useState(0)
+  const [showAnswer, setShowAnswer] = useState(false)
 
   useEffect(() => { sendToPlatform('ui_ready', '', {}) }, [])
 
@@ -148,6 +149,7 @@ export default function ShapesGame() {
     setScore(0)
     setStreak(0)
     setFeedback(null)
+    setShowAnswer(false)
     setQuestion(generateQuestion(m))
     setMode(m)
     sendToPlatform('state_update', '', { type: 'game_start', mode: m })
@@ -165,7 +167,8 @@ export default function ShapesGame() {
     } else {
       setStreak(0)
       playWrong()
-      setFeedback({ correct: false, message: `The answer is ${question.correct}! Let's keep going! 💪` })
+      setShowAnswer(false)
+      setFeedback({ correct: false, message: `Not quite! Try again or see the answer.` })
     }
   }
 
@@ -178,7 +181,13 @@ export default function ShapesGame() {
     }
     setRound(r => r + 1)
     setFeedback(null)
+    setShowAnswer(false)
     setQuestion(generateQuestion(gameMode))
+  }
+
+  function tryAgain() {
+    setFeedback(null)
+    setShowAnswer(false)
   }
 
   const font = 'system-ui, -apple-system, sans-serif'
@@ -299,8 +308,19 @@ export default function ShapesGame() {
           color: feedback.correct ? '#166534' : '#991b1b',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
         }}>
-          {feedback.message}
-          <SpeakButton text={feedback.message} label="Read feedback aloud" />
+          {feedback.correct
+            ? feedback.message
+            : showAnswer
+              ? `The answer is ${question.correct}! Let's keep going! 💪`
+              : feedback.message}
+          <SpeakButton
+            text={feedback.correct
+              ? feedback.message
+              : showAnswer
+                ? `The answer is ${question.correct}! Let's keep going! 💪`
+                : feedback.message}
+            label="Read feedback aloud"
+          />
         </div>
       )}
 
@@ -350,7 +370,38 @@ export default function ShapesGame() {
         </div>
       ) : (
         <div style={{ textAlign: 'center' }}>
-          {bigBtn(nextRound, round + 1 >= ROUNDS_PER_GAME ? '🎉 See Results!' : 'Next ➡️')}
+          {feedback && !feedback.correct && !showAnswer ? (
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button
+                onClick={tryAgain}
+                style={{
+                  padding: '16px 28px', fontSize: '20px', fontWeight: 700, color: 'white',
+                  background: '#16a34a', border: 'none', borderRadius: '16px', cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)', transition: 'transform 0.1s',
+                  minWidth: '80px',
+                }}
+                onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.95)')}
+                onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
+              >
+                🔁 Try Again
+              </button>
+              <button
+                onClick={() => setShowAnswer(true)}
+                style={{
+                  padding: '16px 28px', fontSize: '17px', fontWeight: 600, color: '#374151',
+                  background: '#f3f4f6', border: '2px solid #d1d5db', borderRadius: '16px',
+                  cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                  transition: 'transform 0.1s', minWidth: '80px',
+                }}
+                onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.95)')}
+                onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
+              >
+                👁 Show Answer
+              </button>
+            </div>
+          ) : (
+            bigBtn(nextRound, round + 1 >= ROUNDS_PER_GAME ? '🎉 See Results!' : 'Next ➡️')
+          )}
         </div>
       )}
     </div>

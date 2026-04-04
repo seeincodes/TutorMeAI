@@ -107,6 +107,7 @@ export default function ABCLetters() {
   const [score, setScore] = useState(0)
   const [feedback, setFeedback] = useState<{ correct: boolean; message: string } | null>(null)
   const [streak, setStreak] = useState(0)
+  const [showAnswer, setShowAnswer] = useState(false)
 
   useEffect(() => { sendToPlatform('ui_ready', '', {}) }, [])
 
@@ -134,6 +135,7 @@ export default function ABCLetters() {
     setScore(0)
     setStreak(0)
     setFeedback(null)
+    setShowAnswer(false)
     setQuestion(generateQuestion(m))
     setMode(m)
     sendToPlatform('state_update', '', { type: 'game_start', mode: m })
@@ -151,7 +153,8 @@ export default function ABCLetters() {
     } else {
       setStreak(0)
       playWrong()
-      setFeedback({ correct: false, message: `It's "${question.correct}"! You'll get it next time! 💪` })
+      setShowAnswer(false)
+      setFeedback({ correct: false, message: `Not quite! Try again or see the answer.` })
     }
   }
 
@@ -164,6 +167,7 @@ export default function ABCLetters() {
     }
     setRound(r => r + 1)
     setFeedback(null)
+    setShowAnswer(false)
     setQuestion(generateQuestion(gameMode))
   }
 
@@ -262,8 +266,14 @@ export default function ABCLetters() {
           color: feedback.correct ? '#166534' : '#991b1b',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap',
         }}>
-          <span>{feedback.message}</span>
-          <SpeakButton text={feedback.message} label="Hear the feedback" />
+          <span>
+            {feedback.message}
+            {!feedback.correct && showAnswer && question && ` The answer is "${question.correct}"!`}
+          </span>
+          <SpeakButton
+            text={`${feedback.message}${!feedback.correct && showAnswer && question ? ` The answer is "${question.correct}"!` : ''}`}
+            label="Hear the feedback"
+          />
         </div>
       )}
 
@@ -285,6 +295,28 @@ export default function ABCLetters() {
               {opt}
             </button>
           ))}
+        </div>
+      ) : feedback && !feedback.correct && !showAnswer ? (
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setFeedback(null)}
+            style={{
+              padding: '16px 28px', fontSize: '20px', fontWeight: 700, color: 'white',
+              background: '#16a34a', border: 'none', borderRadius: '16px', cursor: 'pointer',
+              boxShadow: '0 3px 10px rgba(22,163,74,0.35)',
+            }}
+          >
+            🔄 Try Again
+          </button>
+          <button
+            onClick={() => setShowAnswer(true)}
+            style={{
+              padding: '16px 28px', fontSize: '20px', fontWeight: 700, color: '#374151',
+              background: '#f3f4f6', border: '2px solid #d1d5db', borderRadius: '16px', cursor: 'pointer',
+            }}
+          >
+            💡 Show Answer
+          </button>
         </div>
       ) : (
         <div style={{ textAlign: 'center' }}>

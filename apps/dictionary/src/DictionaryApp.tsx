@@ -301,6 +301,7 @@ export default function DictionaryApp() {
   const [quizScore, setQuizScore] = useState(0)
   const [quizFeedback, setQuizFeedback] = useState<{ correct: boolean; answer: string } | null>(null)
   const [quizOptions, setQuizOptions] = useState<string[]>([])
+  const [showReadingAnswer, setShowReadingAnswer] = useState(false)
 
   useEffect(() => { sendToPlatform('ui_ready', '', {}) }, [])
 
@@ -362,6 +363,7 @@ export default function DictionaryApp() {
     if (correct) { setReadingScore(s => s + 1); playCorrect() }
     else playWrong()
     setReadingFeedback({ correct, answer: q.options[q.correct] })
+    setShowReadingAnswer(false)
   }
 
   function nextQuestion() {
@@ -372,7 +374,7 @@ export default function DictionaryApp() {
       playCelebration()
       setSelectedPassage(null); setShowQuestions(false); return
     }
-    setQuestionIndex(i => i + 1); setReadingFeedback(null)
+    setQuestionIndex(i => i + 1); setReadingFeedback(null); setShowReadingAnswer(false)
   }
 
   function startVocabQuiz() {
@@ -420,6 +422,19 @@ export default function DictionaryApp() {
     return (
       <div style={{ padding: '16px', maxWidth: '440px', margin: '0 auto', fontFamily: 'system-ui' }}>
         <button onClick={() => setShowQuestions(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '13px', marginBottom: '12px' }}>&larr; Back to passage</button>
+
+        <button
+          onClick={() => setShowQuestions(false)}
+          style={{
+            display: 'block', width: '100%', marginBottom: '16px', padding: '12px 16px',
+            background: '#fffbeb', border: '2px solid #f59e0b', borderRadius: '10px',
+            cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#92400e',
+            textAlign: 'center',
+          }}
+        >
+          📖 Read Again — Go back to the passage
+        </button>
+
         <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '8px' }}>Question {questionIndex + 1} of {selectedPassage.questions.length}</div>
         <div style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           {q.question}
@@ -436,12 +451,42 @@ export default function DictionaryApp() {
         </div>
         {readingFeedback && (
           <div style={{ marginTop: '12px', textAlign: 'center' }}>
-            <div style={{ fontSize: '14px', fontWeight: 600, color: readingFeedback.correct ? '#166534' : '#991b1b', marginBottom: '8px' }}>
-              {readingFeedback.correct ? 'Correct!' : `The answer is: ${readingFeedback.answer}`}
-            </div>
-            <button onClick={nextQuestion} style={{ padding: '8px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
-              {questionIndex + 1 >= selectedPassage.questions.length ? 'Finish' : 'Next'}
-            </button>
+            {readingFeedback.correct ? (
+              <>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: '#166534', marginBottom: '8px' }}>Correct!</div>
+                <button onClick={nextQuestion} style={{ padding: '8px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+                  {questionIndex + 1 >= selectedPassage.questions.length ? 'Finish' : 'Next Question'}
+                </button>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: '#991b1b', marginBottom: '10px' }}>
+                  {showReadingAnswer
+                    ? `The answer is: ${readingFeedback.answer}`
+                    : 'Not quite! Try again, read the passage again, or see the answer.'}
+                </div>
+                {showReadingAnswer ? (
+                  <button onClick={nextQuestion} style={{ padding: '8px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+                    {questionIndex + 1 >= selectedPassage.questions.length ? 'Finish' : 'Next Question'}
+                  </button>
+                ) : (
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => setReadingFeedback(null)}
+                      style={{ padding: '8px 18px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '14px' }}
+                    >
+                      Try Again
+                    </button>
+                    <button
+                      onClick={() => setShowReadingAnswer(true)}
+                      style={{ padding: '8px 18px', background: 'white', color: '#6b7280', border: '2px solid #d1d5db', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' }}
+                    >
+                      Show Answer
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>
@@ -477,7 +522,7 @@ export default function DictionaryApp() {
             </div>
           ))}
         </div>
-        <button onClick={() => { setShowQuestions(true); setQuestionIndex(0); setReadingScore(0); setReadingFeedback(null) }}
+        <button onClick={() => { setShowQuestions(true); setQuestionIndex(0); setReadingScore(0); setReadingFeedback(null); setShowReadingAnswer(false) }}
           style={{ width: '100%', padding: '12px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '15px', fontWeight: 600 }}>
           Comprehension Quiz ({selectedPassage.questions.length} questions)
         </button>

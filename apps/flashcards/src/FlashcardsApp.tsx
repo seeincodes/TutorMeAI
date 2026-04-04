@@ -261,6 +261,8 @@ export default function FlashcardsApp() {
   const [userAnswer, setUserAnswer] = useState('')
   const [lastCorrect, setLastCorrect] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  // 'correct' | 'wrong' | 'wrong-revealed' | null
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | 'wrong-revealed' | null>(null)
 
   useEffect(() => { sendToPlatform('ui_ready', '', {}) }, [])
 
@@ -292,6 +294,7 @@ export default function FlashcardsApp() {
             })
             setShowAnswer(false)
             setUserAnswer('')
+            setFeedback(null)
           }
           sendToPlatform('tool_result', correlationId, { tool: 'restore_state', message: 'Restored' })
           break
@@ -306,6 +309,7 @@ export default function FlashcardsApp() {
           setQuiz(state)
           setShowAnswer(false)
           setUserAnswer('')
+          setFeedback(null)
           sendToPlatform('tool_result', correlationId, {
             tool: 'start_quiz', totalCards: cards.length,
             currentQuestion: cards[0].question, questionNumber: 1,
@@ -370,6 +374,7 @@ export default function FlashcardsApp() {
     setQuiz({ cards, currentIndex: 0, score: 0, total: cards.length, finished: false, category: catId, level })
     setShowAnswer(false)
     setUserAnswer('')
+    setFeedback(null)
   }
 
   function handleSubmitAnswer(e: React.FormEvent) {
@@ -382,28 +387,68 @@ export default function FlashcardsApp() {
     setShowAnswer(true)
     playFlip()
     setTimeout(() => correct ? playCorrect() : playWrong(), 200)
-    const newScore = correct ? quiz.score + 1 : quiz.score
+
+    if (correct) {
+      const newScore = quiz.score + 1
+      const nextIndex = quiz.currentIndex + 1
+      const finished = nextIndex >= quiz.cards.length
+      setFeedback('correct')
+      setTimeout(() => {
+        const newQuiz: QuizState = { ...quiz, score: newScore, currentIndex: nextIndex, finished }
+        setQuiz(newQuiz)
+        setShowAnswer(false)
+        setUserAnswer('')
+        setFeedback(null)
+        if (finished) {
+          const key = progressKey(quiz.category, quiz.level)
+          const prev = progress[key] ?? 0
+          if (newScore > prev) saveProgress({ ...progress, [key]: newScore })
+          if (newScore >= PASS_THRESHOLD) playCelebration()
+          else playComplete()
+        }
+        sendToPlatform('state_update', '', {
+          type: 'quiz_progress', cards: newQuiz.cards, currentIndex: newQuiz.currentIndex,
+          score: newQuiz.score, total: newQuiz.total, finished: newQuiz.finished,
+          category: newQuiz.category, level: newQuiz.level, progress,
+        })
+      }, 1500)
+    } else {
+      // Wrong: show feedback with Try Again / Show Answer — no auto-advance
+      setFeedback('wrong')
+    }
+  }
+
+  function handleTryAgain() {
+    setShowAnswer(false)
+    setFeedback(null)
+    setUserAnswer('')
+  }
+
+  function handleShowAnswer() {
+    setFeedback('wrong-revealed')
+  }
+
+  function handleNextCard() {
+    if (!quiz) return
     const nextIndex = quiz.currentIndex + 1
     const finished = nextIndex >= quiz.cards.length
-    setTimeout(() => {
-      const newQuiz: QuizState = { ...quiz, score: newScore, currentIndex: nextIndex, finished }
-      setQuiz(newQuiz)
-      setShowAnswer(false)
-      setUserAnswer('')
-      if (finished) {
-        const key = progressKey(quiz.category, quiz.level)
-        const prev = progress[key] ?? 0
-        if (newScore > prev) saveProgress({ ...progress, [key]: newScore })
-        // Celebration for passing, neutral sound otherwise
-        if (newScore >= PASS_THRESHOLD) playCelebration()
-        else playComplete()
-      }
-      sendToPlatform('state_update', '', {
-        type: 'quiz_progress', cards: newQuiz.cards, currentIndex: newQuiz.currentIndex,
-        score: newQuiz.score, total: newQuiz.total, finished: newQuiz.finished,
-        category: newQuiz.category, level: newQuiz.level, progress,
-      })
-    }, 1500)
+    const newQuiz: QuizState = { ...quiz, currentIndex: nextIndex, finished }
+    setQuiz(newQuiz)
+    setShowAnswer(false)
+    setUserAnswer('')
+    setFeedback(null)
+    if (finished) {
+      const key = progressKey(quiz.category, quiz.level)
+      const prev = progress[key] ?? 0
+      if (quiz.score > prev) saveProgress({ ...progress, [key]: quiz.score })
+      if (quiz.score >= PASS_THRESHOLD) playCelebration()
+      else playComplete()
+    }
+    sendToPlatform('state_update', '', {
+      type: 'quiz_progress', cards: newQuiz.cards, currentIndex: newQuiz.currentIndex,
+      score: newQuiz.score, total: newQuiz.total, finished: newQuiz.finished,
+      category: newQuiz.category, level: newQuiz.level, progress,
+    })
   }
 
   function handleBackToCategories() {
@@ -411,12 +456,14 @@ export default function FlashcardsApp() {
     setSelectedCategory(null)
     setShowAnswer(false)
     setUserAnswer('')
+    setFeedback(null)
   }
 
   function handleBackToLevels() {
     setQuiz(null)
     setShowAnswer(false)
     setUserAnswer('')
+    setFeedback(null)
   }
 
   const font = 'system-ui, -apple-system, sans-serif'
@@ -671,24 +718,84 @@ export default function FlashcardsApp() {
             </div>
           </div>
 
-          {showAnswer && (
+          {/* Correct answer feedback */}
+          {feedback === 'correct' && (
             <div style={{
               padding: '12px 16px', borderRadius: 10, marginBottom: 12,
-              background: lastCorrect ? '#dcfce7' : '#fee2e2',
-              color: lastCorrect ? '#166534' : '#991b1b',
+              background: '#dcfce7', color: '#166534',
               fontSize: 14, fontWeight: 500, textAlign: 'center',
             }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-                {lastCorrect ? '✓ Correct!' : `✗ Answer: ${currentCard.answer}`}
-                <SpeakButton
-                  text={lastCorrect ? 'Correct!' : `The answer is ${currentCard.answer}`}
-                  label="Read feedback aloud"
-                />
+                ✓ Correct!
+                <SpeakButton text="Correct!" label="Read feedback aloud" />
               </div>
             </div>
           )}
 
-          {!showAnswer && (
+          {/* Wrong answer feedback — not yet revealed */}
+          {feedback === 'wrong' && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{
+                padding: '12px 16px', borderRadius: 10, marginBottom: 10,
+                background: '#fff7ed', color: '#92400e',
+                fontSize: 14, fontWeight: 500, textAlign: 'center',
+              }}>
+                Not quite! Try again or see the answer.
+              </div>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+                <button
+                  onClick={handleTryAgain}
+                  style={{
+                    padding: '10px 22px', background: '#16a34a', color: 'white',
+                    border: 'none', borderRadius: 10, cursor: 'pointer',
+                    fontSize: 14, fontWeight: 700, boxShadow: '0 2px 6px rgba(22,163,74,0.3)',
+                  }}
+                >
+                  Try Again
+                </button>
+                <button
+                  onClick={handleShowAnswer}
+                  style={{
+                    padding: '10px 18px', background: 'white', color: '#64748b',
+                    border: '1px solid #cbd5e1', borderRadius: 10, cursor: 'pointer',
+                    fontSize: 14, fontWeight: 500,
+                  }}
+                >
+                  Show Answer
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Wrong answer feedback — answer revealed */}
+          {feedback === 'wrong-revealed' && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{
+                padding: '12px 16px', borderRadius: 10, marginBottom: 10,
+                background: '#fee2e2', color: '#991b1b',
+                fontSize: 14, fontWeight: 500, textAlign: 'center',
+              }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {`✗ Answer: ${currentCard.answer}`}
+                  <SpeakButton text={`The answer is ${currentCard.answer}`} label="Read answer aloud" />
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <button
+                  onClick={handleNextCard}
+                  style={{
+                    padding: '10px 22px', background: '#2563eb', color: 'white',
+                    border: 'none', borderRadius: 10, cursor: 'pointer',
+                    fontSize: 14, fontWeight: 600,
+                  }}
+                >
+                  Next Card →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!feedback && (
             <form onSubmit={handleSubmitAnswer} style={{ display: 'flex', gap: 8 }}>
               <input
                 type="text"

@@ -272,6 +272,7 @@ export default function CalculatorApp() {
   const [showHint, setShowHint] = useState(false)
   const [lessonScore, setLessonScore] = useState(0)
   const [lessonMistakes, setLessonMistakes] = useState(0)
+  const [showAnswer, setShowAnswer] = useState(false)
 
   useEffect(() => { sendToPlatform('ui_ready', '', {}) }, [])
 
@@ -326,6 +327,7 @@ export default function CalculatorApp() {
     setShowHint(false)
     setLessonScore(0)
     setLessonMistakes(0)
+    setShowAnswer(false)
   }
 
   function submitAnswer(e: React.FormEvent) {
@@ -342,7 +344,8 @@ export default function CalculatorApp() {
       playCorrect()
     } else {
       setLessonMistakes(m => m + 1)
-      setFeedback({ correct: false, message: `Not quite — the answer is ${problem.answer}` })
+      setFeedback({ correct: false, message: 'Not quite! Try again or see the answer.' })
+      setShowAnswer(false)
       playWrong()
     }
   }
@@ -370,6 +373,7 @@ export default function CalculatorApp() {
 
       setActiveLesson(null)
       setFeedback(null)
+      setShowAnswer(false)
 
       if (allComplete && newUnlocked > gradeNum) {
         sendToPlatform('state_update', '', {
@@ -385,6 +389,7 @@ export default function CalculatorApp() {
     setUserAnswer('')
     setFeedback(null)
     setShowHint(false)
+    setShowAnswer(false)
   }
 
   // Active lesson view
@@ -453,9 +458,31 @@ export default function CalculatorApp() {
               {feedback.correct ? '✓' : '✗'} {feedback.message}
               {' '}<SpeakButton text={feedback.message} label="Read feedback aloud" />
             </div>
-            <button onClick={nextProblem} style={{ padding: '10px 32px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '15px', fontWeight: 500 }}>
-              {isLastProblem ? 'Finish Lesson' : 'Next →'}
-            </button>
+            {!feedback.correct && showAnswer && (
+              <div style={{ padding: '10px 16px', borderRadius: '8px', marginBottom: '12px', fontSize: '15px', fontWeight: 600, background: '#fef9c3', color: '#854d0e', border: '1px solid #fde68a' }}>
+                The answer is {activeLesson.problems[currentProblem].answer}
+              </div>
+            )}
+            {feedback.correct || showAnswer ? (
+              <button onClick={nextProblem} style={{ padding: '12px 36px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '15px', fontWeight: 500 }}>
+                {isLastProblem ? 'Finish Lesson' : 'Next →'}
+              </button>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                <button
+                  onClick={() => { setFeedback(null); setUserAnswer('') }}
+                  style={{ padding: '14px 40px', background: '#16a34a', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontSize: '17px', fontWeight: 700, letterSpacing: '0.01em' }}
+                >
+                  Try Again
+                </button>
+                <button
+                  onClick={() => setShowAnswer(true)}
+                  style={{ padding: '8px 24px', background: 'white', color: '#6b7280', border: '1px solid #d1d5db', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 500 }}
+                >
+                  Show Answer
+                </button>
+              </div>
+            )}
           </div>
         )}
 
