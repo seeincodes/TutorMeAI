@@ -13,6 +13,21 @@ const PRESETS = {
   regular: { rate: 1.0, pitch: 1.0 },
 } as const
 
+// Strip emoji so speechSynthesis doesn't choke
+function stripEmoji(str: string): string {
+  return str.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').replace(/\s{2,}/g, ' ').trim()
+}
+
+// Track whether user has interacted (needed for browser autoplay policy)
+let userHasInteracted = false
+function onFirstInteraction() {
+  userHasInteracted = true
+  document.removeEventListener('click', onFirstInteraction)
+  document.removeEventListener('keydown', onFirstInteraction)
+}
+document.addEventListener('click', onFirstInteraction)
+document.addEventListener('keydown', onFirstInteraction)
+
 const PREFERRED_VOICES = ['Google US English', 'Samantha']
 
 function pickVoice(): SpeechSynthesisVoice | null {
@@ -42,14 +57,15 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
   }, [supported])
 
   const speak = useCallback(() => {
-    if (!supported || !text.trim()) return
+    const clean = stripEmoji(text)
+    if (!supported || !clean) return
     if (speechSynthesis.speaking) {
       speechSynthesis.cancel()
       setSpeaking(false)
       return
     }
     const preset = PRESETS[speed]
-    const utterance = new SpeechSynthesisUtterance(text)
+    const utterance = new SpeechSynthesisUtterance(clean)
     utterance.rate = preset.rate
     utterance.pitch = preset.pitch
     if (voiceRef.current) utterance.voice = voiceRef.current
@@ -61,9 +77,10 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
 
   // Auto-speak when text changes (for K-2 kids who can't read yet)
   useEffect(() => {
-    if (!autoSpeak || !supported || !text.trim()) return
+    const clean = stripEmoji(text)
+    if (!autoSpeak || !supported || !clean || !userHasInteracted) return
     const preset = PRESETS[speed]
-    const utterance = new SpeechSynthesisUtterance(text)
+    const utterance = new SpeechSynthesisUtterance(clean)
     utterance.rate = preset.rate
     utterance.pitch = preset.pitch
     if (voiceRef.current) utterance.voice = voiceRef.current
