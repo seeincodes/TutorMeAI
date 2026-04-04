@@ -126,6 +126,7 @@ async def stream_chat_with_tools(
     messages: list[dict],
     available_apps: list[dict] | None = None,
     target_app_id: str | None = None,
+    student_grade: int | None = None,
 ) -> AsyncGenerator[dict, None]:
     """
     Stream LLM response with real tool calling.
@@ -156,6 +157,17 @@ async def stream_chat_with_tools(
             target_app = next((a for a in available_apps if a["app_id"] == target_app_id), None)
             if target_app:
                 system_content += f"\n\nActive app: {target_app['name']} ({target_app_id}). Use the available tools to interact with this app when the user wants to use it."
+
+    # Grade-aware explanation style
+    if student_grade is not None:
+        if student_grade <= 2:
+            system_content += "\n\n## Student Level: Grades K-2 (ages 5-8)\n- Use very simple words and short sentences.\n- Explain with real-world examples kids know (fingers, toys, snacks).\n- After giving an answer, ALWAYS explain HOW to get it step by step.\n- Use encouraging language: 'Great question!', 'You can do this!'\n- For math: show counting, use pictures/emojis if helpful."
+        elif student_grade <= 5:
+            system_content += "\n\n## Student Level: Grades 3-5 (ages 8-11)\n- Use age-appropriate vocabulary, explain new words briefly.\n- After giving an answer, explain the method so the student learns.\n- For math: show the steps and name the operation (addition, multiplication, etc.).\n- Ask follow-up questions to check understanding: 'Does that make sense?'"
+        elif student_grade <= 8:
+            system_content += "\n\n## Student Level: Grades 6-8 (ages 11-14)\n- Use grade-level vocabulary and introduce proper terminology.\n- Explain the reasoning, not just the answer.\n- For math: reference formulas and properties by name.\n- Encourage the student to try solving similar problems on their own."
+        else:
+            system_content += "\n\n## Student Level: Grades 9-12 (ages 14-18)\n- Use mature vocabulary and proper academic terminology.\n- Provide thorough explanations with underlying concepts.\n- For math: reference theorems, show algebraic reasoning.\n- Challenge the student to think deeper: 'Why do you think this works?'"
 
     langchain_messages = [SystemMessage(content=system_content)]
     for msg in messages:

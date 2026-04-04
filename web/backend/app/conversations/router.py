@@ -241,7 +241,7 @@ async def send_message(
             yield {"event": "intent", "data": json.dumps({"app_id": target_app_id})}
 
         try:
-            async for event in stream_chat_with_tools(history, available_apps, target_app_id):
+            async for event in stream_chat_with_tools(history, available_apps, target_app_id, student_grade=current_user.grade):
                 if event["type"] == "token":
                     full_response += event["content"]
                     yield {"event": "token", "data": json.dumps({"content": event["content"]})}

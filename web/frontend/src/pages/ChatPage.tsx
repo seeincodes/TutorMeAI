@@ -256,9 +256,10 @@ export default function ChatPage() {
           if (appIframeRef.current) {
             result = await appIframeRef.current.invokeTool(tool, params)
           }
-          if (activeConversation) await api.submitToolResult(activeConversation, correlationId, result)
+          // Use conversationId from closure, not activeConversation state (may be stale)
+          await api.submitToolResult(conversationId!, correlationId, result)
         } catch (err) {
-          if (activeConversation) await api.submitToolResult(activeConversation, correlationId, {
+          await api.submitToolResult(conversationId!, correlationId, {
             error: err instanceof Error ? err.message : 'Tool execution failed',
           })
         }
