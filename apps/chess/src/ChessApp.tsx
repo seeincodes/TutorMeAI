@@ -248,6 +248,39 @@ export default function ChessApp() {
           })
           break
         }
+        case 'make_move': {
+          const from = params?.from as string
+          const to = params?.to as string
+          const san = params?.san as string
+          try {
+            const gameCopy = new Chess(game.fen())
+            let move
+            if (san) {
+              move = gameCopy.move(san)
+            } else if (from && to) {
+              move = gameCopy.move({ from: from as Square, to: to as Square, promotion: 'q' })
+            }
+            if (!move) {
+              sendToPlatform('tool_result', correlationId, { tool: 'make_move', error: 'Invalid or illegal move', fen: game.fen() })
+              break
+            }
+            setMoveHistory(prev => [...prev, game.fen()])
+            setGame(gameCopy)
+            setSelectedSquare(null)
+            setHighlightSquares({})
+            const isOver = updateStatus(gameCopy)
+            sendToPlatform('tool_result', correlationId, {
+              tool: 'make_move', move: move.san, from: move.from, to: move.to,
+              fen: gameCopy.fen(), turn: gameCopy.turn() === 'w' ? 'white' : 'black', isGameOver: isOver,
+            })
+            // Trigger AI opponent after the tutor-driven move (if it's now the AI's turn)
+            if (!isOver && difficulty) {
+              const isAITurn = (playerColor === 'white' && gameCopy.turn() === 'b') || (playerColor === 'black' && gameCopy.turn() === 'w')
+              if (isAITurn) playAI(gameCopy, difficulty)
+            }
+          } catch { sendToPlatform('error', correlationId, { message: 'Invalid move' }) }
+          break
+        }
         case 'analyze_position': {
           const fen = (params?.fen as string) || game.fen()
           try {
@@ -387,9 +420,12 @@ export default function ChessApp() {
         <button
           onClick={() => {
             if (moveHistory.length === 0 || thinking) return
-            const prevFen = moveHistory[moveHistory.length - 1]
+            // Undo both the AI's response and the user's move so the user
+            // is back at their turn before their last move
+            const stepsBack = moveHistory.length >= 2 ? 2 : 1
+            const prevFen = moveHistory[moveHistory.length - stepsBack]
             setGame(new Chess(prevFen))
-            setMoveHistory(prev => prev.slice(0, -1))
+            setMoveHistory(prev => prev.slice(0, -stepsBack))
             setSelectedSquare(null)
             setHighlightSquares({})
             setGameOver(null)

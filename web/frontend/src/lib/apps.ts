@@ -20,17 +20,15 @@ export const APP_ORDER = [
   'flashcards',
   'weather',
   'life-skills',
-  'google-classroom',
 ] as const
 
 export const APP_DISPLAY: Record<string, AppDisplay> = {
-  chess:              { label: 'Chess',              shortLabel: 'Chess',       emoji: '♟️', prompt: "Let's play chess" },
-  calculator:         { label: 'Math Helper',        shortLabel: 'Math',        emoji: '🧮', prompt: 'I want to use the calculator' },
-  dictionary:         { label: 'Dictionary',         shortLabel: 'Dictionary',  emoji: '📖', prompt: 'I want to look up a word in the dictionary' },
-  flashcards:         { label: 'Flashcards',         shortLabel: 'Flashcards',  emoji: '🗂️', prompt: 'I want to study with flashcards' },
-  weather:            { label: 'Weather',            shortLabel: 'Weather',     emoji: '🌤️', prompt: 'Open the weather app' },
-  'life-skills':      { label: 'Level Up Life',      shortLabel: 'Life Skills', emoji: '🎮', prompt: 'I want to play Level Up Life' },
-  'google-classroom': { label: 'Google Classroom',   shortLabel: 'Classroom',   emoji: '🎓', prompt: 'Open Google Classroom' },
+  chess:              { label: 'Chess',                  shortLabel: 'Chess',       emoji: '♟️', prompt: "Let's play chess" },
+  calculator:         { label: 'Math Helper',            shortLabel: 'Math',        emoji: '🧮', prompt: 'I want to use the calculator' },
+  dictionary:         { label: 'Reading & Vocabulary',   shortLabel: 'Vocab',       emoji: '📖', prompt: 'I want to look up a word' },
+  flashcards:         { label: 'Flashcards',             shortLabel: 'Flashcards',  emoji: '🗂️', prompt: 'I want to study with flashcards' },
+  weather:            { label: 'Weather',                shortLabel: 'Weather',     emoji: '🌤️', prompt: 'Open the weather app' },
+  'life-skills':      { label: 'Level Up Life',          shortLabel: 'Life Skills', emoji: '🎮', prompt: 'I want to play Level Up Life' },
 }
 
 /** Sort apps by the canonical order. Unknown apps go to the end. */
