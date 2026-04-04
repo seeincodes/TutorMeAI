@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        app: [calculator, chess, dictionary, flashcards, life-skills, weather]
+        app: [calculator, chess, dictionary, flashcards, life-skills, weather, counting-game, abc-letters, shapes, animals, nasa, books, spotify]
     steps:
       - uses: actions/checkout@v4
 
@@ -41,7 +41,7 @@ jobs:
           node-version: 20
 
       - name: Build app
-        run: cd apps/${{ matrix.app }} && pnpm install && pnpm run build
+        run: cd apps/${{ matrix.app }} && pnpm install --no-frozen-lockfile && pnpm run build
 
   backend:
     name: Backend (lint + test)
