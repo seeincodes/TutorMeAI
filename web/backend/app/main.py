@@ -188,6 +188,8 @@ _apps_dirs = {
     "flashcards": Path(__file__).parent.parent.parent.parent / "apps" / "flashcards" / "dist",
     "life-skills": Path(__file__).parent.parent.parent.parent / "apps" / "life-skills" / "dist",
     "google-classroom": Path(__file__).parent.parent.parent.parent / "apps" / "google-classroom" / "dist",
+    "counting-game": Path(__file__).parent.parent.parent.parent / "apps" / "counting-game" / "dist",
+    "abc-letters": Path(__file__).parent.parent.parent.parent / "apps" / "abc-letters" / "dist",
 }
 
 # Mount app static dirs

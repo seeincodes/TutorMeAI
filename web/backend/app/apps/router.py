@@ -25,12 +25,20 @@ from app.rate_limit import limiter
 # 3-5 (grade 3-5): + flashcards, weather (all apps)
 # 6+ : all apps
 APP_MIN_GRADE: dict[str, int] = {
+    "counting-game": 0,
+    "abc-letters": 0,
     "chess": 0,
     "calculator": 0,
     "dictionary": 0,
     "life-skills": 0,
     "flashcards": 3,
     "weather": 3,
+}
+
+# Apps only shown to young kids (hidden for older students who don't need them)
+APP_MAX_GRADE: dict[str, int] = {
+    "counting-game": 2,   # K-2 only
+    "abc-letters": 2,     # K-2 only
 }
 
 router = APIRouter(prefix="/api/apps", tags=["apps"])
@@ -66,7 +74,11 @@ async def list_apps(
 
     # Filter by student grade level (teachers/admins see all apps)
     if current_user.role == "student" and current_user.grade is not None:
-        apps = [a for a in apps if current_user.grade >= APP_MIN_GRADE.get(a.app_id, 0)]
+        apps = [
+            a for a in apps
+            if current_user.grade >= APP_MIN_GRADE.get(a.app_id, 0)
+            and current_user.grade <= APP_MAX_GRADE.get(a.app_id, 99)
+        ]
 
     return [AppResponse.model_validate(a) for a in apps]
 

@@ -14,6 +14,8 @@ export interface AppDisplay {
 
 /** Ordered list — this determines display order everywhere. */
 export const APP_ORDER = [
+  'counting-game',
+  'abc-letters',
   'chess',
   'calculator',
   'dictionary',
@@ -23,6 +25,8 @@ export const APP_ORDER = [
 ] as const
 
 export const APP_DISPLAY: Record<string, AppDisplay> = {
+  'counting-game':    { label: 'Counting Game',          shortLabel: 'Counting',    emoji: '🔢', prompt: "Let's play the counting game" },
+  'abc-letters':      { label: 'ABC Letters',            shortLabel: 'ABC',         emoji: '🔤', prompt: "Let's learn letters" },
   chess:              { label: 'Chess',                  shortLabel: 'Chess',       emoji: '♟️', prompt: "Let's play chess" },
   calculator:         { label: 'Math Helper',            shortLabel: 'Math',        emoji: '🧮', prompt: 'I want to use the calculator' },
   dictionary:         { label: 'Reading & Vocabulary',   shortLabel: 'Vocab',       emoji: '📖', prompt: 'I want to look up a word' },

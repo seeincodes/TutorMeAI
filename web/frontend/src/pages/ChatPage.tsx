@@ -153,6 +153,8 @@ export default function ChatPage() {
 
   // Deterministic welcome messages — instant, no AI call
   const APP_WELCOME: Record<string, string> = {
+    'counting-game': "Let's count! 🔢 Pick a game mode and tap the right answer. You got this! 🌟",
+    'abc-letters': "Let's learn letters! 🔤 Tap the right answer — no typing needed! You're going to do great! ⭐",
     calculator: "Welcome to Math Helper! Pick a grade level and lesson to get started. I can help explain any problem — just ask!",
     dictionary: "Welcome to Reading & Vocabulary! Choose a passage to read, then test your comprehension. Save words you want to remember and I'll quiz you on them!",
     weather: "Here's the weather dashboard! You can check the forecast for any city. Ask me about weather patterns or what to wear today!",
