@@ -7,6 +7,8 @@ import ChatMessage from '@/components/ChatMessage'
 import Sidebar from '@/components/Sidebar'
 import { APP_DISPLAY, sortApps } from '@/lib/apps'
 import { useSounds } from '@/lib/useSounds'
+import { useTTS } from '@/lib/useTTS'
+import { extractSentences } from '@/lib/ttsUtils'
 
 interface AppState {
   appId: string
@@ -36,6 +38,8 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const userCityRef = useRef<string | null>(null)
   const { muted, toggleMute, playMessageSent, playMessageReceived, playAppLaunch } = useSounds()
+  const { supported: ttsSupported, autoRead, setAutoRead, speed, setSpeed, speakText, speakSentence, stop: stopTTS } = useTTS()
+  const sentenceBufferRef = useRef('')
 
   // Dark mode toggle — sync with <html> class and localStorage
   useEffect(() => {
@@ -77,6 +81,11 @@ export default function ChatPage() {
     window.addEventListener('message', handleOAuthComplete)
     return () => window.removeEventListener('message', handleOAuthComplete)
   }, [])
+
+  useEffect(() => {
+    stopTTS()
+    sentenceBufferRef.current = ''
+  }, [activeConversation, stopTTS])
 
   async function handleOAuthConnect(appId: string) {
     try {
@@ -228,6 +237,8 @@ export default function ChatPage() {
     setMessages(prev => [...prev, userMessage])
     setInput('')
     if (inputRef.current) inputRef.current.style.height = 'auto'
+    stopTTS()
+    sentenceBufferRef.current = ''
     setStreaming(true)
     setStreamingContent('')
     playMessageSent()
@@ -238,8 +249,20 @@ export default function ChatPage() {
     await api.sendMessage(
       conversationId,
       input,
-      (token) => setStreamingContent(prev => prev + token),
+      (token) => {
+        setStreamingContent(prev => prev + token)
+        if (autoRead) {
+          sentenceBufferRef.current += token
+          const { sentences, remainder } = extractSentences(sentenceBufferRef.current)
+          sentenceBufferRef.current = remainder
+          sentences.forEach(s => speakSentence(s))
+        }
+      },
       (messageId) => {
+        if (autoRead && sentenceBufferRef.current.trim()) {
+          speakSentence(sentenceBufferRef.current.trim())
+          sentenceBufferRef.current = ''
+        }
         setStreamingContent(prev => {
           const assistantMessage: Message = {
             id: messageId, role: 'assistant', content: prev,
@@ -398,7 +421,8 @@ export default function ChatPage() {
                     )}
                     {/* Bubble */}
                     <div className={`max-w-[80%] rounded-lg px-4 py-2.5 text-sm ${msg.role === 'user' ? 'bg-chatbox-background-brand-primary text-chatbox-tint-white' : 'bg-chatbox-background-secondary text-chatbox-tint-primary'}`}>
-                      <ChatMessage content={msg.content || ''} role={msg.role} onAppLaunch={handleAppLaunch} disabled={streaming} />
+                      <ChatMessage content={msg.content || ''} role={msg.role} onAppLaunch={handleAppLaunch} disabled={streaming}
+                        onSpeak={ttsSupported ? speakText : undefined} />
                     </div>
                   </div>
                 ))}
@@ -459,6 +483,26 @@ export default function ChatPage() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                 )}
               </button>
+              {ttsSupported && (
+                <>
+                  <button type="button" onClick={() => setAutoRead(!autoRead)}
+                    title={autoRead ? 'Turn off read aloud' : 'Turn on read aloud'}
+                    className={`rounded-lg p-2.5 transition-colors ${autoRead ? 'text-chatbox-tint-brand bg-chatbox-background-brand-secondary' : 'text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary'}`}
+                    aria-label={autoRead ? 'Turn off read aloud' : 'Turn on read aloud'}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+                      {autoRead && <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>}
+                      {!autoRead && <><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></>}
+                    </svg>
+                  </button>
+                  <button type="button" onClick={() => setSpeed(speed === 'slow' ? 'regular' : 'slow')}
+                    title={speed === 'slow' ? 'Switch to regular speed' : 'Switch to slow speed'}
+                    className="rounded-lg px-2 py-1.5 text-xs font-medium text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary transition-colors"
+                    aria-label={speed === 'slow' ? 'Switch to regular speed' : 'Switch to slow speed'}>
+                    {speed === 'slow' ? 'Slow' : 'Fast'}
+                  </button>
+                </>
+              )}
               <label htmlFor="chat-input" className="sr-only">Message</label>
               <textarea
                 id="chat-input"
@@ -600,7 +644,8 @@ export default function ChatPage() {
             </div>
           )}
           <div className={`max-w-[85%] rounded-lg px-3 py-1.5 text-sm ${msg.role === 'user' ? 'bg-chatbox-background-brand-primary text-chatbox-tint-white' : 'bg-chatbox-background-secondary text-chatbox-tint-primary'}`}>
-            <ChatMessage content={msg.content || ''} role={msg.role} onAppLaunch={handleAppLaunch} disabled={streaming} />
+            <ChatMessage content={msg.content || ''} role={msg.role} onAppLaunch={handleAppLaunch} disabled={streaming}
+              onSpeak={ttsSupported ? speakText : undefined} />
           </div>
         </div>
       ))}
@@ -691,6 +736,26 @@ export default function ChatPage() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
             )}
           </button>
+          {ttsSupported && (
+            <>
+              <button onClick={() => setAutoRead(!autoRead)}
+                title={autoRead ? 'Turn off read aloud' : 'Turn on read aloud'}
+                className={`rounded p-1.5 transition-colors ${autoRead ? 'text-chatbox-tint-brand bg-chatbox-background-brand-secondary' : 'text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary'}`}
+                aria-label={autoRead ? 'Turn off read aloud' : 'Turn on read aloud'}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+                  {autoRead && <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>}
+                  {!autoRead && <><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></>}
+                </svg>
+              </button>
+              <button onClick={() => setSpeed(speed === 'slow' ? 'regular' : 'slow')}
+                title={speed === 'slow' ? 'Switch to regular speed' : 'Switch to slow speed'}
+                className="rounded px-2 py-1 text-xs font-medium text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary transition-colors"
+                aria-label={speed === 'slow' ? 'Switch to regular speed' : 'Switch to slow speed'}>
+                {speed === 'slow' ? 'Slow' : 'Fast'}
+              </button>
+            </>
+          )}
           <button onClick={() => { setActiveApp(null); setChatDrawerOpen(false) }}
             className="rounded-md border border-chatbox-border-primary px-2.5 py-1 text-xs text-chatbox-tint-secondary hover:bg-chatbox-background-secondary transition-colors">
             Close app
