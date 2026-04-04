@@ -2,6 +2,8 @@
 .env
 node_modules
 src/
+!src/shared/
+!src/renderer/packages/latex.ts
 release/
 docs/
 .github/
