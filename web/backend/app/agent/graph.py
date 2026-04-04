@@ -240,11 +240,16 @@ async def stream_chat_with_tools(
 
             # Wait for frontend to POST the result back (with timeout)
             event = register_tool_call(correlation_id)
+            import logging
+            logger = logging.getLogger("chatbridge.agent")
+            logger.info(f"[tool_call] Waiting for result: {app_id}__{tool_name} cid={correlation_id}")
             try:
                 await asyncio.wait_for(event.wait(), timeout=30.0)
                 result = get_tool_result(correlation_id)
+                logger.info(f"[tool_call] Got result for cid={correlation_id}: {str(result)[:200]}")
             except asyncio.TimeoutError:
                 result = {"error": "Tool execution timed out"}
+                logger.warning(f"[tool_call] TIMEOUT for cid={correlation_id}")
             finally:
                 cleanup_tool_call(correlation_id)
 
