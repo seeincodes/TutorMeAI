@@ -256,6 +256,6 @@ class AppContentScreen(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
-        CheckConstraint("screen_type IN ('moderation_api', 'screenshot_diff', 'manual_review')", name="ck_app_content_screens_type"),
+        CheckConstraint("screen_type IN ('moderation_api', 'screenshot_diff', 'manual_review', 'ai_submission_review')", name="ck_app_content_screens_type"),
         CheckConstraint("result IN ('pass', 'fail', 'review_needed')", name="ck_app_content_screens_result"),
     )

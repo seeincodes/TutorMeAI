@@ -192,6 +192,9 @@ _apps_dirs = {
     "abc-letters": Path(__file__).parent.parent.parent.parent / "apps" / "abc-letters" / "dist",
     "shapes": Path(__file__).parent.parent.parent.parent / "apps" / "shapes" / "dist",
     "animals": Path(__file__).parent.parent.parent.parent / "apps" / "animals" / "dist",
+    "nasa": Path(__file__).parent.parent.parent.parent / "apps" / "nasa" / "dist",
+    "books": Path(__file__).parent.parent.parent.parent / "apps" / "books" / "dist",
+    "spotify": Path(__file__).parent.parent.parent.parent / "apps" / "spotify" / "dist",
 }
 
 # Mount app static dirs

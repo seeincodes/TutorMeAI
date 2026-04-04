@@ -103,22 +103,30 @@ async def test_app_registration_marketplace_fields_persist():
 
 
 @pytest.mark.asyncio
-async def test_submit_app_creates_pending_review(client):
-    """Public submission endpoint creates an app in pending_review status."""
+async def test_submit_app_runs_ai_review(client):
+    """Public submission endpoint runs AI review and returns verdict."""
     resp = await client.post("/api/marketplace/submit", json={
         "app_id": "submitted_app_1",
-        "name": "My Cool App",
-        "description": "An educational game",
-        "iframe_url": "https://coolapp.com/embed",
-        "tool_schemas": [{"name": "start_game", "description": "Start the game", "parameters": []}],
-        "developer_name": "Cool Dev",
-        "developer_email": "dev@coolapp.com",
+        "name": "Math Practice for Kids",
+        "description": "A fun multiplication practice game for elementary students with colorful animations and encouraging feedback. Helps kids learn times tables.",
+        "iframe_url": "https://mathpractice.com/embed",
+        "tool_schemas": [{"name": "start_quiz", "description": "Start a multiplication quiz", "parameters": []}],
+        "developer_name": "EduTech Labs",
+        "developer_email": "dev@edutechlabs.com",
+        "website_url": "https://edutechlabs.com",
+        "privacy_policy_url": "https://edutechlabs.com/privacy",
     })
     assert resp.status_code == 201
     data = resp.json()
     assert data["app_id"] == "submitted_app_1"
-    assert data["status"] == "pending_review"
-    assert data["trust_tier"] == "new"
+    # AI review should be included in response
+    assert "ai_review" in data
+    assert data["ai_review"] is not None
+    assert data["ai_review"]["decision"] in ("approve", "reject", "human_review")
+    assert "reasoning" in data["ai_review"]
+    assert "risk_level" in data["ai_review"]
+    # Status should reflect AI decision
+    assert data["status"] in ("active", "rejected", "pending_review")
 
 
 @pytest.mark.asyncio
@@ -283,3 +291,204 @@ async def test_marketplace_catalog_includes_trust_tier(client):
     apps = resp.json()
     assert len(apps) > 0
     assert "trust_tier" in apps[0]
+
+
+# ── AI Review Pipeline Tests ──────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_ai_review_approves_safe_educational_app():
+    """AI review approves a clearly safe educational app."""
+    from app.marketplace.ai_review import review_app_submission
+
+    result = await review_app_submission(
+        app_id="safe-app",
+        name="Spelling Bee Practice",
+        description="A fun spelling practice game for elementary students. Kids see a word, hear it pronounced, and type the spelling. Tracks progress over time.",
+        tool_schemas=[
+            {"name": "start_game", "description": "Start a spelling quiz", "parameters": [{"name": "grade", "type": "string", "description": "Grade level 1-5"}]},
+            {"name": "get_score", "description": "Get current score", "parameters": []},
+        ],
+        auth_type="none",
+        oauth_config=None,
+        developer_name="SpellWell Inc",
+        developer_email="dev@spellwell.com",
+        website_url="https://spellwell.com",
+        privacy_policy_url="https://spellwell.com/privacy",
+        age_rating="all",
+    )
+    assert result.decision == "approve"
+    assert result.content_safe is True
+    assert result.tools_safe is True
+    assert result.risk_level in ("low", "medium")
+    assert result.educational_value in ("high", "medium")
+
+
+@pytest.mark.asyncio
+async def test_ai_review_rejects_dangerous_app():
+    """AI review rejects an app with dangerous tool schemas."""
+    from app.marketplace.ai_review import review_app_submission
+
+    result = await review_app_submission(
+        app_id="dangerous-app",
+        name="System Admin Tool",
+        description="Execute commands on the server, read files, and manage system processes.",
+        tool_schemas=[
+            {"name": "exec", "description": "Execute shell command", "parameters": [{"name": "cmd", "type": "string", "description": "Command to run"}]},
+            {"name": "read_file", "description": "Read file contents", "parameters": [{"name": "path", "type": "string", "description": "File path"}]},
+        ],
+        auth_type="none",
+        oauth_config=None,
+        developer_name="Anonymous",
+        developer_email="anon@temp.com",
+        website_url=None,
+        privacy_policy_url=None,
+        age_rating="all",
+    )
+    assert result.decision == "reject"
+    assert result.risk_level in ("high", "critical")
+    assert len(result.risk_flags) > 0
+    assert result.tools_safe is False
+
+
+@pytest.mark.asyncio
+async def test_ai_review_flags_inappropriate_content():
+    """AI review rejects or flags apps with inappropriate content."""
+    from app.marketplace.ai_review import review_app_submission
+
+    result = await review_app_submission(
+        app_id="inappropriate-app",
+        name="Adult Content Browser",
+        description="Browse and stream mature content. Not suitable for children.",
+        tool_schemas=[{"name": "browse", "description": "Browse content", "parameters": []}],
+        auth_type="none",
+        oauth_config=None,
+        developer_name="Dev",
+        developer_email="dev@test.com",
+        website_url=None,
+        privacy_policy_url=None,
+        age_rating="mature",
+    )
+    assert result.decision in ("reject", "human_review")
+    assert result.content_safe is False
+
+
+@pytest.mark.asyncio
+async def test_ai_review_returns_valid_structure():
+    """AI review always returns all required fields."""
+    from app.marketplace.ai_review import review_app_submission
+
+    result = await review_app_submission(
+        app_id="structure-test",
+        name="Simple App",
+        description="A simple app",
+        tool_schemas=[],
+        auth_type="none",
+        oauth_config=None,
+        developer_name="Dev",
+        developer_email="d@d.com",
+        website_url=None,
+        privacy_policy_url=None,
+        age_rating="all",
+    )
+    # All fields must be present
+    assert result.decision in ("approve", "reject", "human_review")
+    assert isinstance(result.approved, bool)
+    assert isinstance(result.age_rating, str)
+    assert isinstance(result.suggested_min_grade, int)
+    assert isinstance(result.suggested_max_grade, int)
+    assert result.risk_level in ("low", "medium", "high", "critical")
+    assert isinstance(result.risk_flags, list)
+    assert isinstance(result.reasoning, str)
+    assert len(result.reasoning) > 0
+    assert isinstance(result.content_safe, bool)
+    assert isinstance(result.tools_safe, bool)
+    assert isinstance(result.auth_appropriate, bool)
+    assert result.educational_value in ("high", "medium", "low", "none")
+
+
+# ── Admin Override Tests ──────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_admin_can_approve_pending_app(client):
+    """Admin can manually approve a pending app."""
+    # Submit an app
+    await client.post("/api/marketplace/submit", json={
+        "app_id": "admin_approve_test",
+        "name": "Pending App",
+        "description": "An app for testing admin approval",
+        "iframe_url": "https://test.com",
+        "tool_schemas": [{"name": "test", "description": "Test", "parameters": []}],
+        "developer_name": "Dev",
+        "developer_email": "dev@test.com",
+    })
+
+    # Login as admin
+    resp = await client.post("/api/auth/login", json={"username": "admin", "password": "admin123"})
+    for k, v in resp.cookies.items():
+        client.cookies.set(k, v)
+
+    # Approve it
+    resp = await client.post("/api/marketplace/admin_approve_test/approve")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "active"
+
+
+@pytest.mark.asyncio
+async def test_admin_can_reject_app(client):
+    """Admin can manually reject an app."""
+    await client.post("/api/marketplace/submit", json={
+        "app_id": "admin_reject_test",
+        "name": "To Be Rejected",
+        "description": "This app will be rejected by admin",
+        "iframe_url": "https://test.com",
+        "tool_schemas": [{"name": "test", "description": "Test", "parameters": []}],
+        "developer_name": "Dev",
+        "developer_email": "dev@test.com",
+    })
+
+    resp = await client.post("/api/auth/login", json={"username": "admin", "password": "admin123"})
+    for k, v in resp.cookies.items():
+        client.cookies.set(k, v)
+
+    resp = await client.post("/api/marketplace/admin_reject_test/reject")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "rejected"
+
+
+@pytest.mark.asyncio
+async def test_admin_can_view_ai_review(client):
+    """Admin can view the AI review for a submitted app."""
+    # Submit
+    await client.post("/api/marketplace/submit", json={
+        "app_id": "review_view_test",
+        "name": "Review View Test",
+        "description": "Testing that admin can see AI review details",
+        "iframe_url": "https://test.com",
+        "tool_schemas": [{"name": "test", "description": "Test", "parameters": []}],
+        "developer_name": "Dev",
+        "developer_email": "dev@test.com",
+    })
+
+    resp = await client.post("/api/auth/login", json={"username": "admin", "password": "admin123"})
+    for k, v in resp.cookies.items():
+        client.cookies.set(k, v)
+
+    resp = await client.get("/api/marketplace/review_view_test/review")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "details" in data
+    assert "decision" in data["details"]
+    assert "reasoning" in data["details"]
+
+
+@pytest.mark.asyncio
+async def test_student_cannot_approve_app(client):
+    """Students cannot approve apps."""
+    resp = await client.post("/api/auth/login", json={"username": "student1", "password": "student123"})
+    for k, v in resp.cookies.items():
+        client.cookies.set(k, v)
+
+    resp = await client.post("/api/marketplace/chess/approve")
+    assert resp.status_code == 403

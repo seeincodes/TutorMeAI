@@ -161,6 +161,9 @@ export default function ChatPage() {
     dictionary: "Welcome to Reading & Vocabulary! Choose a passage to read, then test your comprehension. Save words you want to remember and I'll quiz you on them!",
     weather: "Here's the weather dashboard! You can check the forecast for any city. Ask me about weather patterns or what to wear today!",
     'life-skills': "Welcome to Level Up Life! Pick a scenario to practice real-world decision making. I'll guide you through each choice and explain the outcomes.",
+    nasa: "Welcome to NASA Space Explorer! 🚀 Check out today's astronomy picture or explore space facts. Ask me anything about space!",
+    books: "Welcome to Book Explorer! 📚 Browse books by category or search for something you're interested in. Save books to your reading list!",
+    spotify: "Welcome to Study Music! 🎵 Pick a playlist to help you focus while studying. Connect your Spotify account for the full experience!",
   }
 
   async function handleAppLaunch(appId: string) {

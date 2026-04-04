@@ -35,6 +35,9 @@ APP_MIN_GRADE: dict[str, int] = {
     "life-skills": 3,
     "flashcards": 3,
     "weather": 3,
+    "nasa": 3,
+    "books": 3,
+    "spotify": 6,
 }
 
 # Apps only shown to young kids (hidden for older students who don't need them)
