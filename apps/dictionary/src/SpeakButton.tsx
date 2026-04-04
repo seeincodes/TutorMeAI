@@ -24,7 +24,7 @@ function pickVoice(): SpeechSynthesisVoice | null {
   return voices.find(v => v.lang.startsWith('en')) || null
 }
 
-export default function SpeakButton({ text, label = 'Read aloud' }: { text: string; label?: string }) {
+export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = false }: { text: string; label?: string; autoSpeak?: boolean }) {
   const [speaking, setSpeaking] = useState(false)
   const [speed, setSpeed] = useState<Speed>(() =>
     (localStorage.getItem(STORAGE_KEY) as Speed) || 'slow'
@@ -58,6 +58,21 @@ export default function SpeakButton({ text, label = 'Read aloud' }: { text: stri
     speechSynthesis.speak(utterance)
     setSpeaking(true)
   }, [supported, text, speed])
+
+  // Auto-speak when text changes (for K-2 kids who can't read yet)
+  useEffect(() => {
+    if (!autoSpeak || !supported || !text.trim()) return
+    const preset = PRESETS[speed]
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.rate = preset.rate
+    utterance.pitch = preset.pitch
+    if (voiceRef.current) utterance.voice = voiceRef.current
+    utterance.onend = () => setSpeaking(false)
+    utterance.onerror = () => setSpeaking(false)
+    speechSynthesis.cancel()
+    speechSynthesis.speak(utterance)
+    setSpeaking(true)
+  }, [autoSpeak, supported, text]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleSpeed = useCallback(() => {
     const next = speed === 'slow' ? 'regular' : 'slow'

@@ -287,7 +287,7 @@ export default function ShapesGame() {
       {/* Question prompt */}
       <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827', textAlign: 'center', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
         {question.prompt}
-        <SpeakButton text={question.prompt} label="Read question aloud" />
+        <SpeakButton text={question.prompt} label="Read question aloud" autoSpeak />
       </div>
 
       {/* Shape display */}

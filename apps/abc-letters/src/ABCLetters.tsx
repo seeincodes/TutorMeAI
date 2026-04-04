@@ -244,7 +244,7 @@ export default function ABCLetters() {
       {/* Question */}
       <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827', textAlign: 'center', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <span>{question.prompt}</span>
-        <SpeakButton text={question.prompt} label="Hear the question" />
+        <SpeakButton text={question.prompt} label="Hear the question" autoSpeak />
       </div>
 
       {/* Big display */}
