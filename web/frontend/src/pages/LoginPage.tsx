@@ -4,8 +4,10 @@ import { useAuth } from '@/lib/AuthContext'
 const DEMO_ACCOUNTS = [
   { username: 'admin', password: 'admin123', role: 'Admin', icon: '🛡️' },
   { username: 'teacher1', password: 'teacher123', role: 'Teacher', icon: '👩‍🏫' },
-  { username: 'student1', password: 'student123', role: 'Student', icon: '🎓' },
-  { username: 'student2', password: 'student234', role: 'Student', icon: '🎓' },
+  { username: 'emma_k', password: 'demo123', role: 'Kindergarten', icon: '🌱' },
+  { username: 'liam_3', password: 'demo123', role: 'Grade 3', icon: '⭐' },
+  { username: 'sofia_6', password: 'demo123', role: 'Grade 6', icon: '🔥' },
+  { username: 'noah_9', password: 'demo123', role: 'Grade 9', icon: '👑' },
 ]
 
 export default function LoginPage() {
