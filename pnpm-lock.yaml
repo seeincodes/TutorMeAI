@@ -945,6 +945,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      lodash:
+        specifier: ^4.17.23
+        version: 4.17.23
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -975,6 +978,9 @@ importers:
       tailwind-merge:
         specifier: ^1.14.0
         version: 1.14.0
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@testing-library/jest-dom':
         specifier: ^6.9.1
@@ -985,6 +991,9 @@ importers:
       '@testing-library/user-event':
         specifier: ^14.6.1
         version: 14.6.1(@testing-library/dom@9.3.4)
+      '@types/lodash':
+        specifier: ^4.17.23
+        version: 4.17.23
       '@types/react':
         specifier: ^18.3.12
         version: 18.3.27
@@ -997,6 +1006,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: 4.3.4
         version: 4.3.4(vite@5.4.21(@types/node@20.2.5)(sass@1.97.3)(sugarss@5.0.1(postcss@8.5.6))(terser@5.46.0))
+      ai:
+        specifier: ^6.0.67
+        version: 6.0.67(zod@4.3.6)
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.24(postcss@8.5.6)

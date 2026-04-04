@@ -126,6 +126,7 @@ async def stream_chat_with_tools(
     messages: list[dict],
     available_apps: list[dict] | None = None,
     target_app_id: str | None = None,
+    student_grade: int | None = None,
 ) -> AsyncGenerator[dict, None]:
     """
     Stream LLM response with real tool calling.
@@ -156,6 +157,50 @@ async def stream_chat_with_tools(
             target_app = next((a for a in available_apps if a["app_id"] == target_app_id), None)
             if target_app:
                 system_content += f"\n\nActive app: {target_app['name']} ({target_app_id}). Use the available tools to interact with this app when the user wants to use it."
+
+    # Grade-aware explanation style
+    if student_grade is not None:
+        if student_grade <= 2:
+            system_content += (
+                "\n\n## Student Level: Grades K-2 (ages 5-8)\n"
+                "- Use very simple words and short sentences.\n"
+                "- Explain with things kids LOVE: dinosaurs 🦕, puppies 🐶, ice cream 🍦, rockets 🚀, superheroes, cookies 🍪.\n"
+                "- Use emojis freely to make things visual and exciting.\n"
+                "- After giving an answer, ALWAYS explain HOW with a fun story or counting example.\n"
+                "- Be super enthusiastic: 'Wow, great job! 🎉', 'You're a math wizard! 🧙', 'High five! ✋'\n"
+                "- For math: count with fingers, draw with emojis, make it a game.\n"
+                "- End with a fun challenge: 'Now YOU try: if a unicorn has 3 cupcakes and bakes 2 more... 🧁'"
+            )
+        elif student_grade <= 5:
+            system_content += (
+                "\n\n## Student Level: Grades 3-5 (ages 8-11)\n"
+                "- Use age-appropriate vocabulary, explain new words briefly.\n"
+                "- Make problems relatable: use sports scores, video game points, cooking recipes, allowance money.\n"
+                "- Show the steps and name the operation (addition, multiplication, etc.).\n"
+                "- Share cool math tricks and patterns: 'Here's a shortcut...'\n"
+                "- Use emojis sparingly for emphasis.\n"
+                "- Encourage with: 'Nice thinking!', 'You're getting faster at this!'\n"
+                "- Give a follow-up challenge that's slightly harder."
+            )
+        elif student_grade <= 8:
+            system_content += (
+                "\n\n## Student Level: Grades 6-8 (ages 11-14)\n"
+                "- Use grade-level vocabulary and introduce proper terminology.\n"
+                "- Connect math to real life: budgeting, cooking proportions, sports stats, building things.\n"
+                "- Explain the reasoning, not just the answer. Show WHY formulas work.\n"
+                "- Share interesting math facts: 'Fun fact: this is the same math NASA uses for...'\n"
+                "- Encourage the student to try solving similar problems on their own."
+            )
+        else:
+            system_content += (
+                "\n\n## Student Level: Grades 9-12 (ages 14-18)\n"
+                "- Use mature vocabulary and proper academic terminology.\n"
+                "- Connect concepts to real applications: engineering, finance, data science, physics.\n"
+                "- Provide thorough explanations with underlying concepts.\n"
+                "- For math: reference theorems, show algebraic reasoning.\n"
+                "- Challenge the student to think deeper: 'Why do you think this works?'\n"
+                "- Mention career connections: 'This is what data scientists use every day.'"
+            )
 
     langchain_messages = [SystemMessage(content=system_content)]
     for msg in messages:
@@ -228,11 +273,16 @@ async def stream_chat_with_tools(
 
             # Wait for frontend to POST the result back (with timeout)
             event = register_tool_call(correlation_id)
+            import logging
+            logger = logging.getLogger("chatbridge.agent")
+            logger.info(f"[tool_call] Waiting for result: {app_id}__{tool_name} cid={correlation_id}")
             try:
                 await asyncio.wait_for(event.wait(), timeout=30.0)
                 result = get_tool_result(correlation_id)
+                logger.info(f"[tool_call] Got result for cid={correlation_id}: {str(result)[:200]}")
             except asyncio.TimeoutError:
                 result = {"error": "Tool execution timed out"}
+                logger.warning(f"[tool_call] TIMEOUT for cid={correlation_id}")
             finally:
                 cleanup_tool_call(correlation_id)
 

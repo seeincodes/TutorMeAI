@@ -20,6 +20,31 @@ from app.database import get_db
 from app.models import AppRegistration, AppSchemaAudit, DistrictAppApproval, ToolInvocation, User
 from app.rate_limit import limiter
 
+# Grade-based app visibility: maps minimum grade to unlock each app.
+# K-2 (grade 0-2): chess, calculator, dictionary, life-skills
+# 3-5 (grade 3-5): + flashcards, weather (all apps)
+# 6+ : all apps
+APP_MIN_GRADE: dict[str, int] = {
+    "counting-game": 0,
+    "abc-letters": 0,
+    "shapes": 0,
+    "animals": 0,
+    "chess": 3,
+    "calculator": 3,
+    "dictionary": 3,
+    "life-skills": 3,
+    "flashcards": 3,
+    "weather": 3,
+}
+
+# Apps only shown to young kids (hidden for older students who don't need them)
+APP_MAX_GRADE: dict[str, int] = {
+    "counting-game": 2,   # K-2 only
+    "abc-letters": 2,     # K-2 only
+    "shapes": 2,          # K-2 only
+    "animals": 2,         # K-2 only
+}
+
 router = APIRouter(prefix="/api/apps", tags=["apps"])
 
 
@@ -50,6 +75,15 @@ async def list_apps(
 
     result = await db.execute(query)
     apps = result.scalars().all()
+
+    # Filter by student grade level (teachers/admins see all apps)
+    if current_user.role == "student" and current_user.grade is not None:
+        apps = [
+            a for a in apps
+            if current_user.grade >= APP_MIN_GRADE.get(a.app_id, 0)
+            and current_user.grade <= APP_MAX_GRADE.get(a.app_id, 99)
+        ]
+
     return [AppResponse.model_validate(a) for a in apps]
 
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { playCorrect, playWrong, playFlip, playCelebration, playComplete, playSelect } from './sounds'
 
 function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
   window.parent.postMessage({ type, correlationId, data }, '*')
@@ -378,6 +379,8 @@ export default function FlashcardsApp() {
     const correct = userAnswer.toLowerCase().trim() === currentCard.answer.toLowerCase().trim()
     setLastCorrect(correct)
     setShowAnswer(true)
+    playFlip()
+    setTimeout(() => correct ? playCorrect() : playWrong(), 200)
     const newScore = correct ? quiz.score + 1 : quiz.score
     const nextIndex = quiz.currentIndex + 1
     const finished = nextIndex >= quiz.cards.length
@@ -390,6 +393,9 @@ export default function FlashcardsApp() {
         const key = progressKey(quiz.category, quiz.level)
         const prev = progress[key] ?? 0
         if (newScore > prev) saveProgress({ ...progress, [key]: newScore })
+        // Celebration for passing, neutral sound otherwise
+        if (newScore >= PASS_THRESHOLD) playCelebration()
+        else playComplete()
       }
       sendToPlatform('state_update', '', {
         type: 'quiz_progress', cards: newQuiz.cards, currentIndex: newQuiz.currentIndex,
@@ -431,7 +437,7 @@ export default function FlashcardsApp() {
             return (
               <button
                 key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
+                onClick={() => { playSelect(); setSelectedCategory(cat.id) }}
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                   padding: '20px 12px', background: 'white', border: '1px solid #e2e8f0',
@@ -489,7 +495,7 @@ export default function FlashcardsApp() {
             return (
               <button
                 key={level}
-                onClick={() => unlocked && startLevel(cat.id, level)}
+                onClick={() => { if (unlocked) { playSelect(); startLevel(cat.id, level) } }}
                 disabled={!unlocked}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 14,

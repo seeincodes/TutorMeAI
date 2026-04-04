@@ -6,6 +6,7 @@ import AppIframe, { type AppIframeHandle } from '@/components/AppIframe'
 import ChatMessage from '@/components/ChatMessage'
 import Sidebar from '@/components/Sidebar'
 import { APP_DISPLAY, sortApps } from '@/lib/apps'
+import { useSounds } from '@/lib/useSounds'
 
 interface AppState {
   appId: string
@@ -34,6 +35,7 @@ export default function ChatPage() {
   const appIframeRef = useRef<AppIframeHandle>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const userCityRef = useRef<string | null>(null)
+  const { muted, toggleMute, playMessageSent, playMessageReceived, playAppLaunch } = useSounds()
 
   // Dark mode toggle — sync with <html> class and localStorage
   useEffect(() => {
@@ -107,7 +109,12 @@ export default function ChatPage() {
             setPendingRestore(saved.state)
           } catch { /* ignore */ }
         } else {
-          setActiveApp(null)
+          // Only clear activeApp if it wasn't just set by handleAppLaunch
+          // (new conversations have no messages yet, but activeApp may already be set)
+          setActiveApp(prev => {
+            if (prev && msgs.length === 0) return prev  // keep the app that was just launched
+            return null
+          })
           setPendingRestore(null)
         }
       }).catch(() => {})
@@ -139,72 +146,55 @@ export default function ChatPage() {
     return `/apps/${appId}/index.html${qs ? `?${qs}` : ''}`
   }
 
+  // Apps that have their own setup UI (e.g. difficulty picker) should open
+  // without sending an AI message first. The AI message is deferred until the
+  // user completes setup, triggered by the app's state_update event.
+  const DEFERRED_PROMPT_APPS = new Set(['chess', 'flashcards'])
+
+  // Deterministic welcome messages — instant, no AI call
+  const APP_WELCOME: Record<string, string> = {
+    'counting-game': "Let's count! 🔢 Pick a game mode and tap the right answer. You got this! 🌟",
+    'abc-letters': "Let's learn letters! 🔤 Tap the right answer — no typing needed! You're going to do great! ⭐",
+    shapes: "Let's learn shapes and colors! 🔷 Tap your answer — can you name all the shapes? 🌟",
+    animals: "Let's learn about animals! 🐾 Tap the right answer — which animals do you know? 🦁",
+    calculator: "Welcome to Math Helper! Pick a grade level and lesson to get started. I can help explain any problem — just ask!",
+    dictionary: "Welcome to Reading & Vocabulary! Choose a passage to read, then test your comprehension. Save words you want to remember and I'll quiz you on them!",
+    weather: "Here's the weather dashboard! You can check the forecast for any city. Ask me about weather patterns or what to wear today!",
+    'life-skills': "Welcome to Level Up Life! Pick a scenario to practice real-world decision making. I'll guide you through each choice and explain the outcomes.",
+  }
+
   async function handleAppLaunch(appId: string) {
     const display = APP_DISPLAY[appId]
     if (!display) return
+    playAppLaunch()
     const conv = await api.createConversation(display.label)
     setConversations(prev => [conv, ...prev])
     setActiveConversation(conv.id)
-    setActiveApp(null)
 
-    // Send a message that will trigger the intent classifier to open the app
-    const userMessage: Message = {
-      id: crypto.randomUUID(), role: 'user', content: display.prompt,
-      tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
+    // All apps open immediately with the iframe
+    setActiveApp({ appId, iframeUrl: buildAppUrl(appId) })
+
+    // Tell the backend which app is active so it routes tools correctly
+    fetch(`/api/conversations/${conv.id}/app-state`, {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appId }),
+    }).catch(() => {})
+
+    if (DEFERRED_PROMPT_APPS.has(appId)) {
+      // Chess/flashcards: wait for user to complete setup before showing welcome
+      setMessages([])
+      return
     }
-    setMessages([userMessage])
-    setInput('')
-    if (inputRef.current) inputRef.current.style.height = 'auto'
-    setStreaming(true)
-    setStreamingContent('')
 
-    await api.sendMessage(
-      conv.id,
-      display.prompt,
-      (token) => setStreamingContent(prev => prev + token),
-      (messageId) => {
-        setStreamingContent(prev => {
-          const assistantMessage: Message = {
-            id: messageId, role: 'assistant', content: prev,
-            tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
-          }
-          setMessages(msgs => [...msgs, assistantMessage])
-          return ''
-        })
-        setStreaming(false)
-      },
-      (error) => {
-        setStreamingContent('')
-        setStreaming(false)
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(), role: 'assistant', content: `Error: ${error}`,
-          tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
-        }])
-      },
-      (intentAppId) => {
-        setActiveApp({ appId: intentAppId, iframeUrl: buildAppUrl(intentAppId) })
-      },
-      async (toolAppId, tool, params, correlationId) => {
-        if (!appIframeRef.current) {
-          setActiveApp({ appId: toolAppId, iframeUrl: buildAppUrl(toolAppId) })
-          await new Promise(r => setTimeout(r, 2000))
-        }
-        try {
-          let result: Record<string, unknown> = { status: 'no_iframe' }
-          if (appIframeRef.current) {
-            result = await appIframeRef.current.invokeTool(tool, params)
-          }
-          await api.submitToolResult(conv.id, correlationId, result)
-        } catch (err) {
-          await api.submitToolResult(conv.id, correlationId, {
-            error: err instanceof Error ? err.message : 'Tool execution failed',
-          })
-        }
-      },
-      (oauthAppId: string, message: string) => {
-        setOauthPrompt({ appId: oauthAppId, message })
-      },
-    )
+    // All other apps: show deterministic welcome message instantly
+    const welcome = APP_WELCOME[appId] || `${display.label} is ready! Ask me anything or start using the app.`
+    setMessages([{
+      id: crypto.randomUUID(), role: 'assistant', content: welcome,
+      tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
+    }])
+    playMessageReceived()
+    return
   }
 
   async function handleSend(e: React.FormEvent) {
@@ -228,6 +218,7 @@ export default function ChatPage() {
     if (inputRef.current) inputRef.current.style.height = 'auto'
     setStreaming(true)
     setStreamingContent('')
+    playMessageSent()
 
     // Auto-open chat drawer when sending in app mode
     if (activeApp) setChatDrawerOpen(true)
@@ -246,6 +237,7 @@ export default function ChatPage() {
           return ''
         })
         setStreaming(false)
+        playMessageReceived()
       },
       (error) => {
         setStreamingContent('')
@@ -268,9 +260,10 @@ export default function ChatPage() {
           if (appIframeRef.current) {
             result = await appIframeRef.current.invokeTool(tool, params)
           }
-          if (activeConversation) await api.submitToolResult(activeConversation, correlationId, result)
+          // Use conversationId from closure, not activeConversation state (may be stale)
+          await api.submitToolResult(conversationId!, correlationId, result)
         } catch (err) {
-          if (activeConversation) await api.submitToolResult(activeConversation, correlationId, {
+          await api.submitToolResult(conversationId!, correlationId, {
             error: err instanceof Error ? err.message : 'Tool execution failed',
           })
         }
@@ -380,7 +373,7 @@ export default function ChatPage() {
               /* ---- Messages ---- */
               <div className="mx-auto max-w-2xl space-y-4">
                 {visibleMessages.map(msg => (
-                  <div key={msg.id} className={`flex items-start gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                  <div key={msg.id} className={`animate-message-in flex items-start gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                     {/* Avatar */}
                     {msg.role === 'user' ? (
                       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-chatbox-background-brand-primary">
@@ -397,8 +390,23 @@ export default function ChatPage() {
                     </div>
                   </div>
                 ))}
+                {/* Typing indicator */}
+                {streaming && !streamingContent && (
+                  <div className="animate-message-in flex items-start gap-2.5">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-chatbox-background-success-primary">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <div className="rounded-lg bg-chatbox-background-secondary px-4 py-3 text-chatbox-tint-tertiary">
+                      <span className="flex items-center gap-1.5">
+                        <span className="typing-dot" />
+                        <span className="typing-dot" />
+                        <span className="typing-dot" />
+                      </span>
+                    </div>
+                  </div>
+                )}
                 {streaming && streamingContent && (
-                  <div className="flex items-start gap-2.5">
+                  <div className="animate-message-in flex items-start gap-2.5">
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-chatbox-background-success-primary">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     </div>
@@ -431,6 +439,14 @@ export default function ChatPage() {
           {/* Input bar */}
           <div className="bg-chatbox-background-primary px-4 py-3">
             <form onSubmit={handleSend} className="mx-auto flex max-w-2xl items-end gap-2">
+              <button type="button" onClick={toggleMute} title={muted ? 'Unmute sounds' : 'Mute sounds'}
+                className="rounded-lg p-2.5 text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary transition-colors" aria-label={muted ? 'Unmute sounds' : 'Mute sounds'}>
+                {muted ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                )}
+              </button>
               <label htmlFor="chat-input" className="sr-only">Message</label>
               <textarea
                 id="chat-input"
@@ -438,7 +454,6 @@ export default function ChatPage() {
                 value={input}
                 onChange={e => {
                   setInput(e.target.value)
-                  // Auto-resize: reset then expand to content
                   const el = e.target
                   el.style.height = 'auto'
                   el.style.height = Math.min(el.scrollHeight, 120) + 'px'
@@ -462,8 +477,186 @@ export default function ChatPage() {
   }
 
   // ============================================================
-  // LAYOUT MODE 2: App active — app fills screen, chat is a drawer
+  // LAYOUT MODE 2: App active
+  //   Desktop (md+): side-by-side — app 65% left, chat 35% right
+  //   Mobile: app fullscreen with bottom drawer + FAB
   // ============================================================
+
+  // Shared iframe element (used in both desktop and mobile layouts)
+  const appIframeElement = (
+    <AppIframe
+      key={activeApp.appId}
+      ref={appIframeRef}
+      appId={activeApp.appId}
+      iframeUrl={activeApp.iframeUrl}
+      onError={(err) => {
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(), role: 'assistant',
+          content: `The ${APP_DISPLAY[activeApp.appId]?.label || activeApp.appId} app encountered an error: ${err}. You can try again or ask me something else.`,
+          tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
+        }])
+        setChatDrawerOpen(true)
+      }}
+      onCompletion={async (data) => {
+        let verified = false
+        try {
+          if (appIframeRef.current) {
+            const state = await appIframeRef.current.invokeTool('get_state', {})
+            const isComplete = state.completed === true
+              || state.game_over === true
+              || state.status === 'completed'
+              || state.status === 'finished'
+              || state.is_checkmate === true
+              || state.all_answered === true
+            if (isComplete) {
+              verified = true
+            } else {
+              console.warn(`[ChatPage] ${activeApp.appId}: completion signal contradicted by state poll, ignoring`)
+            }
+          }
+        } catch {
+          verified = true
+        }
+        if (verified) {
+          setMessages(prev => [...prev, {
+            id: crypto.randomUUID(), role: 'assistant',
+            content: `The ${APP_DISPLAY[activeApp.appId]?.label || activeApp.appId} session has finished. ${data.summary || ''}`,
+            tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
+          }])
+        }
+      }}
+      onReady={() => {
+        if (pendingRestore && appIframeRef.current) {
+          appIframeRef.current.invokeTool('restore_state', pendingRestore).catch(() => {})
+          setPendingRestore(null)
+        }
+      }}
+      onStateUpdate={(data) => {
+        if (data.type === 'inappropriate_search') {
+          fetch('/api/teacher/flags', {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              app_id: activeApp.appId, word: data.word,
+              reason: data.reason || 'blocked_word',
+              conversation_id: activeConversation, timestamp: data.timestamp,
+            }),
+          }).catch(() => {})
+          return
+        }
+        // Deferred welcome: when a setup-first app signals it's ready
+        // (e.g. user picked chess difficulty), show a deterministic welcome
+        // message instantly — no AI call needed.
+        if (data.type === 'game_start' && DEFERRED_PROMPT_APPS.has(activeApp.appId) && visibleMessages.length === 0) {
+          const difficulty = (data.difficulty as string) || 'explorer'
+          const WELCOME_MESSAGES: Record<string, Record<string, string>> = {
+            chess: {
+              explorer:   "Game on! You're playing white at Explorer level. Make your first move on the board, or ask me for help anytime!",
+              apprentice: "Game on! You're playing white at Apprentice level. Make your first move, or ask me for a suggestion!",
+              challenger: "Game on! You're playing white at Challenger level. Good luck — I'm here if you need strategy tips!",
+              expert:     "Game on! You're playing white at Expert level. This will be tough — ask me to analyze any position!",
+            },
+          }
+          const welcomeText = WELCOME_MESSAGES[activeApp.appId]?.[difficulty]
+            || `Let's go! Make your first move, or ask me for help.`
+          setMessages([{
+            id: crypto.randomUUID(), role: 'assistant', content: welcomeText,
+            tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
+          }])
+          playMessageReceived()
+          return
+        }
+        if (activeConversation) {
+          fetch(`/api/conversations/${activeConversation}/app-state`, {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appId: activeApp.appId, state: data }),
+          }).catch(() => {})
+        }
+      }}
+    />
+  )
+
+  // Shared chat message list (used in both desktop panel and mobile drawer)
+  const chatMessageList = (
+    <div className="space-y-3">
+      {visibleMessages.map(msg => (
+        <div key={msg.id} className={`animate-message-in flex items-start gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+          {msg.role !== 'user' && (
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chatbox-background-success-primary">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+          )}
+          <div className={`max-w-[85%] rounded-lg px-3 py-1.5 text-sm ${msg.role === 'user' ? 'bg-chatbox-background-brand-primary text-chatbox-tint-white' : 'bg-chatbox-background-secondary text-chatbox-tint-primary'}`}>
+            <ChatMessage content={msg.content || ''} role={msg.role} onAppLaunch={handleAppLaunch} disabled={streaming} />
+          </div>
+        </div>
+      ))}
+      {/* Typing indicator — shows while AI is thinking before any tokens arrive */}
+      {streaming && !streamingContent && (
+        <div className="animate-message-in flex items-start gap-2">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chatbox-background-success-primary">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div className="rounded-lg bg-chatbox-background-secondary px-4 py-2.5 text-chatbox-tint-tertiary">
+            <span className="flex items-center gap-1.5">
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+            </span>
+          </div>
+        </div>
+      )}
+      {streaming && streamingContent && (
+        <div className="animate-message-in flex items-start gap-2">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chatbox-background-success-primary">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div className="max-w-[85%] rounded-lg bg-chatbox-background-secondary px-3 py-1.5 text-sm text-chatbox-tint-primary" aria-live="polite">
+            <ChatMessage content={streamingContent} role="assistant" onAppLaunch={handleAppLaunch} disabled={streaming} />
+          </div>
+        </div>
+      )}
+      {oauthPrompt && (
+        <div className="flex items-start gap-2">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chatbox-background-brand-primary">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/></svg>
+          </div>
+          <div className="max-w-[85%] rounded-lg border border-chatbox-border-brand bg-chatbox-background-brand-secondary px-3 py-2 text-sm">
+            <p className="mb-2 text-chatbox-tint-primary">{oauthPrompt.message}</p>
+            <button
+              onClick={() => handleOAuthConnect(oauthPrompt.appId)}
+              className="rounded-md bg-chatbox-background-brand-primary px-3 py-1.5 text-xs font-medium text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover transition-colors"
+            >
+              Connect {oauthPrompt.appId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </button>
+          </div>
+        </div>
+      )}
+      <div ref={messagesEndRef} />
+    </div>
+  )
+
+  // Shared chat input bar
+  const chatInputBar = (
+    <form onSubmit={handleSend} className="flex items-end gap-2">
+      <textarea
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e) } }}
+        placeholder="Ask your tutor..."
+        disabled={streaming}
+        rows={1}
+        className="flex-1 resize-none rounded-lg border border-chatbox-border-primary bg-chatbox-background-secondary px-3 py-2 text-sm text-chatbox-tint-primary placeholder:text-chatbox-tint-placeholder focus:border-chatbox-border-brand focus:bg-chatbox-background-primary focus:outline-none focus:ring-1 focus:ring-chatbox-border-brand disabled:opacity-50"
+        style={{ maxHeight: '80px' }}
+      />
+      <button type="submit" disabled={streaming || !input.trim()}
+        className="rounded-lg bg-chatbox-background-brand-primary p-2 text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover disabled:opacity-50 transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </button>
+    </form>
+  )
+
   return (
     <div className="relative flex h-screen flex-col bg-chatbox-background-secondary">
       {/* Top bar */}
@@ -478,6 +671,14 @@ export default function ChatPage() {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <button onClick={toggleMute} title={muted ? 'Unmute sounds' : 'Mute sounds'}
+            className="rounded p-1.5 text-chatbox-tint-tertiary hover:bg-chatbox-background-secondary transition-colors" aria-label={muted ? 'Unmute sounds' : 'Mute sounds'}>
+            {muted ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            )}
+          </button>
           <button onClick={() => { setActiveApp(null); setChatDrawerOpen(false) }}
             className="rounded-md border border-chatbox-border-primary px-2.5 py-1 text-xs text-chatbox-tint-secondary hover:bg-chatbox-background-secondary transition-colors">
             Close app
@@ -515,160 +716,94 @@ export default function ChatPage() {
         </>
       )}
 
-      {/* App — fills all remaining space */}
-      <div className="flex-1 relative z-10 min-h-0 overflow-hidden">
-        <AppIframe
-          key={activeApp.appId}
-          ref={appIframeRef}
-          appId={activeApp.appId}
-          iframeUrl={activeApp.iframeUrl}
-          onError={(err) => {
-            setMessages(prev => [...prev, {
-              id: crypto.randomUUID(), role: 'assistant',
-              content: `The ${activeApp.appId} app encountered an error: ${err}. You can try again or ask me something else.`,
-              tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
-            }])
-            setChatDrawerOpen(true)
-          }}
-          onCompletion={async (data) => {
-            // Verify completion claim by polling app state before trusting it
-            let verified = false
-            try {
-              if (appIframeRef.current) {
-                const state = await appIframeRef.current.invokeTool('get_state', {})
-                // Check if app state confirms completion (e.g., game over, quiz finished)
-                const isComplete = state.completed === true
-                  || state.game_over === true
-                  || state.status === 'completed'
-                  || state.status === 'finished'
-                  || state.is_checkmate === true
-                  || state.all_answered === true
-                if (isComplete) {
-                  verified = true
-                } else {
-                  console.warn(`[ChatPage] ${activeApp.appId}: completion signal contradicted by state poll, ignoring`)
-                }
-              }
-            } catch {
-              // If get_state fails or times out, accept the completion (graceful degradation)
-              verified = true
-            }
-            if (verified) {
-              setMessages(prev => [...prev, {
-                id: crypto.randomUUID(), role: 'assistant',
-                content: `The ${activeApp.appId} app has completed. ${data.summary || ''}`,
-                tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
-              }])
-            }
-          }}
-          onReady={() => {
-            if (pendingRestore && appIframeRef.current) {
-              appIframeRef.current.invokeTool('restore_state', pendingRestore).catch(() => {})
-              setPendingRestore(null)
-            }
-          }}
-          onStateUpdate={(data) => {
-            if (data.type === 'inappropriate_search') {
-              fetch('/api/teacher/flags', {
-                method: 'POST', credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  app_id: activeApp.appId, word: data.word,
-                  reason: data.reason || 'blocked_word',
-                  conversation_id: activeConversation, timestamp: data.timestamp,
-                }),
-              }).catch(() => {})
-              return
-            }
-            if (activeConversation) {
-              fetch(`/api/conversations/${activeConversation}/app-state`, {
-                method: 'POST', credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ appId: activeApp.appId, state: data }),
-              }).catch(() => {})
-            }
-          }}
-        />
-      </div>
+      {/* ── Desktop (md+): Side-by-side layout ── */}
+      <div className="hidden md:flex flex-1 min-h-0">
+        {/* App panel — 65% */}
+        <div className="w-[65%] relative z-10 min-h-0 overflow-hidden">
+          {appIframeElement}
+        </div>
 
-      {/* Chat drawer — slides up from bottom */}
-      {chatDrawerOpen ? (
-        <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col border-t border-chatbox-border-primary bg-chatbox-background-primary shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
-          style={{ maxHeight: '50vh' }}>
-          {/* Drawer handle */}
-          <div className="flex items-center justify-between border-b border-chatbox-border-primary px-4 py-2 cursor-pointer"
-            onClick={() => setChatDrawerOpen(false)}>
-            <span className="text-xs font-medium text-chatbox-tint-tertiary">Chat with your tutor</span>
-            <button className="rounded p-1 text-chatbox-tint-tertiary hover:text-chatbox-tint-primary transition-colors" aria-label="Close chat">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
+        {/* Chat panel — 35%, always visible */}
+        <div className="w-[35%] flex flex-col border-l border-chatbox-border-primary bg-chatbox-background-primary min-h-0">
+          {/* Panel header */}
+          <div className="flex items-center gap-2 border-b border-chatbox-border-primary px-4 py-2.5">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chatbox-background-success-primary">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <span className="text-sm font-medium text-chatbox-tint-primary">Your Tutor</span>
+            {streaming && (
+              <span className="ml-auto text-xs text-chatbox-tint-tertiary animate-pulse">thinking...</span>
+            )}
           </div>
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-3">
-            <div className="space-y-3">
-              {visibleMessages.slice(-10).map(msg => (
-                <div key={msg.id} className={`flex items-start gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                  {msg.role !== 'user' && (
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chatbox-background-success-primary">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    </div>
-                  )}
-                  <div className={`max-w-[85%] rounded-lg px-3 py-1.5 text-sm ${msg.role === 'user' ? 'bg-chatbox-background-brand-primary text-chatbox-tint-white' : 'bg-chatbox-background-secondary text-chatbox-tint-primary'}`}>
-                    <ChatMessage content={msg.content || ''} role={msg.role} onAppLaunch={handleAppLaunch} disabled={streaming} />
-                  </div>
+            {visibleMessages.length === 0 && !streaming ? (
+              <div className="flex h-full flex-col items-center justify-center text-center px-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-chatbox-background-success-primary/10 mb-3">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-chatbox-tint-brand">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
                 </div>
-              ))}
-              {streaming && streamingContent && (
-                <div className="flex items-start gap-2">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-chatbox-background-success-primary">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                  </div>
-                  <div className="max-w-[85%] rounded-lg bg-chatbox-background-secondary px-3 py-1.5 text-sm text-chatbox-tint-primary" aria-live="polite">
-                    <ChatMessage content={streamingContent} role="assistant" onAppLaunch={handleAppLaunch} disabled={streaming} />
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+                <p className="text-sm font-medium text-chatbox-tint-secondary">Need help?</p>
+                <p className="mt-1 text-xs text-chatbox-tint-tertiary">Ask me anything about {APP_DISPLAY[activeApp.appId]?.label || 'the app'}!</p>
+              </div>
+            ) : (
+              chatMessageList
+            )}
           </div>
           {/* Input */}
-          <div className="border-t border-chatbox-border-primary px-4 py-2">
-            <form onSubmit={handleSend} className="flex items-end gap-2">
-              <textarea
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e) } }}
-                placeholder="Ask your tutor..."
-                disabled={streaming}
-                autoFocus
-                rows={1}
-                className="flex-1 resize-none rounded-lg border border-chatbox-border-primary bg-chatbox-background-secondary px-3 py-2 text-sm text-chatbox-tint-primary placeholder:text-chatbox-tint-placeholder focus:border-chatbox-border-brand focus:bg-chatbox-background-primary focus:outline-none focus:ring-1 focus:ring-chatbox-border-brand disabled:opacity-50"
-                style={{ maxHeight: '80px' }}
-              />
-              <button type="submit" disabled={streaming || !input.trim()}
-                className="rounded-lg bg-chatbox-background-brand-primary p-2 text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover disabled:opacity-50 transition-colors">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-              </button>
-            </form>
+          <div className="border-t border-chatbox-border-primary px-4 py-2.5">
+            {chatInputBar}
           </div>
         </div>
-      ) : (
-        /* Floating "Ask your tutor" FAB */
-        <button
-          onClick={() => setChatDrawerOpen(true)}
-          className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-full bg-chatbox-background-brand-primary px-5 py-3 text-sm font-medium text-chatbox-tint-white shadow-lg hover:bg-chatbox-background-brand-primary-hover active:scale-95 transition-all"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          Ask your tutor
-          {visibleMessages.length > 0 && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-[11px]">
-              {visibleMessages.length}
-            </span>
-          )}
-        </button>
-      )}
+      </div>
+
+      {/* ── Mobile: App fullscreen + bottom drawer/FAB ── */}
+      <div className="flex md:hidden flex-1 flex-col min-h-0 relative">
+        {/* App — fills all remaining space */}
+        <div className="flex-1 relative z-10 min-h-0 overflow-hidden">
+          {appIframeElement}
+        </div>
+
+        {/* Chat drawer — slides up from bottom */}
+        {chatDrawerOpen ? (
+          <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col border-t border-chatbox-border-primary bg-chatbox-background-primary shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
+            style={{ maxHeight: '50vh' }}>
+            {/* Drawer handle */}
+            <div className="flex items-center justify-between border-b border-chatbox-border-primary px-4 py-2 cursor-pointer"
+              onClick={() => setChatDrawerOpen(false)}>
+              <span className="text-xs font-medium text-chatbox-tint-tertiary">Chat with your tutor</span>
+              <button className="rounded p-1 text-chatbox-tint-tertiary hover:text-chatbox-tint-primary transition-colors" aria-label="Close chat">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+            </div>
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-4 py-3">
+              {chatMessageList}
+            </div>
+            {/* Input */}
+            <div className="border-t border-chatbox-border-primary px-4 py-2">
+              {chatInputBar}
+            </div>
+          </div>
+        ) : (
+          /* Floating "Ask your tutor" FAB */
+          <button
+            onClick={() => setChatDrawerOpen(true)}
+            className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-full bg-chatbox-background-brand-primary px-5 py-3 text-sm font-medium text-chatbox-tint-white shadow-lg hover:bg-chatbox-background-brand-primary-hover active:scale-95 transition-all"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Ask your tutor
+            {visibleMessages.length > 0 && (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-[11px]">
+                {visibleMessages.length}
+              </span>
+            )}
+          </button>
+        )}
+      </div>
     </div>
   )
 }

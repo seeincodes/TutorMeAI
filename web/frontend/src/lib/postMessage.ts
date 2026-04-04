@@ -1,3 +1,15 @@
+/**
+ * PostMessage protocol for iframe app communication.
+ *
+ * Safe JSON parsing uses parseJsonOrEmpty() from the Chatbox source
+ * (src/shared/utils/json_utils.ts) for handling untrusted data from
+ * sandboxed iframe apps.
+ */
+import { parseJsonOrEmpty } from '@/lib/chatbox-utils'
+
+// Re-export for consumers that need safe JSON parsing of iframe messages
+export { parseJsonOrEmpty }
+
 // Platform → App
 export interface PlatformMessage {
   type: 'tool_invoke' | 'tool_cancel' | 'state_request' | 'shutdown'

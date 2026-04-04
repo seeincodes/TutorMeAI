@@ -14,23 +14,29 @@ export interface AppDisplay {
 
 /** Ordered list — this determines display order everywhere. */
 export const APP_ORDER = [
+  'counting-game',
+  'abc-letters',
+  'shapes',
+  'animals',
   'chess',
   'calculator',
   'dictionary',
   'flashcards',
   'weather',
   'life-skills',
-  'google-classroom',
 ] as const
 
 export const APP_DISPLAY: Record<string, AppDisplay> = {
-  chess:              { label: 'Chess',              shortLabel: 'Chess',       emoji: '♟️', prompt: "Let's play chess" },
-  calculator:         { label: 'Math Helper',        shortLabel: 'Math',        emoji: '🧮', prompt: 'I want to use the calculator' },
-  dictionary:         { label: 'Dictionary',         shortLabel: 'Dictionary',  emoji: '📖', prompt: 'I want to look up a word in the dictionary' },
-  flashcards:         { label: 'Flashcards',         shortLabel: 'Flashcards',  emoji: '🗂️', prompt: 'I want to study with flashcards' },
-  weather:            { label: 'Weather',            shortLabel: 'Weather',     emoji: '🌤️', prompt: 'Open the weather app' },
-  'life-skills':      { label: 'Level Up Life',      shortLabel: 'Life Skills', emoji: '🎮', prompt: 'I want to play Level Up Life' },
-  'google-classroom': { label: 'Google Classroom',   shortLabel: 'Classroom',   emoji: '🎓', prompt: 'Open Google Classroom' },
+  'counting-game':    { label: 'Counting Game',          shortLabel: 'Counting',    emoji: '🔢', prompt: "Let's play the counting game" },
+  'abc-letters':      { label: 'ABC Letters',            shortLabel: 'ABC',         emoji: '🔤', prompt: "Let's learn letters" },
+  shapes:             { label: 'Shapes & Colors',        shortLabel: 'Shapes',      emoji: '🔷', prompt: "Let's learn shapes" },
+  animals:            { label: 'Animal Friends',          shortLabel: 'Animals',     emoji: '🐾', prompt: "Let's learn about animals" },
+  chess:              { label: 'Chess',                  shortLabel: 'Chess',       emoji: '♟️', prompt: "Let's play chess" },
+  calculator:         { label: 'Math Helper',            shortLabel: 'Math',        emoji: '🧮', prompt: 'I want to use the calculator' },
+  dictionary:         { label: 'Reading & Vocabulary',   shortLabel: 'Vocab',       emoji: '📖', prompt: 'I want to look up a word' },
+  flashcards:         { label: 'Flashcards',             shortLabel: 'Flashcards',  emoji: '🗂️', prompt: 'I want to study with flashcards' },
+  weather:            { label: 'Weather',                shortLabel: 'Weather',     emoji: '🌤️', prompt: 'Open the weather app' },
+  'life-skills':      { label: 'Level Up Life',          shortLabel: 'Life Skills', emoji: '🎮', prompt: 'I want to play Level Up Life' },
 }
 
 /** Sort apps by the canonical order. Unknown apps go to the end. */

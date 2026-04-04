@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { evaluate } from 'mathjs'
+import { playCorrect, playWrong, playClick, playCelebration, playHint } from './sounds'
 
 function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
   window.parent.postMessage({ type, correlationId, data }, '*')
@@ -227,10 +228,39 @@ interface Progress {
   stars: Record<string, number> // lessonId -> stars (0-3)
 }
 
+// Read grade and teacher-unlocked levels from URL params
+function getStudentGrade(): Grade {
+  const params = new URLSearchParams(window.location.search)
+  const g = parseInt(params.get('grade') || '1', 10)
+  return (g >= 1 && g <= 12 ? g : 1) as Grade
+}
+
+function getTeacherUnlockedGrades(): Set<number> {
+  const params = new URLSearchParams(window.location.search)
+  const levels = params.get('levels') || ''
+  const unlocked = new Set<number>()
+  // levels is comma-separated like "K-2,3-5" meaning grades 0-2 and 3-5
+  for (const band of levels.split(',')) {
+    const trimmed = band.trim()
+    if (trimmed === 'K-2') { [1, 2].forEach(g => unlocked.add(g)) }
+    else if (trimmed === '3-5') { [3, 4, 5].forEach(g => unlocked.add(g)) }
+    else if (trimmed === '6-8') { [6, 7, 8].forEach(g => unlocked.add(g)) }
+    else if (trimmed === '9-12') { [9, 10, 11, 12].forEach(g => unlocked.add(g)) }
+    else {
+      const n = parseInt(trimmed, 10)
+      if (n >= 1 && n <= 12) unlocked.add(n)
+    }
+  }
+  return unlocked
+}
+
 export default function CalculatorApp() {
+  const studentGrade = getStudentGrade()
+  const teacherUnlocked = getTeacherUnlockedGrades()
+
   const [progress, setProgress] = useState<Progress>({
     completedLessons: new Set(),
-    unlockedGrade: 1,
+    unlockedGrade: studentGrade,
     stars: {},
   })
   const [selectedGrade, setSelectedGrade] = useState<Grade | null>(null)
@@ -308,9 +338,11 @@ export default function CalculatorApp() {
     if (correct) {
       setLessonScore(s => s + 1)
       setFeedback({ correct: true, message: 'Correct!' })
+      playCorrect()
     } else {
       setLessonMistakes(m => m + 1)
       setFeedback({ correct: false, message: `Not quite — the answer is ${problem.answer}` })
+      playWrong()
     }
   }
 
@@ -333,6 +365,7 @@ export default function CalculatorApp() {
       const newStars = { ...progress.stars, [activeLesson.id]: Math.max(stars, progress.stars[activeLesson.id] || 0) }
       const newProgress = { completedLessons: newCompleted, unlockedGrade: newUnlocked, stars: newStars }
       saveProgress(newProgress)
+      playCelebration()
 
       setActiveLesson(null)
       setFeedback(null)
@@ -386,7 +419,7 @@ export default function CalculatorApp() {
                 💡 {problem.hint}
               </div>
             ) : (
-              <button onClick={() => setShowHint(true)} style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+              <button onClick={() => { playHint(); setShowHint(true) }} style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
                 Need a hint?
               </button>
             )}
@@ -449,7 +482,7 @@ export default function CalculatorApp() {
               const completed = progress.completedLessons.has(lesson.id)
               const starCount = progress.stars[lesson.id] || 0
               return (
-                <button key={lesson.id} onClick={() => startLesson(lesson)} style={{
+                <button key={lesson.id} onClick={() => { playClick(); startLesson(lesson) }} style={{
                   padding: '14px 16px', borderRadius: '10px', border: `2px solid ${completed ? '#bbf7d0' : '#e5e7eb'}`,
                   background: completed ? '#f0fdf4' : 'white', cursor: 'pointer', textAlign: 'left',
                 }}>
@@ -467,34 +500,56 @@ export default function CalculatorApp() {
     )
   }
 
+  // Determine which grades are visible:
+  // 1. Student's own grade (always visible)
+  // 2. One grade below and one above (for review / stretch)
+  // 3. Any teacher-unlocked grades
+  // 4. Grades unlocked by completing all lessons in the previous grade
+  const visibleGrades = ([1,2,3,4,5,6,7,8,9,10,11,12] as Grade[]).filter(grade => {
+    // Student's grade band: their grade plus one above and one below
+    if (grade >= studentGrade - 1 && grade <= studentGrade + 1) return true
+    // Teacher-unlocked
+    if (teacherUnlocked.has(grade)) return true
+    // Unlocked by progression
+    if (grade <= progress.unlockedGrade) return true
+    return false
+  })
+
   // Grade overview
   return (
     <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827' }}>Math Lessons</div>
-        <div style={{ fontSize: '13px', color: '#6b7280' }}>Pick your grade level to start learning</div>
+        <div style={{ fontSize: '13px', color: '#6b7280' }}>
+          {GRADE_LABELS[studentGrade]} — pick a lesson to start learning
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-        {([1,2,3,4,5,6,7,8,9,10,11,12] as Grade[]).map(grade => {
+        {visibleGrades.map(grade => {
           const lessons = CURRICULUM[grade]
           const completed = lessons.filter(l => progress.completedLessons.has(l.id)).length
-          const isLocked = grade > progress.unlockedGrade
+          const isLocked = grade > progress.unlockedGrade && !teacherUnlocked.has(grade)
+          const isStudentGrade = grade === studentGrade
           const totalStars = lessons.reduce((sum, l) => sum + (progress.stars[l.id] || 0), 0)
           const maxStars = lessons.length * 3
 
           return (
-            <button key={grade} onClick={() => setSelectedGrade(grade)} style={{
-              padding: '14px', borderRadius: '10px', border: '2px solid #e5e7eb',
+            <button key={grade} onClick={() => { if (!isLocked) { playClick(); setSelectedGrade(grade) } }} style={{
+              padding: '14px', borderRadius: '10px',
+              border: `2px solid ${isStudentGrade ? '#3b82f6' : '#e5e7eb'}`,
               background: isLocked ? '#f9fafb' : completed === lessons.length ? '#f0fdf4' : 'white',
-              cursor: 'pointer', textAlign: 'center', opacity: isLocked ? 0.6 : 1,
+              cursor: isLocked ? 'default' : 'pointer', textAlign: 'center', opacity: isLocked ? 0.5 : 1,
             }}>
               <div style={{ fontSize: '22px', marginBottom: '4px' }}>
-                {isLocked ? '🔒' : completed === lessons.length ? '✅' : '📘'}
+                {isLocked ? '🔒' : completed === lessons.length ? '✅' : isStudentGrade ? '⭐' : '📘'}
               </div>
-              <div style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{GRADE_LABELS[grade]}</div>
+              <div style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>
+                {GRADE_LABELS[grade]}
+                {isStudentGrade && <span style={{ fontSize: '10px', color: '#3b82f6', marginLeft: '4px' }}>Your grade</span>}
+              </div>
               <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
-                {isLocked ? 'Locked' : `${completed}/${lessons.length} lessons`}
+                {isLocked ? 'Ask your teacher to unlock' : `${completed}/${lessons.length} lessons`}
               </div>
               {!isLocked && totalStars > 0 && (
                 <div style={{ fontSize: '10px', color: '#d97706', marginTop: '2px' }}>

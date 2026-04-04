@@ -7,6 +7,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@chatbox/shared': path.resolve(__dirname, '../../src/shared'),
+      '@chatbox/renderer': path.resolve(__dirname, '../../src/renderer'),
     },
   },
   test: {

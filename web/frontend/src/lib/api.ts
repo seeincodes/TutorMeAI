@@ -1,3 +1,15 @@
+/**
+ * API client for the ChatBridge web platform.
+ *
+ * Message role constants are imported from the Chatbox source
+ * (src/shared/types/session.ts) to keep role definitions consistent
+ * between the Electron desktop client and our web platform.
+ */
+import { MessageRoleEnum, type MessageRole } from '@/lib/chatbox-types'
+
+// Re-export Chatbox message role constants for use across the frontend
+export { MessageRoleEnum, type MessageRole }
+
 const BASE = '/api'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -34,7 +46,7 @@ export interface Conversation {
 
 export interface Message {
   id: string
-  role: 'user' | 'assistant' | 'tool' | 'system'
+  role: MessageRole  // Uses Chatbox's MessageRole type (src/shared/types/session.ts)
   content: string | null
   tool_call_id: string | null
   tool_name: string | null
