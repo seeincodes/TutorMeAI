@@ -276,11 +276,21 @@ const PASSAGES: Passage[] = [
 type Tab = 'read' | 'words' | 'quiz'
 interface SavedWord { word: string; definition: string; fromPassage?: string }
 
+function gradeToLevel(grade: number): GradeLevel {
+  if (grade <= 2) return 'K-2'
+  if (grade <= 5) return '3-5'
+  if (grade <= 8) return '6-8'
+  return '9-12'
+}
+
 function getAllowedLevels(): GradeLevel[] {
   const params = new URLSearchParams(window.location.search)
   const levels = params.get('levels')
-  if (!levels) return ['K-2', '3-5', '6-8', '9-12'] // show all if no restriction
-  return levels.split(',').filter(l => ['K-2', '3-5', '6-8', '9-12'].includes(l)) as GradeLevel[]
+  if (levels) return levels.split(',').filter(l => ['K-2', '3-5', '6-8', '9-12'].includes(l)) as GradeLevel[]
+  // Fall back to grade param — show only the matching level
+  const grade = parseInt(params.get('grade') || '', 10)
+  if (!isNaN(grade)) return [gradeToLevel(grade)]
+  return ['K-2', '3-5', '6-8', '9-12'] // show all if no restriction
 }
 
 export default function DictionaryApp() {
