@@ -438,7 +438,7 @@ export default function DictionaryApp() {
         <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '8px' }}>Question {questionIndex + 1} of {selectedPassage.questions.length}</div>
         <div style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           {q.question}
-          <SpeakButton text={q.question} label="Read question aloud" />
+          <SpeakButton text={q.question} label="Read question aloud" autoSpeak={selectedPassage.level === 'K-2'} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {q.options.map((opt, i) => (
@@ -501,7 +501,7 @@ export default function DictionaryApp() {
         <div style={{ fontSize: '10px', color: '#3b82f6', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>{selectedPassage.level}</div>
         <div style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           {selectedPassage.title}
-          <SpeakButton text={selectedPassage.text} label="Read passage aloud" />
+          <SpeakButton text={selectedPassage.text} label="Read passage aloud" autoSpeak={selectedPassage.level === 'K-2'} />
         </div>
         <div style={{ fontSize: '14px', lineHeight: 1.7, color: '#374151', whiteSpace: 'pre-line', marginBottom: '20px', background: 'white', padding: '16px', borderRadius: '10px', border: '1px solid #e5e7eb' }}>
           {selectedPassage.text}

@@ -416,7 +416,7 @@ export default function CalculatorApp() {
         <div style={{ fontSize: '28px', fontWeight: 700, color: '#111827', textAlign: 'center', padding: '24px', background: 'white', borderRadius: '12px', border: '1px solid #e5e7eb', marginBottom: '16px' }}>
           {problem.question}
           <div style={{ marginTop: '8px' }}>
-            <SpeakButton text={problem.question} label="Read problem aloud" />
+            <SpeakButton text={problem.question} label="Read problem aloud" autoSpeak={selectedGrade !== null && selectedGrade <= 2} />
           </div>
         </div>
 
