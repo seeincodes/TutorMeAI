@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { playCorrect, playWrong, playFlip, playCelebration, playComplete, playSelect } from './sounds'
+import SpeakButton from './SpeakButton'
 
 function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
   window.parent.postMessage({ type, correlationId, data }, '*')
@@ -664,6 +665,9 @@ export default function FlashcardsApp() {
           }}>
             <div style={{ fontSize: 18, color: '#1e293b', fontWeight: 500, textAlign: 'center', lineHeight: 1.5 }}>
               {currentCard.question}
+              <div style={{ marginTop: 10 }}>
+                <SpeakButton text={currentCard.question} label="Read question aloud" />
+              </div>
             </div>
           </div>
 
@@ -674,7 +678,13 @@ export default function FlashcardsApp() {
               color: lastCorrect ? '#166534' : '#991b1b',
               fontSize: 14, fontWeight: 500, textAlign: 'center',
             }}>
-              {lastCorrect ? '✓ Correct!' : `✗ Answer: ${currentCard.answer}`}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+                {lastCorrect ? '✓ Correct!' : `✗ Answer: ${currentCard.answer}`}
+                <SpeakButton
+                  text={lastCorrect ? 'Correct!' : `The answer is ${currentCard.answer}`}
+                  label="Read feedback aloud"
+                />
+              </div>
             </div>
           )}
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { playCorrect, playWrong, playCelebration, playPop } from './sounds'
+import SpeakButton from './SpeakButton'
 
 function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
   window.parent.postMessage({ type, correlationId, data }, '*')
@@ -204,8 +205,9 @@ export default function ABCLetters() {
     return (
       <div style={{ padding: '24px 16px', maxWidth: '400px', margin: '0 auto', fontFamily: font, textAlign: 'center' }}>
         <div style={{ fontSize: '64px', marginBottom: '8px' }}>{emoji}</div>
-        <div style={{ fontSize: '28px', fontWeight: 700, color: '#111827' }}>
-          {pct === 100 ? 'Perfect! Amazing!' : pct >= 60 ? 'Great job!' : 'Good try!'}
+        <div style={{ fontSize: '28px', fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <span>{pct === 100 ? 'Perfect! Amazing!' : pct >= 60 ? 'Great job!' : 'Good try!'}</span>
+          <SpeakButton text={`${pct === 100 ? 'Perfect! Amazing!' : pct >= 60 ? 'Great job!' : 'Good try!'} You got ${score} out of ${ROUNDS_PER_GAME}!`} label="Hear your score" />
         </div>
         <div style={{ fontSize: '48px', fontWeight: 700, color: '#2563eb', margin: '16px 0' }}>
           {score} <span style={{ fontSize: '24px', color: '#9ca3af' }}>/ {ROUNDS_PER_GAME}</span>
@@ -236,8 +238,9 @@ export default function ABCLetters() {
       </div>
 
       {/* Question */}
-      <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827', textAlign: 'center', marginBottom: '16px' }}>
-        {question.prompt}
+      <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827', textAlign: 'center', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <span>{question.prompt}</span>
+        <SpeakButton text={question.prompt} label="Hear the question" />
       </div>
 
       {/* Big display */}
@@ -257,8 +260,10 @@ export default function ABCLetters() {
           fontSize: '18px', fontWeight: 600,
           background: feedback.correct ? '#dcfce7' : '#fee2e2',
           color: feedback.correct ? '#166534' : '#991b1b',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap',
         }}>
-          {feedback.message}
+          <span>{feedback.message}</span>
+          <SpeakButton text={feedback.message} label="Hear the feedback" />
         </div>
       )}
 

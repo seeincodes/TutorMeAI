@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { evaluate } from 'mathjs'
 import { playCorrect, playWrong, playClick, playCelebration, playHint } from './sounds'
+import SpeakButton from './SpeakButton'
 
 function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
   window.parent.postMessage({ type, correlationId, data }, '*')
@@ -409,6 +410,9 @@ export default function CalculatorApp() {
         {/* Problem */}
         <div style={{ fontSize: '28px', fontWeight: 700, color: '#111827', textAlign: 'center', padding: '24px', background: 'white', borderRadius: '12px', border: '1px solid #e5e7eb', marginBottom: '16px' }}>
           {problem.question}
+          <div style={{ marginTop: '8px' }}>
+            <SpeakButton text={problem.question} label="Read problem aloud" />
+          </div>
         </div>
 
         {/* Hint */}
@@ -417,6 +421,7 @@ export default function CalculatorApp() {
             {showHint ? (
               <div style={{ fontSize: '13px', color: '#d97706', background: '#fffbeb', padding: '8px 12px', borderRadius: '8px' }}>
                 💡 {problem.hint}
+                {' '}<SpeakButton text={problem.hint!} label="Read hint aloud" />
               </div>
             ) : (
               <button onClick={() => { playHint(); setShowHint(true) }} style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
@@ -446,6 +451,7 @@ export default function CalculatorApp() {
           <div style={{ textAlign: 'center' }}>
             <div style={{ padding: '12px', borderRadius: '8px', marginBottom: '12px', fontSize: '16px', fontWeight: 600, background: feedback.correct ? '#dcfce7' : '#fee2e2', color: feedback.correct ? '#166534' : '#991b1b' }}>
               {feedback.correct ? '✓' : '✗'} {feedback.message}
+              {' '}<SpeakButton text={feedback.message} label="Read feedback aloud" />
             </div>
             <button onClick={nextProblem} style={{ padding: '10px 32px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '15px', fontWeight: 500 }}>
               {isLastProblem ? 'Finish Lesson' : 'Next →'}

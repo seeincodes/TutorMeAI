@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { playCorrect, playWrong, playWordSaved, playClick, playCelebration } from './sounds'
+import SpeakButton from './SpeakButton'
 
 function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
   window.parent.postMessage({ type, correlationId, data }, '*')
@@ -420,7 +421,10 @@ export default function DictionaryApp() {
       <div style={{ padding: '16px', maxWidth: '440px', margin: '0 auto', fontFamily: 'system-ui' }}>
         <button onClick={() => setShowQuestions(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '13px', marginBottom: '12px' }}>&larr; Back to passage</button>
         <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '8px' }}>Question {questionIndex + 1} of {selectedPassage.questions.length}</div>
-        <div style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px' }}>{q.question}</div>
+        <div style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {q.question}
+          <SpeakButton text={q.question} label="Read question aloud" />
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {q.options.map((opt, i) => (
             <button key={i} onClick={() => answerQuestion(i)} disabled={!!readingFeedback} style={{
@@ -450,7 +454,10 @@ export default function DictionaryApp() {
       <div style={{ padding: '16px', maxWidth: '440px', margin: '0 auto', fontFamily: 'system-ui' }}>
         <button onClick={() => setSelectedPassage(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '13px', marginBottom: '8px' }}>&larr; All passages</button>
         <div style={{ fontSize: '10px', color: '#3b82f6', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>{selectedPassage.level}</div>
-        <div style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>{selectedPassage.title}</div>
+        <div style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {selectedPassage.title}
+          <SpeakButton text={selectedPassage.text} label="Read passage aloud" />
+        </div>
         <div style={{ fontSize: '14px', lineHeight: 1.7, color: '#374151', whiteSpace: 'pre-line', marginBottom: '20px', background: 'white', padding: '16px', borderRadius: '10px', border: '1px solid #e5e7eb' }}>
           {selectedPassage.text}
         </div>
@@ -458,7 +465,11 @@ export default function DictionaryApp() {
           <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>Key Vocabulary</div>
           {selectedPassage.vocabulary.map(v => (
             <div key={v.word} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', marginBottom: '4px', background: 'white', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
-              <div><span style={{ fontWeight: 600, fontSize: '14px' }}>{v.word}</span> <span style={{ fontSize: '12px', color: '#6b7280' }}>— {v.definition}</span></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontWeight: 600, fontSize: '14px' }}>{v.word}</span>
+                <span style={{ fontSize: '12px', color: '#6b7280' }}>— {v.definition}</span>
+                <SpeakButton text={`${v.word}. ${v.definition}`} label={`Read definition of ${v.word}`} />
+              </div>
               <button onClick={() => saveWord(v.word, v.definition, selectedPassage.title)} disabled={savedWords.some(w => w.word === v.word)}
                 style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '4px', border: '1px solid #d1d5db', cursor: 'pointer', background: savedWords.some(w => w.word === v.word) ? '#f0fdf4' : 'white' }}>
                 {savedWords.some(w => w.word === v.word) ? '✓' : '+'}

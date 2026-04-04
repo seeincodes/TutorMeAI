@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { playCorrect, playWrong, playCelebration, playPop } from './sounds'
+import SpeakButton from './SpeakButton'
 
 function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
   window.parent.postMessage({ type, correlationId, data }, '*')
@@ -231,8 +232,12 @@ export default function ShapesGame() {
     return (
       <div style={{ padding: '24px 16px', maxWidth: '400px', margin: '0 auto', fontFamily: font, textAlign: 'center' }}>
         <div style={{ fontSize: '64px', marginBottom: '8px' }}>{emoji}</div>
-        <div style={{ fontSize: '28px', fontWeight: 700, color: '#111827' }}>
+        <div style={{ fontSize: '28px', fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {pct === 100 ? 'Perfect! You did it!' : pct >= 60 ? 'Great job!' : 'Good try!'}
+          <SpeakButton
+            text={`${pct === 100 ? 'Perfect! You did it!' : pct >= 60 ? 'Great job!' : 'Good try!'} You scored ${score} out of ${ROUNDS_PER_GAME}.`}
+            label="Read results aloud"
+          />
         </div>
         <div style={{ fontSize: '48px', fontWeight: 700, color: '#2563eb', margin: '16px 0' }}>
           {score} <span style={{ fontSize: '24px', color: '#9ca3af' }}>/ {ROUNDS_PER_GAME}</span>
@@ -271,8 +276,9 @@ export default function ShapesGame() {
       </div>
 
       {/* Question prompt */}
-      <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827', textAlign: 'center', marginBottom: '16px' }}>
+      <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827', textAlign: 'center', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
         {question.prompt}
+        <SpeakButton text={question.prompt} label="Read question aloud" />
       </div>
 
       {/* Shape display */}
@@ -291,8 +297,10 @@ export default function ShapesGame() {
           fontSize: '18px', fontWeight: 600,
           background: feedback.correct ? '#dcfce7' : '#fee2e2',
           color: feedback.correct ? '#166534' : '#991b1b',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
         }}>
           {feedback.message}
+          <SpeakButton text={feedback.message} label="Read feedback aloud" />
         </div>
       )}
 
