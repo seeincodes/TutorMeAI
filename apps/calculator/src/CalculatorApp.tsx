@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { evaluate } from 'mathjs'
+import { playCorrect, playWrong, playClick, playCelebration, playHint } from './sounds'
 
 function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
   window.parent.postMessage({ type, correlationId, data }, '*')
@@ -308,9 +309,11 @@ export default function CalculatorApp() {
     if (correct) {
       setLessonScore(s => s + 1)
       setFeedback({ correct: true, message: 'Correct!' })
+      playCorrect()
     } else {
       setLessonMistakes(m => m + 1)
       setFeedback({ correct: false, message: `Not quite — the answer is ${problem.answer}` })
+      playWrong()
     }
   }
 
@@ -333,6 +336,7 @@ export default function CalculatorApp() {
       const newStars = { ...progress.stars, [activeLesson.id]: Math.max(stars, progress.stars[activeLesson.id] || 0) }
       const newProgress = { completedLessons: newCompleted, unlockedGrade: newUnlocked, stars: newStars }
       saveProgress(newProgress)
+      playCelebration()
 
       setActiveLesson(null)
       setFeedback(null)
@@ -386,7 +390,7 @@ export default function CalculatorApp() {
                 💡 {problem.hint}
               </div>
             ) : (
-              <button onClick={() => setShowHint(true)} style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+              <button onClick={() => { playHint(); setShowHint(true) }} style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
                 Need a hint?
               </button>
             )}
@@ -449,7 +453,7 @@ export default function CalculatorApp() {
               const completed = progress.completedLessons.has(lesson.id)
               const starCount = progress.stars[lesson.id] || 0
               return (
-                <button key={lesson.id} onClick={() => startLesson(lesson)} style={{
+                <button key={lesson.id} onClick={() => { playClick(); startLesson(lesson) }} style={{
                   padding: '14px 16px', borderRadius: '10px', border: `2px solid ${completed ? '#bbf7d0' : '#e5e7eb'}`,
                   background: completed ? '#f0fdf4' : 'white', cursor: 'pointer', textAlign: 'left',
                 }}>
@@ -484,7 +488,7 @@ export default function CalculatorApp() {
           const maxStars = lessons.length * 3
 
           return (
-            <button key={grade} onClick={() => setSelectedGrade(grade)} style={{
+            <button key={grade} onClick={() => { playClick(); setSelectedGrade(grade) }} style={{
               padding: '14px', borderRadius: '10px', border: '2px solid #e5e7eb',
               background: isLocked ? '#f9fafb' : completed === lessons.length ? '#f0fdf4' : 'white',
               cursor: 'pointer', textAlign: 'center', opacity: isLocked ? 0.6 : 1,

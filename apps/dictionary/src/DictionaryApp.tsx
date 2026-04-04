@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { playCorrect, playWrong, playWordSaved, playClick, playCelebration } from './sounds'
 
 function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
   window.parent.postMessage({ type, correlationId, data }, '*')
@@ -350,13 +351,15 @@ export default function DictionaryApp() {
     if (savedWords.some(w => w.word === word)) return
     const updated = [{ word, definition, fromPassage }, ...savedWords]
     setSavedWords(updated); saveState(updated, completedPassages)
+    playWordSaved()
   }
 
   function answerQuestion(optionIndex: number) {
     if (!selectedPassage || readingFeedback) return
     const q = selectedPassage.questions[questionIndex]
     const correct = optionIndex === q.correct
-    if (correct) setReadingScore(s => s + 1)
+    if (correct) { setReadingScore(s => s + 1); playCorrect() }
+    else playWrong()
     setReadingFeedback({ correct, answer: q.options[q.correct] })
   }
 
@@ -365,6 +368,7 @@ export default function DictionaryApp() {
     if (questionIndex + 1 >= selectedPassage.questions.length) {
       const nc = new Set(completedPassages); nc.add(selectedPassage.id)
       setCompletedPassages(nc); saveState(savedWords, nc)
+      playCelebration()
       setSelectedPassage(null); setShowQuestions(false); return
     }
     setQuestionIndex(i => i + 1); setReadingFeedback(null)
@@ -380,8 +384,10 @@ export default function DictionaryApp() {
 
   function answerQuiz(answer: string) {
     const correct = savedWords[quizIndex].word
-    if (answer === correct) setQuizScore(s => s + 1)
-    setQuizFeedback({ correct: answer === correct, answer: correct })
+    const isCorrect = answer === correct
+    if (isCorrect) { setQuizScore(s => s + 1); playCorrect() }
+    else playWrong()
+    setQuizFeedback({ correct: isCorrect, answer: correct })
   }
 
   function nextQuiz() {
