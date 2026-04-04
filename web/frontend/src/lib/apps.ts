@@ -27,6 +27,7 @@ export const APP_ORDER = [
   'nasa',
   'books',
   'spotify',
+  'omma-3d-studio',
 ] as const
 
 export const APP_DISPLAY: Record<string, AppDisplay> = {
@@ -43,6 +44,7 @@ export const APP_DISPLAY: Record<string, AppDisplay> = {
   nasa:               { label: 'NASA Space Explorer',    shortLabel: 'NASA',        emoji: '🚀', prompt: 'Show me something from space' },
   books:              { label: 'Book Explorer',          shortLabel: 'Books',       emoji: '📚', prompt: 'I want to find a book to read' },
   spotify:            { label: 'Study Music',            shortLabel: 'Music',       emoji: '🎵', prompt: 'I want to listen to study music' },
+  'omma-3d-studio':   { label: '3D Creative Studio',     shortLabel: '3D Studio',   emoji: '🎨', prompt: 'I want to build something in 3D' },
 }
 
 /** Sort apps by the canonical order. Unknown apps go to the end. */

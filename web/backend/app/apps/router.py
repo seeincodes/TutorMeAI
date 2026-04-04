@@ -38,6 +38,7 @@ APP_MIN_GRADE: dict[str, int] = {
     "nasa": 3,
     "books": 3,
     "spotify": 6,
+    "omma-3d-studio": 6,
 }
 
 # Apps only shown to young kids (hidden for older students who don't need them)

@@ -133,7 +133,15 @@ export default function ChatPage() {
     setMenuOpen(false)
   }
 
+  // External apps use their registered iframe_url directly
+  const EXTERNAL_APP_URLS: Record<string, string> = {
+    'omma-3d-studio': 'https://omma.build',
+  }
+
   function buildAppUrl(appId: string) {
+    // External apps — use their URL directly
+    if (EXTERNAL_APP_URLS[appId]) return EXTERNAL_APP_URLS[appId]
+
     const levels = user?.allowed_levels?.join(',') || ''
     const grade = user?.grade || ''
     const params = new URLSearchParams()
@@ -164,6 +172,7 @@ export default function ChatPage() {
     nasa: "Welcome to NASA Space Explorer! 🚀 Check out today's astronomy picture or explore space facts. Ask me anything about space!",
     books: "Welcome to Book Explorer! 📚 Browse books by category or search for something you're interested in. Save books to your reading list!",
     spotify: "Welcome to Study Music! 🎵 Pick a playlist to help you focus while studying. Connect your Spotify account for the full experience!",
+    'omma-3d-studio': "Welcome to 3D Creative Studio! 🎨 Describe what you want to build and the AI will create it. Try making a 3D scene, a game, or an interactive website!",
   }
 
   async function handleAppLaunch(appId: string) {
