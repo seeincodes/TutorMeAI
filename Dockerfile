@@ -5,12 +5,16 @@ RUN npm install -g pnpm@10.33.0
 
 WORKDIR /build
 
+# Copy Chatbox source types needed by frontend imports (@chatbox/shared/*)
+COPY src/shared/ src/shared/
+COPY src/renderer/packages/latex.ts src/renderer/packages/latex.ts
+
 # Build frontend
 COPY web/frontend/ web/frontend/
 RUN cd web/frontend && pnpm install --no-frozen-lockfile
 RUN cd web/frontend && pnpm run build
 
-# Build each app
+# Build each app (one layer per app for caching)
 COPY apps/calculator/ apps/calculator/
 RUN cd apps/calculator && pnpm install --no-frozen-lockfile && pnpm run build
 
@@ -28,6 +32,27 @@ RUN cd apps/life-skills && pnpm install --no-frozen-lockfile && pnpm run build
 
 COPY apps/weather/ apps/weather/
 RUN cd apps/weather && pnpm install --no-frozen-lockfile && pnpm run build
+
+COPY apps/counting-game/ apps/counting-game/
+RUN cd apps/counting-game && pnpm install --no-frozen-lockfile && pnpm run build
+
+COPY apps/abc-letters/ apps/abc-letters/
+RUN cd apps/abc-letters && pnpm install --no-frozen-lockfile && pnpm run build
+
+COPY apps/shapes/ apps/shapes/
+RUN cd apps/shapes && pnpm install --no-frozen-lockfile && pnpm run build
+
+COPY apps/animals/ apps/animals/
+RUN cd apps/animals && pnpm install --no-frozen-lockfile && pnpm run build
+
+COPY apps/nasa/ apps/nasa/
+RUN cd apps/nasa && pnpm install --no-frozen-lockfile && pnpm run build
+
+COPY apps/books/ apps/books/
+RUN cd apps/books && pnpm install --no-frozen-lockfile && pnpm run build
+
+COPY apps/spotify/ apps/spotify/
+RUN cd apps/spotify && pnpm install --no-frozen-lockfile && pnpm run build
 
 # Stage 2: Python backend + static files
 FROM python:3.12-slim
@@ -49,6 +74,13 @@ COPY --from=frontend-build /build/apps/dictionary/dist/ apps/dictionary/dist/
 COPY --from=frontend-build /build/apps/flashcards/dist/ apps/flashcards/dist/
 COPY --from=frontend-build /build/apps/life-skills/dist/ apps/life-skills/dist/
 COPY --from=frontend-build /build/apps/weather/dist/ apps/weather/dist/
+COPY --from=frontend-build /build/apps/counting-game/dist/ apps/counting-game/dist/
+COPY --from=frontend-build /build/apps/abc-letters/dist/ apps/abc-letters/dist/
+COPY --from=frontend-build /build/apps/shapes/dist/ apps/shapes/dist/
+COPY --from=frontend-build /build/apps/animals/dist/ apps/animals/dist/
+COPY --from=frontend-build /build/apps/nasa/dist/ apps/nasa/dist/
+COPY --from=frontend-build /build/apps/books/dist/ apps/books/dist/
+COPY --from=frontend-build /build/apps/spotify/dist/ apps/spotify/dist/
 
 # Alembic needs to run from the backend directory
 WORKDIR /app/web/backend
