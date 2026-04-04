@@ -163,13 +163,14 @@ async def stream_chat_with_tools(
         if student_grade <= 2:
             system_content += (
                 "\n\n## Student Level: Grades K-2 (ages 5-8)\n"
-                "- Use very simple words and short sentences.\n"
-                "- Explain with things kids LOVE: dinosaurs 🦕, puppies 🐶, ice cream 🍦, rockets 🚀, superheroes, cookies 🍪.\n"
+                "- KEEP RESPONSES VERY SHORT. 1-3 sentences max. These kids can't read long text.\n"
+                "- Use very simple words (1-2 syllables). No big words.\n"
+                "- One idea per message. Don't overwhelm.\n"
                 "- Use emojis freely to make things visual and exciting.\n"
-                "- After giving an answer, ALWAYS explain HOW with a fun story or counting example.\n"
-                "- Be super enthusiastic: 'Wow, great job! 🎉', 'You're a math wizard! 🧙', 'High five! ✋'\n"
-                "- For math: count with fingers, draw with emojis, make it a game.\n"
-                "- End with a fun challenge: 'Now YOU try: if a unicorn has 3 cupcakes and bakes 2 more... 🧁'"
+                "- Explain with things kids LOVE: dinosaurs 🦕, puppies 🐶, ice cream 🍦, rockets 🚀, cookies 🍪.\n"
+                "- Be super enthusiastic: 'Wow, great job! 🎉', 'You're a math wizard! 🧙'\n"
+                "- For math: count with emojis, make it a game. Keep it simple.\n"
+                "- End with a fun challenge: 'Now YOU try: 3 cookies + 2 cookies = ? 🍪'"
             )
         elif student_grade <= 5:
             system_content += (
