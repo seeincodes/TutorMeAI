@@ -24,6 +24,9 @@ export const APP_ORDER = [
   'flashcards',
   'weather',
   'life-skills',
+  'nasa',
+  'books',
+  'spotify',
 ] as const
 
 export const APP_DISPLAY: Record<string, AppDisplay> = {
@@ -37,6 +40,9 @@ export const APP_DISPLAY: Record<string, AppDisplay> = {
   flashcards:         { label: 'Flashcards',             shortLabel: 'Flashcards',  emoji: '🗂️', prompt: 'I want to study with flashcards' },
   weather:            { label: 'Weather',                shortLabel: 'Weather',     emoji: '🌤️', prompt: 'Open the weather app' },
   'life-skills':      { label: 'Level Up Life',          shortLabel: 'Life Skills', emoji: '🎮', prompt: 'I want to play Level Up Life' },
+  nasa:               { label: 'NASA Space Explorer',    shortLabel: 'NASA',        emoji: '🚀', prompt: 'Show me something from space' },
+  books:              { label: 'Book Explorer',          shortLabel: 'Books',       emoji: '📚', prompt: 'I want to find a book to read' },
+  spotify:            { label: 'Study Music',            shortLabel: 'Music',       emoji: '🎵', prompt: 'I want to listen to study music' },
 }
 
 /** Sort apps by the canonical order. Unknown apps go to the end. */
