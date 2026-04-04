@@ -20,7 +20,9 @@ export default function ChatPage() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [conversations, setConversations] = useState<Conversation[]>([])
-  const [activeConversation, setActiveConversation] = useState<string | null>(null)
+  const [activeConversation, setActiveConversation] = useState<string | null>(
+    () => sessionStorage.getItem('chatbridge-active-conversation')
+  )
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -46,6 +48,12 @@ export default function ChatPage() {
     document.documentElement.classList.toggle('dark', darkMode)
     localStorage.setItem('theme', darkMode ? 'dark' : 'light')
   }, [darkMode])
+
+  // Persist active conversation to sessionStorage so refresh resumes it
+  useEffect(() => {
+    if (activeConversation) sessionStorage.setItem('chatbridge-active-conversation', activeConversation)
+    else sessionStorage.removeItem('chatbridge-active-conversation')
+  }, [activeConversation])
 
   // Detect user's city once via IP geolocation (used for weather app)
   useEffect(() => {
