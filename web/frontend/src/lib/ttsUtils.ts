@@ -1,3 +1,64 @@
+const ABBREVIATION_WORDS = new Set([
+  'mr', 'mrs', 'ms', 'dr', 'prof', 'sr', 'jr', 'st', 'ave', 'vs', 'etc',
+  'approx', 'dept', 'est', 'vol',
+])
+
+/**
+ * Extract complete sentences from streaming text.
+ * Returns extracted sentences and any remaining incomplete text.
+ */
+export function extractSentences(text: string): { sentences: string[]; remainder: string } {
+  if (!text) return { sentences: [], remainder: '' }
+
+  const sentences: string[] = []
+  let remaining = text
+
+  while (remaining.length > 0) {
+    // Safety split at 200 chars if no sentence boundary found yet
+    if (remaining.length > 200) {
+      const boundaryMatch = remaining.match(/[.!?]+(?:\s|$)/)
+      if (!boundaryMatch || boundaryMatch.index === undefined || boundaryMatch.index >= 200) {
+        sentences.push(remaining.slice(0, 200))
+        remaining = remaining.slice(200)
+        continue
+      }
+    }
+
+    // Find the next sentence-ending punctuation followed by space or end of string
+    const match = remaining.match(/[.!?]+(?:\s|$)/)
+    if (!match || match.index === undefined) {
+      break
+    }
+
+    const endPos = match.index + match[0].length
+
+    // Check if this boundary is a single period (potential abbreviation)
+    if (match[0] === '. ' || match[0] === '.') {
+      // Get the word immediately before the period
+      const beforePeriod = remaining.slice(0, match.index)
+      const wordMatch = beforePeriod.match(/(\w+)$/)
+      if (wordMatch && ABBREVIATION_WORDS.has(wordMatch[1].toLowerCase())) {
+        // This is an abbreviation — skip past it and keep looking
+        // Find the next boundary after this one
+        const after = remaining.slice(endPos)
+        const nextMatch = after.match(/[.!?]+(?:\s|$)/)
+        if (!nextMatch || nextMatch.index === undefined) {
+          break
+        }
+        const nextEnd = endPos + nextMatch.index + nextMatch[0].length
+        sentences.push(remaining.slice(0, nextEnd).trim())
+        remaining = remaining.slice(nextEnd)
+        continue
+      }
+    }
+
+    sentences.push(remaining.slice(0, endPos).trim())
+    remaining = remaining.slice(endPos)
+  }
+
+  return { sentences, remainder: remaining.trim() }
+}
+
 /**
  * Strip markdown, code, LaTeX, and app tags from text for speech synthesis.
  */

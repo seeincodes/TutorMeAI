@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { stripForSpeech } from '../ttsUtils'
+import { stripForSpeech, extractSentences } from '../ttsUtils'
 
 describe('stripForSpeech', () => {
   it('returns plain text unchanged', () => {
@@ -44,5 +44,57 @@ describe('stripForSpeech', () => {
 
   it('returns empty string for empty input', () => {
     expect(stripForSpeech('')).toBe('')
+  })
+})
+
+describe('extractSentences', () => {
+  it('extracts complete sentences', () => {
+    expect(extractSentences('Hello world. How are you? Fine!')).toEqual({
+      sentences: ['Hello world.', 'How are you?', 'Fine!'],
+      remainder: '',
+    })
+  })
+
+  it('returns incomplete text as remainder', () => {
+    expect(extractSentences('Hello world. Working on')).toEqual({
+      sentences: ['Hello world.'],
+      remainder: 'Working on',
+    })
+  })
+
+  it('handles no complete sentences', () => {
+    expect(extractSentences('Still typing')).toEqual({
+      sentences: [],
+      remainder: 'Still typing',
+    })
+  })
+
+  it('handles empty string', () => {
+    expect(extractSentences('')).toEqual({
+      sentences: [],
+      remainder: '',
+    })
+  })
+
+  it('handles multiple punctuation marks', () => {
+    expect(extractSentences('Wow!! Really?? Yes.')).toEqual({
+      sentences: ['Wow!!', 'Really??', 'Yes.'],
+      remainder: '',
+    })
+  })
+
+  it('does not split on abbreviations like Mr. or Dr.', () => {
+    expect(extractSentences('Mr. Smith is here. Hello.')).toEqual({
+      sentences: ['Mr. Smith is here.', 'Hello.'],
+      remainder: '',
+    })
+  })
+
+  it('splits long text at 200 chars if no sentence boundary', () => {
+    const longText = 'A'.repeat(210)
+    const result = extractSentences(longText)
+    expect(result.sentences.length).toBe(1)
+    expect(result.sentences[0].length).toBe(200)
+    expect(result.remainder.length).toBe(10)
   })
 })
