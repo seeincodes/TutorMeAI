@@ -6,6 +6,10 @@
  * EdgeOne deploy, and artifact preview. Kept the core rendering pipeline:
  * react-markdown + remark-gfm + remark-math + rehype-katex + Prism syntax
  * highlighting + copy button on code blocks.
+ *
+ * LaTeX preprocessing uses processLaTeX() from the original Chatbox source
+ * (src/renderer/packages/latex.ts) to correctly handle currency symbols
+ * ($100) vs math expressions and escape mhchem notation.
  */
 import { sanitizeUrl } from '@braintree/sanitize-url'
 import { memo, useCallback, useMemo, useState } from 'react'
@@ -18,8 +22,13 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import 'katex/dist/katex.min.css'
 import { cn } from '@/lib/utils'
+import { processLaTeX } from '@/lib/chatbox-utils'
 
 function Markdown({ children, className }: { children: string; className?: string }) {
+  // Preprocess LaTeX using the Chatbox source utility to correctly handle
+  // currency ($100) vs math expressions and escape mhchem notation
+  const processed = useMemo(() => processLaTeX(children), [children])
+
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]}
@@ -53,7 +62,7 @@ function Markdown({ children, className }: { children: string; className?: strin
         []
       )}
     >
-      {children}
+      {processed}
     </ReactMarkdown>
   )
 }

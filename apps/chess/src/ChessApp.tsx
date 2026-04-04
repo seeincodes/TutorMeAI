@@ -13,10 +13,10 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
   label: string; emoji: string; desc: string;
   skillLevel: number; depth: number; moveTime: number; randomChance: number
 }> = {
-  beginner:     { label: 'Beginner',     emoji: '🌱', desc: 'Makes mistakes on purpose',  skillLevel: 0,  depth: 1,  moveTime: 50,   randomChance: 0.6 },
-  intermediate: { label: 'Intermediate', emoji: '⭐', desc: 'Plays decent moves',        skillLevel: 3,  depth: 3,  moveTime: 150,  randomChance: 0.15 },
-  advanced:     { label: 'Advanced',     emoji: '🔥', desc: 'Strong positional play',    skillLevel: 10, depth: 10, moveTime: 500,  randomChance: 0 },
-  grandmaster:  { label: 'Grandmaster',  emoji: '👑', desc: 'Best move every time',      skillLevel: 20, depth: 20, moveTime: 2000, randomChance: 0 },
+  beginner:     { label: 'Beginner',     emoji: '🌱', desc: 'Perfect for kids — plays silly moves!', skillLevel: 0,  depth: 1,  moveTime: 50,   randomChance: 0.85 },
+  intermediate: { label: 'Intermediate', emoji: '⭐', desc: 'Plays decent moves',                    skillLevel: 3,  depth: 3,  moveTime: 150,  randomChance: 0.15 },
+  advanced:     { label: 'Advanced',     emoji: '🔥', desc: 'Strong positional play',                skillLevel: 10, depth: 10, moveTime: 500,  randomChance: 0 },
+  grandmaster:  { label: 'Grandmaster',  emoji: '👑', desc: 'Best move every time',                  skillLevel: 20, depth: 20, moveTime: 2000, randomChance: 0 },
 }
 
 export default function ChessApp() {
@@ -93,10 +93,26 @@ export default function ChessApp() {
       const gameCopy = new Chess(currentGame.fen())
       let aiMove
 
-      // At lower difficulties, sometimes pick a random legal move instead of using Stockfish
+      // At lower difficulties, sometimes pick a random legal move instead of using Stockfish.
+      // For beginner mode (kids 6-8), actively prefer weak moves: avoid captures, checks, and
+      // center control so the child has a real chance to win and learn.
       if (config.randomChance > 0 && Math.random() < config.randomChance) {
         const legalMoves = gameCopy.moves({ verbose: true })
-        aiMove = legalMoves[Math.floor(Math.random() * legalMoves.length)]
+        let candidates = legalMoves
+
+        if (diff === 'beginner') {
+          // Prefer non-capturing, non-checking, edge moves (weaker play)
+          const quietMoves = legalMoves.filter(m => !m.captured && !m.san.includes('+') && !m.san.includes('#'))
+          const edgeMoves = quietMoves.filter(m => {
+            const col = m.to[0]
+            const row = m.to[1]
+            return col === 'a' || col === 'h' || row === '1' || row === '8'
+          })
+          // Prefer edge moves > quiet moves > any legal move
+          candidates = edgeMoves.length > 0 ? edgeMoves : quietMoves.length > 0 ? quietMoves : legalMoves
+        }
+
+        aiMove = candidates[Math.floor(Math.random() * candidates.length)]
         await delayPromise
         gameCopy.move(aiMove.san)
       } else {

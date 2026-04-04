@@ -1,6 +1,7 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import Markdown from './Markdown'
 import { APP_DISPLAY } from '@/lib/apps'
+import { countWord } from '@/lib/chatbox-utils'
 
 const APP_BUTTONS_RE = /\[APP_BUTTONS\](.*?)\[\/APP_BUTTONS\]/g
 
@@ -9,15 +10,26 @@ interface ChatMessageProps {
   role: 'user' | 'assistant' | 'tool' | 'system'
   onAppLaunch?: (appId: string) => void
   disabled?: boolean
+  showWordCount?: boolean
 }
 
-export default function ChatMessage({ content, role, onAppLaunch, disabled }: ChatMessageProps) {
+export default function ChatMessage({ content, role, onAppLaunch, disabled, showWordCount }: ChatMessageProps) {
+  // CJK-aware word counting from the Chatbox source (src/shared/utils/word_count.ts)
+  const wordCount = useMemo(() => (showWordCount && content ? countWord(content) : null), [showWordCount, content])
+
   if (!content) {
     return null
   }
 
   if (role === 'user') {
-    return <p className="whitespace-pre-wrap">{content}</p>
+    return (
+      <div>
+        <p className="whitespace-pre-wrap">{content}</p>
+        {wordCount !== null && wordCount > 0 && (
+          <span className="mt-1 block text-xs text-chatbox-tint-tertiary">{wordCount} words</span>
+        )}
+      </div>
+    )
   }
 
   // Parse content for [APP_BUTTONS]...[/APP_BUTTONS] tags

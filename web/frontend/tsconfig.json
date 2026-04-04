@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2021", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -18,9 +18,20 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@chatbox/shared/*": ["../../src/shared/*"],
+      "@chatbox/renderer/*": ["../../src/renderer/*"]
     }
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "../../src/shared/types/session.ts",
+    "../../src/shared/types/provider.ts",
+    "../../src/shared/types/settings.ts",
+    "../../src/shared/types/skills.ts",
+    "../../src/shared/utils/word_count.ts",
+    "../../src/shared/utils/json_utils.ts",
+    "../../src/renderer/packages/latex.ts"
+  ],
   "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/__tests__"]
 }
