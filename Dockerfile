@@ -5,14 +5,21 @@ RUN npm install -g pnpm@10.33.0
 
 WORKDIR /build
 
-# Copy Chatbox source types needed by frontend imports (@chatbox/shared/*)
-COPY src/shared/ src/shared/
-COPY src/renderer/packages/latex.ts src/renderer/packages/latex.ts
-
 # Build frontend
 COPY web/frontend/ web/frontend/
+# Copy Chatbox source types into a location resolvable by the frontend's node_modules
+COPY src/shared/ src/shared/
+COPY src/renderer/packages/latex.ts src/renderer/packages/latex.ts
+# Install zod and ai in src/shared so Vite can resolve imports from @chatbox/shared/*
 RUN cd web/frontend && pnpm install --no-frozen-lockfile
-RUN cd web/frontend && pnpm run build
+RUN cd src/shared && ln -sf /build/web/frontend/node_modules/zod node_modules_zod 2>/dev/null; \
+    mkdir -p /build/src/shared/node_modules && \
+    ln -sf /build/web/frontend/node_modules/zod /build/src/shared/node_modules/zod && \
+    ln -sf /build/web/frontend/node_modules/ai /build/src/shared/node_modules/ai && \
+    ln -sf /build/web/frontend/node_modules/zod /build/src/renderer/node_modules/zod 2>/dev/null; \
+    mkdir -p /build/src/renderer/node_modules && \
+    ln -sf /build/web/frontend/node_modules/zod /build/src/renderer/node_modules/zod 2>/dev/null; true
+RUN cd web/frontend && npx vite build
 
 # Build each app (one layer per app for caching)
 COPY apps/calculator/ apps/calculator/
