@@ -151,6 +151,14 @@ export default function ChatPage() {
   // user completes setup, triggered by the app's state_update event.
   const DEFERRED_PROMPT_APPS = new Set(['chess', 'flashcards'])
 
+  // Deterministic welcome messages — instant, no AI call
+  const APP_WELCOME: Record<string, string> = {
+    calculator: "Welcome to Math Helper! Pick a grade level and lesson to get started. I can help explain any problem — just ask!",
+    dictionary: "Welcome to Reading & Vocabulary! Choose a passage to read, then test your comprehension. Save words you want to remember and I'll quiz you on them!",
+    weather: "Here's the weather dashboard! You can check the forecast for any city. Ask me about weather patterns or what to wear today!",
+    'life-skills': "Welcome to Level Up Life! Pick a scenario to practice real-world decision making. I'll guide you through each choice and explain the outcomes.",
+  }
+
   async function handleAppLaunch(appId: string) {
     const display = APP_DISPLAY[appId]
     if (!display) return
@@ -159,73 +167,30 @@ export default function ChatPage() {
     setConversations(prev => [conv, ...prev])
     setActiveConversation(conv.id)
 
+    // All apps open immediately with the iframe
+    setActiveApp({ appId, iframeUrl: buildAppUrl(appId) })
+
+    // Tell the backend which app is active so it routes tools correctly
+    fetch(`/api/conversations/${conv.id}/app-state`, {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appId }),
+    }).catch(() => {})
+
     if (DEFERRED_PROMPT_APPS.has(appId)) {
-      // Open app immediately, no AI message yet — wait for user to complete setup
-      setActiveApp({ appId, iframeUrl: buildAppUrl(appId) })
+      // Chess/flashcards: wait for user to complete setup before showing welcome
       setMessages([])
       return
     }
 
-    setActiveApp(null)
-
-    // Send a message that will trigger the intent classifier to open the app
-    const userMessage: Message = {
-      id: crypto.randomUUID(), role: 'user', content: display.prompt,
+    // All other apps: show deterministic welcome message instantly
+    const welcome = APP_WELCOME[appId] || `${display.label} is ready! Ask me anything or start using the app.`
+    setMessages([{
+      id: crypto.randomUUID(), role: 'assistant', content: welcome,
       tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
-    }
-    setMessages([userMessage])
-    setInput('')
-    if (inputRef.current) inputRef.current.style.height = 'auto'
-    setStreaming(true)
-    setStreamingContent('')
-
-    await api.sendMessage(
-      conv.id,
-      display.prompt,
-      (token) => setStreamingContent(prev => prev + token),
-      (messageId) => {
-        setStreamingContent(prev => {
-          const assistantMessage: Message = {
-            id: messageId, role: 'assistant', content: prev,
-            tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
-          }
-          setMessages(msgs => [...msgs, assistantMessage])
-          return ''
-        })
-        setStreaming(false)
-      },
-      (error) => {
-        setStreamingContent('')
-        setStreaming(false)
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(), role: 'assistant', content: `Error: ${error}`,
-          tool_call_id: null, tool_name: null, created_at: new Date().toISOString(),
-        }])
-      },
-      (intentAppId) => {
-        setActiveApp({ appId: intentAppId, iframeUrl: buildAppUrl(intentAppId) })
-      },
-      async (toolAppId, tool, params, correlationId) => {
-        if (!appIframeRef.current) {
-          setActiveApp({ appId: toolAppId, iframeUrl: buildAppUrl(toolAppId) })
-          await new Promise(r => setTimeout(r, 2000))
-        }
-        try {
-          let result: Record<string, unknown> = { status: 'no_iframe' }
-          if (appIframeRef.current) {
-            result = await appIframeRef.current.invokeTool(tool, params)
-          }
-          await api.submitToolResult(conv.id, correlationId, result)
-        } catch (err) {
-          await api.submitToolResult(conv.id, correlationId, {
-            error: err instanceof Error ? err.message : 'Tool execution failed',
-          })
-        }
-      },
-      (oauthAppId: string, message: string) => {
-        setOauthPrompt({ appId: oauthAppId, message })
-      },
-    )
+    }])
+    playMessageReceived()
+    return
   }
 
   async function handleSend(e: React.FormEvent) {

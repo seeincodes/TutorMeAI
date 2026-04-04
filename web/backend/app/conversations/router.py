@@ -182,8 +182,10 @@ async def send_message(
     ]
 
     # Phase 1: Intent classification
-    target_app_id = None
-    if available_apps:
+    # If the conversation already has an active app, skip classification
+    # and always route to that app's tools — the user is already in context.
+    target_app_id = conversation.active_app_id
+    if not target_app_id and available_apps:
         try:
             target_app_id = await classify_intent(body.content, available_apps)
         except Exception:
@@ -231,8 +233,11 @@ async def send_message(
                 yield {"event": "done", "data": json.dumps({"message_id": ""})}
             return
 
-        # Send intent classification result to frontend
+        # Send intent classification result to frontend and persist on conversation
         if target_app_id:
+            if conversation.active_app_id != target_app_id:
+                conversation.active_app_id = target_app_id
+                await db.commit()
             yield {"event": "intent", "data": json.dumps({"app_id": target_app_id})}
 
         try:
@@ -326,6 +331,12 @@ async def save_app_state(
             tool_name="app_state",
         )
         db.add(msg)
+
+    # Set active_app_id on the conversation so the agent knows which app
+    # tools to use without re-running intent classification
+    app_id = body.get("appId")
+    if app_id and conversation.active_app_id != app_id:
+        conversation.active_app_id = app_id
 
     await db.commit()
     return {"status": "saved"}
