@@ -79,15 +79,14 @@ describe('useTTS', () => {
     expect(mockCancel).toHaveBeenCalled()
   })
 
-  it('speakSentence queues utterance', () => {
+  it('speakSentence queues utterance after gap delay', () => {
+    vi.useFakeTimers()
     const { result } = renderHook(() => useTTS())
     act(() => result.current.speakSentence('First sentence.'))
-    // speakSentence uses setTimeout for gap — advance timers
-    vi.useFakeTimers()
-    vi.advanceTimersByTime(350)
+    expect(mockSpeak).not.toHaveBeenCalled()
+    act(() => { vi.advanceTimersByTime(350) })
+    expect(mockSpeak).toHaveBeenCalled()
     vi.useRealTimers()
-    // The speak should have been called (may need timer advancement)
-    // At minimum, the function shouldn't throw
   })
 
   it('uses slow speed preset values', () => {
