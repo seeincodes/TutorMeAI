@@ -10,6 +10,7 @@ from app.apps.schemas import ToolSchema
 from app.auth.dependencies import get_current_user, require_role
 from app.database import get_db
 from app.marketplace.ai_review import review_app_submission, AIReviewResult
+from app.marketplace.rule_checks import check_rules
 from app.models import AppContentScreen, AppRegistration, ToolInvocation, User
 
 logger = logging.getLogger("chatbridge.marketplace")
@@ -88,8 +89,53 @@ async def submit_app(
     schemas_list = [ts.model_dump() for ts in body.tool_schemas]
     schema_hash = compute_schema_hash(schemas_list)
 
-    # Run AI review before saving
-    logger.info(f"Running AI review for app submission: {body.app_id}")
+    # ── Layer 1: Deterministic rule checks (instant, zero cost) ────
+    rule_result = check_rules(
+        app_id=body.app_id,
+        name=body.name,
+        description=body.description,
+        tool_schemas=schemas_list,
+        auth_type=body.auth_type,
+        developer_name=body.developer_name,
+        developer_email=body.developer_email,
+        website_url=body.website_url,
+        privacy_policy_url=body.privacy_policy_url,
+        age_rating=body.age_rating,
+    )
+
+    if not rule_result.passed:
+        # Auto-reject: deterministic rules failed, no need for AI
+        logger.info(f"Rule check REJECTED {body.app_id}: {rule_result.failures}")
+        app_reg = AppRegistration(
+            app_id=body.app_id, name=body.name, description=body.description,
+            auth_type=body.auth_type, iframe_url=body.iframe_url,
+            tool_schemas=schemas_list, schema_hash=schema_hash, schema_version=1,
+            status="rejected", platform_status="blocked", is_active=False,
+            trust_tier="new", developer_name=body.developer_name,
+            developer_email=body.developer_email, website_url=body.website_url,
+            privacy_policy_url=body.privacy_policy_url, logo_url=body.logo_url,
+            age_rating=body.age_rating,
+        )
+        db.add(app_reg)
+        screen = AppContentScreen(
+            app_id=body.app_id, screen_type="ai_submission_review",
+            result="fail", flagged=True,
+            details={"decision": "reject", "layer": "rule_checks",
+                     "failures": rule_result.failures, "warnings": rule_result.warnings},
+        )
+        db.add(screen)
+        await db.commit()
+        await db.refresh(app_reg)
+        return SubmitAppResponse(
+            app_id=app_reg.app_id, name=app_reg.name,
+            status="rejected", trust_tier="new",
+            ai_review={"decision": "reject", "reasoning": f"Failed {len(rule_result.failures)} rule check(s): {'; '.join(rule_result.failures)}",
+                        "risk_level": "high", "risk_flags": rule_result.failures,
+                        "age_rating": body.age_rating, "educational_value": "unknown"},
+        )
+
+    # ── Layer 2: AI review (only for apps that passed rules) ───────
+    logger.info(f"Rules passed for {body.app_id} ({len(rule_result.warnings)} warnings). Running AI review.")
     ai_result: AIReviewResult = await review_app_submission(
         app_id=body.app_id,
         name=body.name,
