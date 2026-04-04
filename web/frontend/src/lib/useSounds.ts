@@ -41,23 +41,23 @@ export function useSounds() {
   const playMessageSent = useCallback(() => {
     if (mutedRef.current) return
     // Quick ascending "whoosh" — two short tones
-    playTone(440, 0.08, 0.12, 'sine')
-    setTimeout(() => playTone(587, 0.08, 0.1, 'sine'), 60)
+    playTone(440, 0.12, 0.35, 'sine')
+    setTimeout(() => playTone(587, 0.12, 0.3, 'sine'), 60)
   }, [])
 
   const playMessageReceived = useCallback(() => {
     if (mutedRef.current) return
     // Soft descending "pop" — friendly notification
-    playTone(587, 0.1, 0.1, 'sine')
-    setTimeout(() => playTone(440, 0.12, 0.08, 'sine'), 80)
+    playTone(587, 0.15, 0.3, 'sine')
+    setTimeout(() => playTone(440, 0.15, 0.25, 'sine'), 80)
   }, [])
 
   const playAppLaunch = useCallback(() => {
     if (mutedRef.current) return
     // Three-note ascending chime
-    playTone(523, 0.1, 0.08, 'sine')    // C5
-    setTimeout(() => playTone(659, 0.1, 0.08, 'sine'), 100) // E5
-    setTimeout(() => playTone(784, 0.15, 0.06, 'sine'), 200) // G5
+    playTone(523, 0.15, 0.3, 'sine')     // C5
+    setTimeout(() => playTone(659, 0.15, 0.3, 'sine'), 100)  // E5
+    setTimeout(() => playTone(784, 0.2, 0.25, 'sine'), 200)  // G5
   }, [])
 
   return { muted, toggleMute, playMessageSent, playMessageReceived, playAppLaunch }

@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { Chess, type Square } from 'chess.js'
 import { Chessboard } from 'react-chessboard'
 import { useStockfish } from './useStockfish'
+import { playMove, playAIMove, playCapture, playCheck, playWin, playLoss, playDraw, playIllegal } from './sounds'
 
 function sendToPlatform(type: string, correlationId: string, data: Record<string, unknown>) {
   window.parent.postMessage({ type, correlationId, data }, '*')
@@ -38,19 +39,23 @@ export default function ChessApp() {
       const playerWon = (pColor === 'white' && !loserIsWhite) || (pColor === 'black' && loserIsWhite)
       if (playerWon) {
         setGameOver({ result: 'win', message: 'Checkmate — You win!' })
+        playWin()
       } else {
         setGameOver({ result: 'loss', message: 'Checkmate — You lose!' })
+        playLoss()
       }
       setStatus('Game over')
       return true
     }
     if (g.isDraw() || g.isStalemate()) {
       setGameOver({ result: 'draw', message: g.isStalemate() ? 'Stalemate — Draw!' : 'Draw!' })
+      playDraw()
       setStatus('Game over')
       return true
     }
     if (g.isCheck()) {
       setStatus(`${g.turn() === 'w' ? 'White' : 'Black'} is in check!`)
+      playCheck()
       return false
     }
     setStatus(`${g.turn() === 'w' ? 'White' : 'Black'} to move`)
@@ -138,6 +143,10 @@ export default function ChessApp() {
         return
       }
 
+      // Sound: AI capture vs normal move
+      if (aiMove.captured) playCapture()
+      else playAIMove()
+
       setMoveHistory(prev => [...prev, currentGame.fen()])
       setGame(gameCopy)
       setThinking(false)
@@ -174,7 +183,11 @@ export default function ChessApp() {
     try {
       const gameCopy = new Chess(game.fen())
       const move = gameCopy.move({ from: from as Square, to: to as Square, promotion: 'q' })
-      if (!move) return false
+      if (!move) { playIllegal(); return false }
+
+      // Sound: capture vs normal move
+      if (move.captured) playCapture()
+      else playMove()
 
       setMoveHistory(prev => [...prev, game.fen()])
       setGame(gameCopy)
