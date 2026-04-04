@@ -7,16 +7,16 @@ function sendToPlatform(type: string, correlationId: string, data: Record<string
   window.parent.postMessage({ type, correlationId, data }, '*')
 }
 
-type Difficulty = 'beginner' | 'intermediate' | 'advanced' | 'grandmaster'
+type Difficulty = 'explorer' | 'apprentice' | 'challenger' | 'expert'
 
 const DIFFICULTY_CONFIG: Record<Difficulty, {
   label: string; emoji: string; desc: string;
   skillLevel: number; depth: number; moveTime: number; randomChance: number
 }> = {
-  beginner:     { label: 'Beginner',     emoji: '🌱', desc: 'Perfect for kids — plays silly moves!', skillLevel: 0,  depth: 1,  moveTime: 50,   randomChance: 0.85 },
-  intermediate: { label: 'Intermediate', emoji: '⭐', desc: 'Plays decent moves',                    skillLevel: 3,  depth: 3,  moveTime: 150,  randomChance: 0.15 },
-  advanced:     { label: 'Advanced',     emoji: '🔥', desc: 'Strong positional play',                skillLevel: 10, depth: 10, moveTime: 500,  randomChance: 0 },
-  grandmaster:  { label: 'Grandmaster',  emoji: '👑', desc: 'Best move every time',                  skillLevel: 20, depth: 20, moveTime: 2000, randomChance: 0 },
+  explorer:   { label: 'Explorer',   emoji: '🌱', desc: 'Learn the pieces — plays silly moves!', skillLevel: 0,  depth: 1,  moveTime: 50,   randomChance: 0.85 },
+  apprentice: { label: 'Apprentice', emoji: '⭐', desc: 'Building strategy — makes some mistakes', skillLevel: 2,  depth: 2,  moveTime: 150,  randomChance: 0.40 },
+  challenger: { label: 'Challenger', emoji: '🔥', desc: 'Real competition — mostly strong moves',  skillLevel: 10, depth: 10, moveTime: 500,  randomChance: 0.15 },
+  expert:     { label: 'Expert',     emoji: '👑', desc: 'Tournament-level play',                   skillLevel: 20, depth: 15, moveTime: 2000, randomChance: 0 },
 }
 
 export default function ChessApp() {
@@ -85,7 +85,7 @@ export default function ChessApp() {
     setStatus('AI is thinking...')
 
     // Minimum delay so AI moves feel deliberate, not instant
-    const minDelay = diff === 'beginner' ? 800 : diff === 'intermediate' ? 600 : 400
+    const minDelay = diff === 'explorer' ? 800 : diff === 'apprentice' ? 600 : 400
     const delayPromise = new Promise(r => setTimeout(r, minDelay))
 
     try {
@@ -94,13 +94,13 @@ export default function ChessApp() {
       let aiMove
 
       // At lower difficulties, sometimes pick a random legal move instead of using Stockfish.
-      // For beginner mode (kids 6-8), actively prefer weak moves: avoid captures, checks, and
-      // center control so the child has a real chance to win and learn.
+      // For explorer mode, actively prefer weak moves: avoid captures, checks, and
+      // center control so the player has a real chance to win and learn.
       if (config.randomChance > 0 && Math.random() < config.randomChance) {
         const legalMoves = gameCopy.moves({ verbose: true })
         let candidates = legalMoves
 
-        if (diff === 'beginner') {
+        if (diff === 'explorer') {
           // Prefer non-capturing, non-checking, edge moves (weaker play)
           const quietMoves = legalMoves.filter(m => !m.captured && !m.san.includes('+') && !m.san.includes('#'))
           const edgeMoves = quietMoves.filter(m => {
@@ -222,7 +222,7 @@ export default function ChessApp() {
             const restored = new Chess(fen)
             setGame(restored)
             setGameStarted(true)
-            setDifficulty((params?.difficulty as Difficulty) || 'intermediate')
+            setDifficulty((params?.difficulty as Difficulty) || 'apprentice')
             setPlayerColor((params?.playerColor as 'white' | 'black') || 'white')
             updateStatus(restored)
             setSelectedSquare(null)
@@ -232,7 +232,7 @@ export default function ChessApp() {
           break
         }
         case 'new_game': {
-          const diff = (params?.difficulty as Difficulty) || 'intermediate'
+          const diff = (params?.difficulty as Difficulty) || 'apprentice'
           startGame(diff)
           sendToPlatform('tool_result', correlationId, {
             tool: 'new_game', fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
