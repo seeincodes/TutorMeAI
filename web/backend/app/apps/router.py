@@ -27,10 +27,12 @@ from app.rate_limit import limiter
 APP_MIN_GRADE: dict[str, int] = {
     "counting-game": 0,
     "abc-letters": 0,
-    "chess": 0,
-    "calculator": 0,
-    "dictionary": 0,
-    "life-skills": 0,
+    "shapes": 0,
+    "animals": 0,
+    "chess": 3,
+    "calculator": 3,
+    "dictionary": 3,
+    "life-skills": 3,
     "flashcards": 3,
     "weather": 3,
 }
@@ -39,6 +41,8 @@ APP_MIN_GRADE: dict[str, int] = {
 APP_MAX_GRADE: dict[str, int] = {
     "counting-game": 2,   # K-2 only
     "abc-letters": 2,     # K-2 only
+    "shapes": 2,          # K-2 only
+    "animals": 2,         # K-2 only
 }
 
 router = APIRouter(prefix="/api/apps", tags=["apps"])

@@ -16,6 +16,8 @@ export interface AppDisplay {
 export const APP_ORDER = [
   'counting-game',
   'abc-letters',
+  'shapes',
+  'animals',
   'chess',
   'calculator',
   'dictionary',
@@ -27,6 +29,8 @@ export const APP_ORDER = [
 export const APP_DISPLAY: Record<string, AppDisplay> = {
   'counting-game':    { label: 'Counting Game',          shortLabel: 'Counting',    emoji: '🔢', prompt: "Let's play the counting game" },
   'abc-letters':      { label: 'ABC Letters',            shortLabel: 'ABC',         emoji: '🔤', prompt: "Let's learn letters" },
+  shapes:             { label: 'Shapes & Colors',        shortLabel: 'Shapes',      emoji: '🔷', prompt: "Let's learn shapes" },
+  animals:            { label: 'Animal Friends',          shortLabel: 'Animals',     emoji: '🐾', prompt: "Let's learn about animals" },
   chess:              { label: 'Chess',                  shortLabel: 'Chess',       emoji: '♟️', prompt: "Let's play chess" },
   calculator:         { label: 'Math Helper',            shortLabel: 'Math',        emoji: '🧮', prompt: 'I want to use the calculator' },
   dictionary:         { label: 'Reading & Vocabulary',   shortLabel: 'Vocab',       emoji: '📖', prompt: 'I want to look up a word' },
