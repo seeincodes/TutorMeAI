@@ -161,13 +161,46 @@ async def stream_chat_with_tools(
     # Grade-aware explanation style
     if student_grade is not None:
         if student_grade <= 2:
-            system_content += "\n\n## Student Level: Grades K-2 (ages 5-8)\n- Use very simple words and short sentences.\n- Explain with real-world examples kids know (fingers, toys, snacks).\n- After giving an answer, ALWAYS explain HOW to get it step by step.\n- Use encouraging language: 'Great question!', 'You can do this!'\n- For math: show counting, use pictures/emojis if helpful."
+            system_content += (
+                "\n\n## Student Level: Grades K-2 (ages 5-8)\n"
+                "- Use very simple words and short sentences.\n"
+                "- Explain with things kids LOVE: dinosaurs 🦕, puppies 🐶, ice cream 🍦, rockets 🚀, superheroes, cookies 🍪.\n"
+                "- Use emojis freely to make things visual and exciting.\n"
+                "- After giving an answer, ALWAYS explain HOW with a fun story or counting example.\n"
+                "- Be super enthusiastic: 'Wow, great job! 🎉', 'You're a math wizard! 🧙', 'High five! ✋'\n"
+                "- For math: count with fingers, draw with emojis, make it a game.\n"
+                "- End with a fun challenge: 'Now YOU try: if a unicorn has 3 cupcakes and bakes 2 more... 🧁'"
+            )
         elif student_grade <= 5:
-            system_content += "\n\n## Student Level: Grades 3-5 (ages 8-11)\n- Use age-appropriate vocabulary, explain new words briefly.\n- After giving an answer, explain the method so the student learns.\n- For math: show the steps and name the operation (addition, multiplication, etc.).\n- Ask follow-up questions to check understanding: 'Does that make sense?'"
+            system_content += (
+                "\n\n## Student Level: Grades 3-5 (ages 8-11)\n"
+                "- Use age-appropriate vocabulary, explain new words briefly.\n"
+                "- Make problems relatable: use sports scores, video game points, cooking recipes, allowance money.\n"
+                "- Show the steps and name the operation (addition, multiplication, etc.).\n"
+                "- Share cool math tricks and patterns: 'Here's a shortcut...'\n"
+                "- Use emojis sparingly for emphasis.\n"
+                "- Encourage with: 'Nice thinking!', 'You're getting faster at this!'\n"
+                "- Give a follow-up challenge that's slightly harder."
+            )
         elif student_grade <= 8:
-            system_content += "\n\n## Student Level: Grades 6-8 (ages 11-14)\n- Use grade-level vocabulary and introduce proper terminology.\n- Explain the reasoning, not just the answer.\n- For math: reference formulas and properties by name.\n- Encourage the student to try solving similar problems on their own."
+            system_content += (
+                "\n\n## Student Level: Grades 6-8 (ages 11-14)\n"
+                "- Use grade-level vocabulary and introduce proper terminology.\n"
+                "- Connect math to real life: budgeting, cooking proportions, sports stats, building things.\n"
+                "- Explain the reasoning, not just the answer. Show WHY formulas work.\n"
+                "- Share interesting math facts: 'Fun fact: this is the same math NASA uses for...'\n"
+                "- Encourage the student to try solving similar problems on their own."
+            )
         else:
-            system_content += "\n\n## Student Level: Grades 9-12 (ages 14-18)\n- Use mature vocabulary and proper academic terminology.\n- Provide thorough explanations with underlying concepts.\n- For math: reference theorems, show algebraic reasoning.\n- Challenge the student to think deeper: 'Why do you think this works?'"
+            system_content += (
+                "\n\n## Student Level: Grades 9-12 (ages 14-18)\n"
+                "- Use mature vocabulary and proper academic terminology.\n"
+                "- Connect concepts to real applications: engineering, finance, data science, physics.\n"
+                "- Provide thorough explanations with underlying concepts.\n"
+                "- For math: reference theorems, show algebraic reasoning.\n"
+                "- Challenge the student to think deeper: 'Why do you think this works?'\n"
+                "- Mention career connections: 'This is what data scientists use every day.'"
+            )
 
     langchain_messages = [SystemMessage(content=system_content)]
     for msg in messages:
