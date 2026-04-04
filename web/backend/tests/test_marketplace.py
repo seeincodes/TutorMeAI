@@ -8,10 +8,21 @@ Tests for:
 - Submission validation and safety checks
 """
 
+import os
+
 import pytest
 from sqlalchemy import select
 
 from app.database import get_session_factory
+
+# Tests that call the real OpenAI API require OPENAI_API_KEY.
+# Skipped in CI environments without the key.
+try:
+    from app.config import settings as _settings
+    _has_openai_key = bool(_settings.openai_api_key)
+except Exception:
+    _has_openai_key = bool(os.environ.get("OPENAI_API_KEY"))
+requires_openai = pytest.mark.skipif(not _has_openai_key, reason="OPENAI_API_KEY not set")
 
 
 # ── Model Tests ──────────────────────────────────────────────────────────
@@ -102,6 +113,7 @@ async def test_app_registration_marketplace_fields_persist():
 # ── API Tests: Self-Service Submission ───────────────────────────────────
 
 
+@requires_openai
 @pytest.mark.asyncio
 async def test_submit_app_runs_ai_review(client):
     """Public submission endpoint runs AI review and returns verdict."""
@@ -296,6 +308,7 @@ async def test_marketplace_catalog_includes_trust_tier(client):
 # ── AI Review Pipeline Tests ──────────────────────────────────────────
 
 
+@requires_openai
 @pytest.mark.asyncio
 async def test_ai_review_approves_safe_educational_app():
     """AI review does not reject a clearly safe educational app."""
@@ -325,6 +338,7 @@ async def test_ai_review_approves_safe_educational_app():
     assert result.risk_level in ("low", "medium")
 
 
+@requires_openai
 @pytest.mark.asyncio
 async def test_ai_review_rejects_dangerous_app():
     """AI review does not approve a dangerous app."""
@@ -353,6 +367,7 @@ async def test_ai_review_rejects_dangerous_app():
     assert len(result.risk_flags) > 0
 
 
+@requires_openai
 @pytest.mark.asyncio
 async def test_ai_review_flags_inappropriate_content():
     """AI review rejects or flags apps with inappropriate content."""
@@ -375,6 +390,7 @@ async def test_ai_review_flags_inappropriate_content():
     assert result.content_safe is False
 
 
+@requires_openai
 @pytest.mark.asyncio
 async def test_ai_review_returns_valid_structure():
     """AI review always returns all required fields."""
@@ -412,6 +428,7 @@ async def test_ai_review_returns_valid_structure():
 # ── Admin Override Tests ──────────────────────────────────────────────
 
 
+@requires_openai
 @pytest.mark.asyncio
 async def test_admin_can_approve_pending_app(client):
     """Admin can manually approve a pending app."""
@@ -437,6 +454,7 @@ async def test_admin_can_approve_pending_app(client):
     assert resp.json()["status"] == "active"
 
 
+@requires_openai
 @pytest.mark.asyncio
 async def test_admin_can_reject_app(client):
     """Admin can manually reject an app."""
@@ -459,6 +477,7 @@ async def test_admin_can_reject_app(client):
     assert resp.json()["status"] == "rejected"
 
 
+@requires_openai
 @pytest.mark.asyncio
 async def test_admin_can_view_ai_review(client):
     """Admin can view the AI review for a submitted app."""
