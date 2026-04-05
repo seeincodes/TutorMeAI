@@ -91,6 +91,10 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
           setLoading(false)
           setError(null)
           onReady?.()
+          // Tell iframe TTS is unlocked (user clicked to open app = user gesture)
+          if (iframeRef.current?.contentWindow) {
+            iframeRef.current.contentWindow.postMessage({ type: 'tts_unlock' }, '*')
+          }
           break
 
         case 'tool_result': {

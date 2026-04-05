@@ -18,11 +18,22 @@ function stripEmoji(str: string): string {
   return str.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').replace(/\s{2,}/g, ' ').trim()
 }
 
-// Track user interaction for autoplay policy
-let ttsUnlocked = false
+// Module-level unlock flag — set by clicks, keys, or parent message
+let _ttsUnlocked = false
+const _unlockListeners: Array<() => void> = []
+function markUnlocked() {
+  if (_ttsUnlocked) return
+  _ttsUnlocked = true
+  _unlockListeners.forEach(fn => fn())
+}
 if (typeof document !== 'undefined') {
-  document.addEventListener('click', () => { ttsUnlocked = true }, { once: false })
-  document.addEventListener('keydown', () => { ttsUnlocked = true }, { once: false })
+  document.addEventListener('click', markUnlocked, { once: false })
+  document.addEventListener('keydown', markUnlocked, { once: false })
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('message', (e) => {
+    if (e.data?.type === 'tts_unlock') markUnlocked()
+  })
 }
 
 const PREFERRED_VOICES = ['Google US English', 'Samantha']
@@ -37,6 +48,7 @@ function pickVoice(): SpeechSynthesisVoice | null {
 }
 
 export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = false }: { text: string; label?: string; autoSpeak?: boolean }) {
+  const [unlocked, setUnlocked] = useState(_ttsUnlocked)
   const [speaking, setSpeaking] = useState(false)
   const [speed, setSpeed] = useState<Speed>(() =>
     (localStorage.getItem(STORAGE_KEY) as Speed) || 'slow'
@@ -44,6 +56,14 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null)
 
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
+
+  // Subscribe to unlock events so autoSpeak effect re-fires
+  useEffect(() => {
+    if (unlocked) return
+    const handler = () => setUnlocked(true)
+    _unlockListeners.push(handler)
+    return () => { const idx = _unlockListeners.indexOf(handler); if (idx >= 0) _unlockListeners.splice(idx, 1) }
+  }, [unlocked])
 
   useEffect(() => {
     if (!supported) return
@@ -75,7 +95,7 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
   // Auto-speak when text changes (for K-2 kids who can't read yet)
   useEffect(() => {
     const clean = stripEmoji(text)
-    if (!autoSpeak || !supported || !clean || !ttsUnlocked) return
+    if (!autoSpeak || !supported || !clean || !unlocked) return
     // Small delay — lets browser associate speech with recent user gesture
     const timer = setTimeout(() => {
       const preset = PRESETS[speed]
@@ -90,7 +110,7 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
       setSpeaking(true)
     }, 100)
     return () => clearTimeout(timer)
-  }, [autoSpeak, supported, text]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [autoSpeak, supported, text, unlocked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleSpeed = useCallback(() => {
     const next = speed === 'slow' ? 'regular' : 'slow'
