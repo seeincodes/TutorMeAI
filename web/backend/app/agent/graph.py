@@ -158,14 +158,16 @@ async def stream_chat_with_tools(
             if target_app:
                 system_content += (
                     f"\n\n## Active App: {target_app['name']} ({target_app_id})\n"
-                    f"The student has this app open right now. When they ask for help, tutor them based on what this app does:\n"
-                    f"- If the app is Counting Game: help them count, explain the numbers they see, give counting tips.\n"
-                    f"- If the app is ABC Letters: help with letters, sounds, and words.\n"
-                    f"- If the app is Shapes Game: help name shapes, colors, and sides.\n"
-                    f"- If the app is Math Helper: help with the math problem they're working on.\n"
-                    f"- If the app is Reading & Vocabulary: help with words and reading.\n"
-                    f"- For any app: relate your help to what the student is doing in the app right now.\n"
-                    f"- Do NOT suggest opening another app or re-suggest the same app. They already have it open.\n"
+                    f"The student has this app open right now.\n"
+                    f"- When the student asks for help, FIRST call {target_app_id}__get_state to see what they're working on.\n"
+                    f"- The get_state response includes `currentQuestion` with the prompt, answer options, and correct answer.\n"
+                    f"- Use this info to give a HINT — do NOT give the answer directly. Help them figure it out.\n"
+                    f"- For counting: 'Try counting each one! Point at each emoji as you count. 1... 2... 3...'\n"
+                    f"- For letters: 'What sound does the word start with? Say it slowly...'\n"
+                    f"- For shapes: 'Look at the edges! Count how many sides it has.'\n"
+                    f"- For math: 'Let's break it into smaller parts!'\n"
+                    f"- Do NOT reveal the correct answer unless the student is really stuck and asks directly.\n"
+                    f"- Do NOT suggest opening another app. They already have one open.\n"
                     f"- Use the available tools to interact with the app when needed."
                 )
 

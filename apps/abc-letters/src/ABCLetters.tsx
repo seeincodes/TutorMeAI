@@ -117,7 +117,14 @@ export default function ABCLetters() {
       if (!msg || msg.type !== 'tool_invoke') return
       const { correlationId, tool } = msg
       if (tool === 'get_state') {
-        sendToPlatform('tool_result', correlationId, { tool: 'get_state', mode, round, score, streak })
+        sendToPlatform('tool_result', correlationId, {
+          tool: 'get_state', mode, round, score, streak,
+          currentQuestion: question ? {
+            prompt: question.prompt,
+            correct: question.correct,
+            options: question.options,
+          } : null,
+        })
       } else if (tool === 'restore_state') {
         sendToPlatform('tool_result', correlationId, { tool: 'restore_state', message: 'Restored' })
       } else {
@@ -126,7 +133,7 @@ export default function ABCLetters() {
     }
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
-  }, [mode, round, score, streak])
+  }, [mode, round, score, streak, question])
 
   const startGame = useCallback((m: 'find-letter' | 'what-starts' | 'uppercase-lowercase') => {
     playPop()

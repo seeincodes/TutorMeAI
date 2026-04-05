@@ -126,7 +126,15 @@ export default function CountingGame() {
       if (!msg || msg.type !== 'tool_invoke') return
       const { correlationId, tool } = msg
       if (tool === 'get_state') {
-        sendToPlatform('tool_result', correlationId, { tool: 'get_state', mode, round, score, streak })
+        sendToPlatform('tool_result', correlationId, {
+          tool: 'get_state', mode, round, score, streak,
+          currentQuestion: question ? {
+            prompt: question.prompt,
+            correct: question.correct,
+            options: question.options,
+            mode: question.mode,
+          } : null,
+        })
       } else if (tool === 'restore_state') {
         sendToPlatform('tool_result', correlationId, { tool: 'restore_state', message: 'Restored' })
       } else {
@@ -135,7 +143,7 @@ export default function CountingGame() {
     }
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
-  }, [mode, round, score, streak])
+  }, [mode, round, score, streak, question])
 
   // Called after level is chosen — actually starts the game
   const startGame = useCallback((m: 'count' | 'compare' | 'add', lv: Level) => {
