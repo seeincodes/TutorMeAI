@@ -218,7 +218,8 @@ export default function ShapesGame() {
       <div style={{ padding: '24px 16px', maxWidth: '400px', margin: '0 auto', fontFamily: font, textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '8px' }}>🔷</div>
         <div style={{ fontSize: '24px', fontWeight: 700, color: '#111827', marginBottom: '4px' }}>Shapes Game</div>
-        <div style={{ fontSize: '16px', color: '#6b7280', marginBottom: '24px' }}>Tap the right answer!</div>
+        <div style={{ fontSize: '16px', color: '#6b7280', marginBottom: '12px' }}>Tap the right answer!</div>
+        <div style={{ marginBottom: '16px' }}><SpeakButton text="Welcome to the Shapes Game! Pick how you want to play. You can name shapes, find colors, or count sides!" autoSpeak /></div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {MODES_LIST.map(m => (
             <button key={m.id} onClick={() => startGame(m.id)} style={{
