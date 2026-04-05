@@ -1,6 +1,7 @@
 /**
  * SpeakButton — Text-to-speech button for iframe apps.
  * Kids press to hear content read aloud. Includes speed toggle (Slow/Fast).
+ * Optional autoSpeak prop reads text aloud when it changes.
  * Uses browser speechSynthesis API — no external dependencies.
  */
 import { useState, useCallback, useRef, useEffect } from 'react'
@@ -13,7 +14,6 @@ const PRESETS = {
   regular: { rate: 1.0, pitch: 1.0 },
 } as const
 
-// Strip emoji so speechSynthesis doesn't choke
 function stripEmoji(str: string): string {
   return str.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').replace(/\s{2,}/g, ' ').trim()
 }
@@ -29,35 +29,13 @@ function pickVoice(): SpeechSynthesisVoice | null {
   return voices.find(v => v.lang.startsWith('en')) || null
 }
 
-// Shared speak function — cancels everything first, speaks one thing
-// Module-level lock: tracks which text is currently being auto-spoken
-let _autoSpeakingText: string | null = null
-
-function speakText(text: string, speed: Speed, voiceRef: React.RefObject<SpeechSynthesisVoice | null>, isAuto = false) {
-  const clean = stripEmoji(text)
-  if (!clean) return
-  if (isAuto && _autoSpeakingText === clean) return  // already speaking this
-  speechSynthesis.cancel()
-  window.parent.postMessage({ type: 'tts_stop' }, '*')
-  if (isAuto) _autoSpeakingText = clean
-  const preset = PRESETS[speed]
-  const utterance = new SpeechSynthesisUtterance(clean)
-  utterance.rate = preset.rate
-  utterance.pitch = preset.pitch
-  if (voiceRef.current) utterance.voice = voiceRef.current
-  utterance.onend = () => { if (isAuto) _autoSpeakingText = null }
-  utterance.onerror = () => { if (isAuto) _autoSpeakingText = null }
-  speechSynthesis.speak(utterance)
-  return utterance
-}
-
 export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = false }: { text: string; label?: string; autoSpeak?: boolean }) {
   const [speaking, setSpeaking] = useState(false)
   const [speed, setSpeed] = useState<Speed>(() =>
     (localStorage.getItem(STORAGE_KEY) as Speed) || 'slow'
   )
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null)
-  const lastAutoSpoke = useRef<string>('')
+  const lastSpokenRef = useRef('')
 
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -69,6 +47,22 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
     return () => speechSynthesis.removeEventListener('voiceschanged', handler)
   }, [supported])
 
+  const doSpeak = useCallback((txt: string) => {
+    const clean = stripEmoji(txt)
+    if (!supported || !clean) return
+    speechSynthesis.cancel()
+    window.parent.postMessage({ type: 'tts_stop' }, '*')
+    const preset = PRESETS[speed]
+    const utterance = new SpeechSynthesisUtterance(clean)
+    utterance.rate = preset.rate
+    utterance.pitch = preset.pitch
+    if (voiceRef.current) utterance.voice = voiceRef.current
+    utterance.onend = () => setSpeaking(false)
+    utterance.onerror = () => setSpeaking(false)
+    speechSynthesis.speak(utterance)
+    setSpeaking(true)
+  }, [supported, speed])
+
   const handleSpeak = useCallback(() => {
     if (!supported) return
     if (speaking) {
@@ -77,42 +71,18 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
       setSpeaking(false)
       return
     }
-    const utterance = speakText(text, speed, voiceRef)
-    if (utterance) {
-      setSpeaking(true)
-      utterance.onend = () => setSpeaking(false)
-      utterance.onerror = () => setSpeaking(false)
-    }
-  }, [supported, text, speed, speaking])
+    doSpeak(text)
+  }, [supported, text, speaking, doSpeak])
 
-  // Auto-speak: only when text changes to something NEW
+  // Auto-speak when text changes to new value
   useEffect(() => {
     if (!autoSpeak || !supported) return
     const clean = stripEmoji(text)
-    if (!clean || clean === lastAutoSpoke.current) return
-
-    // Listen for tts_unlock OR check if already unlocked via prior click
-    const doSpeak = () => {
-      if (clean !== stripEmoji(text)) return // text changed while waiting
-      lastAutoSpoke.current = clean
-      const utterance = speakText(text, speed, voiceRef, true)
-      if (utterance) {
-        setSpeaking(true)
-        utterance.onend = () => { setSpeaking(false); _autoSpeakingText = null }
-        utterance.onerror = () => { setSpeaking(false); _autoSpeakingText = null }
-      }
-    }
-
-    // Try speaking after short delay
-    const timer = setTimeout(doSpeak, 200)
-    return () => {
-      clearTimeout(timer)
-      // DON'T release _autoSpeakLock here — it protects against
-      // effect re-runs speaking the same text. Only release on utterance end.
-      speechSynthesis.cancel()
-      setSpeaking(false)
-    }
-  }, [autoSpeak, supported, text]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!clean || clean === lastSpokenRef.current) return
+    lastSpokenRef.current = clean
+    const timer = setTimeout(() => doSpeak(text), 200)
+    return () => clearTimeout(timer)
+  }, [autoSpeak, supported, text, doSpeak])
 
   const toggleSpeed = useCallback(() => {
     const next = speed === 'slow' ? 'regular' : 'slow'
