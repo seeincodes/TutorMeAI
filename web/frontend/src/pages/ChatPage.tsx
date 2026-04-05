@@ -282,7 +282,7 @@ export default function ChatPage() {
       input,
       (token) => {
         setStreamingContent(prev => prev + token)
-        if (autoRead) {
+        if (autoRead && !activeApp) {
           sentenceBufferRef.current += token
           const { sentences, remainder } = extractSentences(sentenceBufferRef.current)
           sentenceBufferRef.current = remainder
@@ -290,7 +290,7 @@ export default function ChatPage() {
         }
       },
       (messageId) => {
-        if (autoRead && sentenceBufferRef.current.trim()) {
+        if (autoRead && !activeApp && sentenceBufferRef.current.trim()) {
           speakSentence(sentenceBufferRef.current.trim())
           sentenceBufferRef.current = ''
         }
