@@ -18,27 +18,6 @@ function stripEmoji(str: string): string {
   return str.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').replace(/\s{2,}/g, ' ').trim()
 }
 
-// Module-level unlock flag — set by clicks, keys, or parent message
-let _ttsUnlocked = false
-const _unlockListeners: Array<() => void> = []
-function markUnlocked() {
-  if (_ttsUnlocked) return
-  _ttsUnlocked = true
-  _unlockListeners.forEach(fn => fn())
-}
-if (typeof document !== 'undefined') {
-  document.addEventListener('click', markUnlocked, { once: false })
-  document.addEventListener('keydown', markUnlocked, { once: false })
-}
-if (typeof window !== 'undefined') {
-  window.addEventListener('message', (e) => {
-    if (e.data?.type === 'tts_unlock') markUnlocked()
-  })
-}
-
-// Singleton lock — only one autoSpeak at a time
-let autoSpeakId = 0
-
 const PREFERRED_VOICES = ['Google US English', 'Samantha']
 
 function pickVoice(): SpeechSynthesisVoice | null {
@@ -50,23 +29,30 @@ function pickVoice(): SpeechSynthesisVoice | null {
   return voices.find(v => v.lang.startsWith('en')) || null
 }
 
+// Shared speak function — cancels everything first, speaks one thing
+function speakText(text: string, speed: Speed, voiceRef: React.RefObject<SpeechSynthesisVoice | null>) {
+  const clean = stripEmoji(text)
+  if (!clean) return
+  speechSynthesis.cancel()
+  window.parent.postMessage({ type: 'tts_stop' }, '*')
+  const preset = PRESETS[speed]
+  const utterance = new SpeechSynthesisUtterance(clean)
+  utterance.rate = preset.rate
+  utterance.pitch = preset.pitch
+  if (voiceRef.current) utterance.voice = voiceRef.current
+  speechSynthesis.speak(utterance)
+  return utterance
+}
+
 export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = false }: { text: string; label?: string; autoSpeak?: boolean }) {
-  const [unlocked, setUnlocked] = useState(_ttsUnlocked)
   const [speaking, setSpeaking] = useState(false)
   const [speed, setSpeed] = useState<Speed>(() =>
     (localStorage.getItem(STORAGE_KEY) as Speed) || 'slow'
   )
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null)
+  const lastAutoSpoke = useRef<string>('')
 
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
-
-  // Subscribe to unlock events so autoSpeak effect re-fires
-  useEffect(() => {
-    if (unlocked) return
-    const handler = () => setUnlocked(true)
-    _unlockListeners.push(handler)
-    return () => { const idx = _unlockListeners.indexOf(handler); if (idx >= 0) _unlockListeners.splice(idx, 1) }
-  }, [unlocked])
 
   useEffect(() => {
     if (!supported) return
@@ -76,56 +62,48 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
     return () => speechSynthesis.removeEventListener('voiceschanged', handler)
   }, [supported])
 
-  const speak = useCallback(() => {
-    const clean = stripEmoji(text)
-    if (!supported || !clean) return
-    // Cancel iframe speech AND tell parent to cancel its speech
-    speechSynthesis.cancel()
-    window.parent.postMessage({ type: 'tts_stop' }, '*')
+  const handleSpeak = useCallback(() => {
+    if (!supported) return
     if (speaking) {
+      speechSynthesis.cancel()
+      window.parent.postMessage({ type: 'tts_stop' }, '*')
       setSpeaking(false)
       return
     }
-    const preset = PRESETS[speed]
-    const utterance = new SpeechSynthesisUtterance(clean)
-    utterance.rate = preset.rate
-    utterance.pitch = preset.pitch
-    if (voiceRef.current) utterance.voice = voiceRef.current
-    utterance.onend = () => setSpeaking(false)
-    utterance.onerror = () => setSpeaking(false)
-    speechSynthesis.speak(utterance)
-    setSpeaking(true)
-  }, [supported, text, speed, speaking])
-
-  // Auto-speak when text changes (for K-2 kids who can't read yet)
-  useEffect(() => {
-    const clean = stripEmoji(text)
-    if (!autoSpeak || !supported || !clean || !unlocked) return
-    // Claim the singleton lock — cancels any other autoSpeak
-    const myId = ++autoSpeakId
-    speechSynthesis.cancel()
-    window.parent.postMessage({ type: 'tts_stop' }, '*')
-    const timer = setTimeout(() => {
-      // Check we still own the lock (another autoSpeak may have claimed it)
-      if (myId !== autoSpeakId) return
-      const preset = PRESETS[speed]
-      const utterance = new SpeechSynthesisUtterance(clean)
-      utterance.rate = preset.rate
-      utterance.pitch = preset.pitch
-      if (voiceRef.current) utterance.voice = voiceRef.current
+    const utterance = speakText(text, speed, voiceRef)
+    if (utterance) {
+      setSpeaking(true)
       utterance.onend = () => setSpeaking(false)
       utterance.onerror = () => setSpeaking(false)
-      speechSynthesis.speak(utterance)
-      setSpeaking(true)
-    }, 150)
-    return () => {
-      clearTimeout(timer)
-      if (myId === autoSpeakId) {
-        speechSynthesis.cancel()
-        setSpeaking(false)
+    }
+  }, [supported, text, speed, speaking])
+
+  // Auto-speak: only when text changes to something NEW
+  useEffect(() => {
+    if (!autoSpeak || !supported) return
+    const clean = stripEmoji(text)
+    if (!clean || clean === lastAutoSpoke.current) return
+
+    // Listen for tts_unlock OR check if already unlocked via prior click
+    const doSpeak = () => {
+      if (clean !== stripEmoji(text)) return // text changed while waiting
+      lastAutoSpoke.current = clean
+      const utterance = speakText(text, speed, voiceRef)
+      if (utterance) {
+        setSpeaking(true)
+        utterance.onend = () => setSpeaking(false)
+        utterance.onerror = () => setSpeaking(false)
       }
     }
-  }, [autoSpeak, supported, text, unlocked]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Try speaking after short delay
+    const timer = setTimeout(doSpeak, 200)
+    return () => {
+      clearTimeout(timer)
+      speechSynthesis.cancel()
+      setSpeaking(false)
+    }
+  }, [autoSpeak, supported, text]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleSpeed = useCallback(() => {
     const next = speed === 'slow' ? 'regular' : 'slow'
@@ -138,7 +116,7 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
       <button
-        onClick={speak}
+        onClick={handleSpeak}
         aria-label={speaking ? 'Stop reading' : label}
         title={speaking ? 'Stop reading' : label}
         style={{
