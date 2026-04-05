@@ -30,23 +30,25 @@ function pickVoice(): SpeechSynthesisVoice | null {
 }
 
 // Shared speak function — cancels everything first, speaks one thing
-// Module-level guard: only one autoSpeak utterance at a time
-let _currentAutoSpeakText = ''
+// Module-level lock: prevents any concurrent autoSpeak
+let _autoSpeakLock = false
 
 function speakText(text: string, speed: Speed, voiceRef: React.RefObject<SpeechSynthesisVoice | null>, isAuto = false) {
   const clean = stripEmoji(text)
   if (!clean) return
-  // For autoSpeak: skip if already speaking this exact text
-  if (isAuto && clean === _currentAutoSpeakText && speechSynthesis.speaking) return
+  if (isAuto) {
+    if (_autoSpeakLock) return  // another autoSpeak already claimed
+    _autoSpeakLock = true
+  }
   speechSynthesis.cancel()
   window.parent.postMessage({ type: 'tts_stop' }, '*')
-  if (isAuto) _currentAutoSpeakText = clean
   const preset = PRESETS[speed]
   const utterance = new SpeechSynthesisUtterance(clean)
   utterance.rate = preset.rate
   utterance.pitch = preset.pitch
   if (voiceRef.current) utterance.voice = voiceRef.current
-  utterance.onend = () => { if (isAuto) _currentAutoSpeakText = '' }
+  utterance.onend = () => { _autoSpeakLock = false }
+  utterance.onerror = () => { _autoSpeakLock = false }
   speechSynthesis.speak(utterance)
   return utterance
 }
@@ -98,8 +100,8 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
       const utterance = speakText(text, speed, voiceRef, true)
       if (utterance) {
         setSpeaking(true)
-        utterance.onend = () => setSpeaking(false)
-        utterance.onerror = () => setSpeaking(false)
+        utterance.onend = () => { setSpeaking(false); _autoSpeakLock = false }
+        utterance.onerror = () => { setSpeaking(false); _autoSpeakLock = false }
       }
     }
 
@@ -108,6 +110,7 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
     return () => {
       clearTimeout(timer)
       speechSynthesis.cancel()
+      _autoSpeakLock = false
       setSpeaking(false)
     }
   }, [autoSpeak, supported, text]) // eslint-disable-line react-hooks/exhaustive-deps
