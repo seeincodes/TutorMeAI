@@ -195,6 +195,16 @@ export default function ChatPage() {
   async function handleAppLaunch(appId: string) {
     const display = APP_DISPLAY[appId]
     if (!display) return
+
+    // Reuse existing conversation for this app if one exists
+    const existing = conversations.find(c => c.title === display.label)
+    if (existing) {
+      playAppLaunch()
+      setActiveConversation(existing.id)
+      setActiveApp({ appId, iframeUrl: buildAppUrl(appId) })
+      return
+    }
+
     playAppLaunch()
     const conv = await api.createConversation(display.label)
     setConversations(prev => [conv, ...prev])
