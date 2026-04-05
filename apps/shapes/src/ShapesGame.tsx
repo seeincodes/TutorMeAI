@@ -45,15 +45,15 @@ const SHAPES: ShapeDef[] = [
     renderStyle: { width: '120px', height: '120px', background: '#ec4899', clipPath: 'path("M60 100 C60 100, 0 60, 0 30 C0 0, 30 0, 60 25 C90 0, 120 0, 120 30 C120 60, 60 100, 60 100Z")' },
   },
   {
-    name: 'Oval', color: '#14b8a6', colorName: 'Teal', sides: 0,
+    name: 'Oval', color: '#14b8a6', colorName: 'Green', sides: 0,
     renderStyle: { width: '140px', height: '90px', borderRadius: '50%', background: '#14b8a6' },
   },
   {
-    name: 'Pentagon', color: '#6366f1', colorName: 'Indigo', sides: 5,
+    name: '5-sided Shape', color: '#6366f1', colorName: 'Purple', sides: 5,
     renderStyle: { width: '120px', height: '120px', background: '#6366f1', clipPath: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)' },
   },
   {
-    name: 'Hexagon', color: '#f59e0b', colorName: 'Amber', sides: 6,
+    name: '6-sided Shape', color: '#f59e0b', colorName: 'Yellow', sides: 6,
     renderStyle: { width: '120px', height: '120px', background: '#f59e0b', clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)' },
   },
 ]
@@ -333,7 +333,7 @@ export default function ShapesGame() {
               const hex = ALL_COLORS_HEX[opt] || '#888'
               return (
                 <button key={i} onClick={() => handleAnswer(opt)} style={{
-                  width: '90px', height: '90px', fontSize: '12px', fontWeight: 700,
+                  width: '90px', height: '90px', fontSize: '15px', fontWeight: 700,
                   color: '#111827', background: 'white', border: '3px solid #d1d5db',
                   borderRadius: '16px', cursor: 'pointer', transition: 'all 0.1s',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column',

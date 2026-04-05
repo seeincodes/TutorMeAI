@@ -85,7 +85,7 @@ function generateQuestion(mode: 'find-letter' | 'what-starts' | 'uppercase-lower
   const wrongA = pickRandom(LETTER_DATA, item).letter.toLowerCase()
   const wrongB = pickRandom(LETTER_DATA.filter(l => l.letter !== item.letter && l.letter.toLowerCase() !== wrongA)).letter.toLowerCase()
   return {
-    prompt: `Which is the lowercase version of ${item.letter}?`,
+    prompt: `Which is the small letter for ${item.letter}?`,
     display: item.letter,
     options: shuffle([item.letter.toLowerCase(), wrongA, wrongB]),
     correct: item.letter.toLowerCase(),
@@ -96,7 +96,7 @@ const ROUNDS_PER_GAME = 5
 const GAME_MODES: { id: 'find-letter' | 'what-starts' | 'uppercase-lowercase'; label: string; emoji: string; desc: string }[] = [
   { id: 'find-letter', label: 'Find the Letter', emoji: '🔤', desc: 'What letter does this start with?' },
   { id: 'what-starts', label: 'Match the Picture', emoji: '🖼️', desc: 'Which picture starts with this letter?' },
-  { id: 'uppercase-lowercase', label: 'Big & Small Letters', emoji: '🔡', desc: 'Match uppercase to lowercase!' },
+  { id: 'uppercase-lowercase', label: 'Big & Small Letters', emoji: '🔡', desc: 'Match big letters to small letters!' },
 ]
 
 export default function ABCLetters() {
