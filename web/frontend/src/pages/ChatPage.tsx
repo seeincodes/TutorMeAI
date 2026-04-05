@@ -213,12 +213,16 @@ export default function ChatPage() {
     const existing = conversations.find(c => c.title === display.label)
     if (existing) {
       playAppLaunch()
+      stopTTS()
+      speechSynthesis.cancel()
       setActiveConversation(existing.id)
       setActiveApp({ appId, iframeUrl: buildAppUrl(appId) })
       return
     }
 
     playAppLaunch()
+    stopTTS()
+    speechSynthesis.cancel()
     const conv = await api.createConversation(display.label)
     setConversations(prev => [conv, ...prev])
     setActiveConversation(conv.id)
