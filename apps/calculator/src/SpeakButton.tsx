@@ -18,15 +18,23 @@ function stripEmoji(str: string): string {
   return str.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').replace(/\s{2,}/g, ' ').trim()
 }
 
-// Track whether user has interacted (needed for browser autoplay policy)
-let userHasInteracted = false
-function onFirstInteraction() {
-  userHasInteracted = true
-  document.removeEventListener('click', onFirstInteraction)
-  document.removeEventListener('keydown', onFirstInteraction)
+// Prime speechSynthesis on first user interaction (browser autoplay policy)
+let ttsUnlocked = false
+function unlockTTS() {
+  if (ttsUnlocked) return
+  ttsUnlocked = true
+  // Speak empty utterance to unlock the audio context
+  const u = new SpeechSynthesisUtterance('')
+  u.volume = 0
+  speechSynthesis.speak(u)
+  speechSynthesis.cancel()
+  document.removeEventListener('click', unlockTTS)
+  document.removeEventListener('keydown', unlockTTS)
 }
-document.addEventListener('click', onFirstInteraction)
-document.addEventListener('keydown', onFirstInteraction)
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', unlockTTS)
+  document.addEventListener('keydown', unlockTTS)
+}
 
 const PREFERRED_VOICES = ['Google US English', 'Samantha']
 
@@ -78,7 +86,7 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
   // Auto-speak when text changes (for K-2 kids who can't read yet)
   useEffect(() => {
     const clean = stripEmoji(text)
-    if (!autoSpeak || !supported || !clean || !userHasInteracted) return
+    if (!autoSpeak || !supported || !clean || !ttsUnlocked) return
     const preset = PRESETS[speed]
     const utterance = new SpeechSynthesisUtterance(clean)
     utterance.rate = preset.rate
