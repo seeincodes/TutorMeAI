@@ -67,6 +67,12 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
       // We validate by checking the message structure instead
       const msg = event.data
 
+      // Handle TTS stop from iframe — cancel parent speech
+      if (msg && typeof msg === 'object' && (msg as Record<string, unknown>).type === 'tts_stop') {
+        speechSynthesis.cancel()
+        return
+      }
+
       if (!isAppMessage(msg)) return
 
       // Rate limit: drop messages exceeding MAX_MESSAGES_PER_SECOND
@@ -91,6 +97,8 @@ const AppIframe = forwardRef<AppIframeHandle, AppIframeProps>(function AppIframe
           setLoading(false)
           setError(null)
           onReady?.()
+          // Stop any parent TTS before iframe starts its own
+          speechSynthesis.cancel()
           // Tell iframe TTS is unlocked (user clicked to open app = user gesture)
           if (iframeRef.current?.contentWindow) {
             iframeRef.current.contentWindow.postMessage({ type: 'tts_unlock' }, '*')

@@ -79,8 +79,9 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
   const speak = useCallback(() => {
     const clean = stripEmoji(text)
     if (!supported || !clean) return
-    // Always cancel ALL speech first (stops any other SpeakButton too)
+    // Cancel iframe speech AND tell parent to cancel its speech
     speechSynthesis.cancel()
+    window.parent.postMessage({ type: 'tts_stop' }, '*')
     if (speaking) {
       setSpeaking(false)
       return
@@ -103,6 +104,7 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
     // Claim the singleton lock — cancels any other autoSpeak
     const myId = ++autoSpeakId
     speechSynthesis.cancel()
+    window.parent.postMessage({ type: 'tts_stop' }, '*')
     const timer = setTimeout(() => {
       // Check we still own the lock (another autoSpeak may have claimed it)
       if (myId !== autoSpeakId) return
