@@ -76,8 +76,9 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
   const speak = useCallback(() => {
     const clean = stripEmoji(text)
     if (!supported || !clean) return
-    if (speechSynthesis.speaking) {
-      speechSynthesis.cancel()
+    // Always cancel ALL speech first (stops any other SpeakButton too)
+    speechSynthesis.cancel()
+    if (speaking) {
       setSpeaking(false)
       return
     }
@@ -90,7 +91,7 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
     utterance.onerror = () => setSpeaking(false)
     speechSynthesis.speak(utterance)
     setSpeaking(true)
-  }, [supported, text, speed])
+  }, [supported, text, speed, speaking])
 
   // Auto-speak when text changes (for K-2 kids who can't read yet)
   useEffect(() => {
@@ -109,7 +110,12 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
       speechSynthesis.speak(utterance)
       setSpeaking(true)
     }, 100)
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      // Cancel speech when this SpeakButton unmounts (screen change)
+      speechSynthesis.cancel()
+      setSpeaking(false)
+    }
   }, [autoSpeak, supported, text, unlocked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleSpeed = useCallback(() => {
