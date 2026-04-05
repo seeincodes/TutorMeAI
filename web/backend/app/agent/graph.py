@@ -156,7 +156,18 @@ async def stream_chat_with_tools(
         if target_app_id:
             target_app = next((a for a in available_apps if a["app_id"] == target_app_id), None)
             if target_app:
-                system_content += f"\n\nActive app: {target_app['name']} ({target_app_id}). Use the available tools to interact with this app when the user wants to use it."
+                system_content += (
+                    f"\n\n## Active App: {target_app['name']} ({target_app_id})\n"
+                    f"The student has this app open right now. When they ask for help, tutor them based on what this app does:\n"
+                    f"- If the app is Counting Game: help them count, explain the numbers they see, give counting tips.\n"
+                    f"- If the app is ABC Letters: help with letters, sounds, and words.\n"
+                    f"- If the app is Shapes Game: help name shapes, colors, and sides.\n"
+                    f"- If the app is Math Helper: help with the math problem they're working on.\n"
+                    f"- If the app is Reading & Vocabulary: help with words and reading.\n"
+                    f"- For any app: relate your help to what the student is doing in the app right now.\n"
+                    f"- Do NOT suggest opening another app or re-suggest the same app. They already have it open.\n"
+                    f"- Use the available tools to interact with the app when needed."
+                )
 
     # Grade-aware explanation style
     if student_grade is not None:
