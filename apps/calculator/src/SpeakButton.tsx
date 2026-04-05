@@ -36,6 +36,9 @@ if (typeof window !== 'undefined') {
   })
 }
 
+// Singleton lock — only one autoSpeak at a time
+let autoSpeakId = 0
+
 const PREFERRED_VOICES = ['Google US English', 'Samantha']
 
 function pickVoice(): SpeechSynthesisVoice | null {
@@ -97,8 +100,12 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
   useEffect(() => {
     const clean = stripEmoji(text)
     if (!autoSpeak || !supported || !clean || !unlocked) return
-    // Small delay — lets browser associate speech with recent user gesture
+    // Claim the singleton lock — cancels any other autoSpeak
+    const myId = ++autoSpeakId
+    speechSynthesis.cancel()
     const timer = setTimeout(() => {
+      // Check we still own the lock (another autoSpeak may have claimed it)
+      if (myId !== autoSpeakId) return
       const preset = PRESETS[speed]
       const utterance = new SpeechSynthesisUtterance(clean)
       utterance.rate = preset.rate
@@ -106,15 +113,15 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
       if (voiceRef.current) utterance.voice = voiceRef.current
       utterance.onend = () => setSpeaking(false)
       utterance.onerror = () => setSpeaking(false)
-      speechSynthesis.cancel()
       speechSynthesis.speak(utterance)
       setSpeaking(true)
-    }, 100)
+    }, 150)
     return () => {
       clearTimeout(timer)
-      // Cancel speech when this SpeakButton unmounts (screen change)
-      speechSynthesis.cancel()
-      setSpeaking(false)
+      if (myId === autoSpeakId) {
+        speechSynthesis.cancel()
+        setSpeaking(false)
+      }
     }
   }, [autoSpeak, supported, text, unlocked]) // eslint-disable-line react-hooks/exhaustive-deps
 

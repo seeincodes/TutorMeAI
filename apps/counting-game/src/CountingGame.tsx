@@ -223,7 +223,7 @@ export default function CountingGame() {
         <div style={{ fontSize: '48px', marginBottom: '8px' }}>🔢</div>
         <div style={{ fontSize: '24px', fontWeight: 700, color: '#111827', marginBottom: '4px' }}>Counting Game</div>
         <div style={{ fontSize: '16px', color: '#6b7280', marginBottom: '12px' }}>Tap the right answer!</div>
-        <div style={{ marginBottom: '16px' }}><SpeakButton text="Welcome to the Counting Game! Pick how you want to play. You can count things, compare groups, or add numbers together!" /></div>
+        <div style={{ marginBottom: '16px' }}><SpeakButton text="Welcome to the Counting Game! Pick how you want to play. You can count things, compare groups, or add numbers together!" autoSpeak /></div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {MODES.map(m => (
             <button key={m.id} onClick={() => pickMode(m.id)} style={{
@@ -254,7 +254,7 @@ export default function CountingGame() {
         <div style={{ fontSize: '48px', marginBottom: '8px' }}>{modeInfo.emoji}</div>
         <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827', marginBottom: '4px' }}>{modeInfo.label}</div>
         <div style={{ fontSize: '16px', color: '#6b7280', marginBottom: '12px' }}>Pick your level!</div>
-        <div style={{ marginBottom: '16px' }}><SpeakButton text={`You picked ${modeInfo.label}! Now pick how hard you want it. Level 1 is easy, level 3 is harder!`} /></div>
+        <div style={{ marginBottom: '16px' }}><SpeakButton text={`You picked ${modeInfo.label}! Now pick how hard you want it. Level 1 is easy, level 3 is harder!`} autoSpeak /></div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
           {LEVELS.map(lv => (
             <button key={lv.id} onClick={() => startGame(gameMode, lv.id)} style={{
