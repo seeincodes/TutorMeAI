@@ -30,25 +30,23 @@ function pickVoice(): SpeechSynthesisVoice | null {
 }
 
 // Shared speak function — cancels everything first, speaks one thing
-// Module-level lock: prevents any concurrent autoSpeak
-let _autoSpeakLock = false
+// Module-level lock: tracks which text is currently being auto-spoken
+let _autoSpeakingText: string | null = null
 
 function speakText(text: string, speed: Speed, voiceRef: React.RefObject<SpeechSynthesisVoice | null>, isAuto = false) {
   const clean = stripEmoji(text)
   if (!clean) return
-  if (isAuto) {
-    if (_autoSpeakLock) return  // another autoSpeak already claimed
-    _autoSpeakLock = true
-  }
+  if (isAuto && _autoSpeakingText === clean) return  // already speaking this
   speechSynthesis.cancel()
   window.parent.postMessage({ type: 'tts_stop' }, '*')
+  if (isAuto) _autoSpeakingText = clean
   const preset = PRESETS[speed]
   const utterance = new SpeechSynthesisUtterance(clean)
   utterance.rate = preset.rate
   utterance.pitch = preset.pitch
   if (voiceRef.current) utterance.voice = voiceRef.current
-  utterance.onend = () => { _autoSpeakLock = false }
-  utterance.onerror = () => { _autoSpeakLock = false }
+  utterance.onend = () => { if (isAuto) _autoSpeakingText = null }
+  utterance.onerror = () => { if (isAuto) _autoSpeakingText = null }
   speechSynthesis.speak(utterance)
   return utterance
 }
@@ -100,8 +98,8 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
       const utterance = speakText(text, speed, voiceRef, true)
       if (utterance) {
         setSpeaking(true)
-        utterance.onend = () => { setSpeaking(false); _autoSpeakLock = false }
-        utterance.onerror = () => { setSpeaking(false); _autoSpeakLock = false }
+        utterance.onend = () => { setSpeaking(false); _autoSpeakingText = null }
+        utterance.onerror = () => { setSpeaking(false); _autoSpeakingText = null }
       }
     }
 
@@ -109,8 +107,9 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
     const timer = setTimeout(doSpeak, 200)
     return () => {
       clearTimeout(timer)
+      // DON'T release _autoSpeakLock here — it protects against
+      // effect re-runs speaking the same text. Only release on utterance end.
       speechSynthesis.cancel()
-      _autoSpeakLock = false
       setSpeaking(false)
     }
   }, [autoSpeak, supported, text]) // eslint-disable-line react-hooks/exhaustive-deps
