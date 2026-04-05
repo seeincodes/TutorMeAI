@@ -18,8 +18,12 @@ function stripEmoji(str: string): string {
   return str.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').replace(/\s{2,}/g, ' ').trim()
 }
 
-// Auto-speak is allowed immediately — the iframe was loaded by user action
-const ttsUnlocked = true
+// Track user interaction for autoplay policy
+let ttsUnlocked = false
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', () => { ttsUnlocked = true }, { once: false })
+  document.addEventListener('keydown', () => { ttsUnlocked = true }, { once: false })
+}
 
 const PREFERRED_VOICES = ['Google US English', 'Samantha']
 
