@@ -30,16 +30,23 @@ function pickVoice(): SpeechSynthesisVoice | null {
 }
 
 // Shared speak function — cancels everything first, speaks one thing
-function speakText(text: string, speed: Speed, voiceRef: React.RefObject<SpeechSynthesisVoice | null>) {
+// Module-level guard: only one autoSpeak utterance at a time
+let _currentAutoSpeakText = ''
+
+function speakText(text: string, speed: Speed, voiceRef: React.RefObject<SpeechSynthesisVoice | null>, isAuto = false) {
   const clean = stripEmoji(text)
   if (!clean) return
+  // For autoSpeak: skip if already speaking this exact text
+  if (isAuto && clean === _currentAutoSpeakText && speechSynthesis.speaking) return
   speechSynthesis.cancel()
   window.parent.postMessage({ type: 'tts_stop' }, '*')
+  if (isAuto) _currentAutoSpeakText = clean
   const preset = PRESETS[speed]
   const utterance = new SpeechSynthesisUtterance(clean)
   utterance.rate = preset.rate
   utterance.pitch = preset.pitch
   if (voiceRef.current) utterance.voice = voiceRef.current
+  utterance.onend = () => { if (isAuto) _currentAutoSpeakText = '' }
   speechSynthesis.speak(utterance)
   return utterance
 }
@@ -88,7 +95,7 @@ export default function SpeakButton({ text, label = 'Read aloud', autoSpeak = fa
     const doSpeak = () => {
       if (clean !== stripEmoji(text)) return // text changed while waiting
       lastAutoSpoke.current = clean
-      const utterance = speakText(text, speed, voiceRef)
+      const utterance = speakText(text, speed, voiceRef, true)
       if (utterance) {
         setSpeaking(true)
         utterance.onend = () => setSpeaking(false)
