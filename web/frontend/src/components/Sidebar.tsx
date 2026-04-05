@@ -18,6 +18,7 @@ interface SidebarProps {
   activeConversation: string | null
   onSelectConversation: (id: string) => void
   onNewConversation: () => void
+  atConversationLimit?: boolean
   onToggleStar: (id: string, starred: boolean) => void
   onRename: (id: string, title: string) => void
   onCopy: (id: string) => void
@@ -53,6 +54,7 @@ export default function Sidebar({
   darkMode,
   collapsed,
   onToggleCollapse,
+  atConversationLimit,
 }: SidebarProps) {
   const [search, setSearch] = useState('')
 
@@ -104,10 +106,11 @@ export default function Sidebar({
       <div className="px-3 pt-3 pb-1">
         <button
           onClick={onNewConversation}
-          className="flex w-full items-center gap-2 rounded-md bg-chatbox-background-brand-primary px-3 py-2 text-sm font-medium text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover transition-colors"
+          disabled={atConversationLimit}
+          className="flex w-full items-center gap-2 rounded-md bg-chatbox-background-brand-primary px-3 py-2 text-sm font-medium text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover disabled:opacity-50 transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-          New Chat
+          {atConversationLimit ? 'Chat limit reached' : 'New Chat'}
         </button>
       </div>
 

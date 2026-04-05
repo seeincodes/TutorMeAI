@@ -142,7 +142,20 @@ export default function ChatPage() {
     }
   }, [activeConversation])
 
+  // Conversation limits by grade level
+  function getMaxConversations(): number {
+    const grade = user?.grade
+    if (!grade || grade <= 2) return 5    // K-2: 1 per app + 1 general ≈ 5
+    if (grade <= 5) return 5              // 3-5: 5 total
+    if (grade <= 8) return 10             // 6-8: 10 total
+    return 20                             // 9-12: 20 total
+  }
+
+  const maxConversations = getMaxConversations()
+  const atConversationLimit = conversations.length >= maxConversations
+
   async function handleNewConversation() {
+    if (atConversationLimit) return
     const conv = await api.createConversation()
     setConversations(prev => [conv, ...prev])
     setActiveConversation(conv.id)
@@ -340,6 +353,7 @@ export default function ChatPage() {
           activeConversation={activeConversation}
           onSelectConversation={setActiveConversation}
           onNewConversation={handleNewConversation}
+          atConversationLimit={atConversationLimit}
           onToggleStar={async (id, starred) => {
             await api.updateConversation(id, { starred })
             setConversations(prev => prev.map(c => c.id === id ? { ...c, starred } : c))
@@ -797,10 +811,10 @@ export default function ChatPage() {
           <div className="fixed inset-0 bg-black/20 z-30" onClick={() => setMenuOpen(false)} />
           <div className="absolute left-0 top-[45px] z-40 w-72 rounded-br-lg border border-chatbox-border-primary bg-chatbox-background-primary shadow-lg">
             <div className="border-b border-chatbox-border-primary p-3">
-              <button onClick={handleNewConversation}
-                className="flex w-full items-center justify-center gap-2 rounded-md bg-chatbox-background-brand-primary px-3 py-2 text-sm font-medium text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover transition-colors">
+              <button onClick={handleNewConversation} disabled={atConversationLimit}
+                className="flex w-full items-center justify-center gap-2 rounded-md bg-chatbox-background-brand-primary px-3 py-2 text-sm font-medium text-chatbox-tint-white hover:bg-chatbox-background-brand-primary-hover disabled:opacity-50 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-                New Conversation
+                {atConversationLimit ? `Limit reached (${maxConversations})` : 'New Conversation'}
               </button>
             </div>
             <nav className="max-h-64 overflow-y-auto p-2" aria-label="Conversations">
