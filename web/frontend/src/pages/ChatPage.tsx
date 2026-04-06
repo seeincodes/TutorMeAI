@@ -40,7 +40,9 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const userCityRef = useRef<string | null>(null)
   const { muted, toggleMute, playMessageSent, playMessageReceived, playAppLaunch } = useSounds()
-  const { supported: ttsSupported, autoRead, setAutoRead, speed, setSpeed, speakText, speakSentence, stop: stopTTS } = useTTS()
+  const isK2 = user?.grade !== null && user?.grade !== undefined && user.grade <= 2
+  const { supported: ttsSupported, autoRead, setAutoRead, speed, setSpeed, speakText, speakSentence, stop: stopTTS } = useTTS(isK2)
+  const ttsEnabled = ttsSupported && isK2
   const sentenceBufferRef = useRef('')
 
   // Dark mode toggle — sync with <html> class and localStorage
@@ -458,7 +460,7 @@ export default function ChatPage() {
                     {/* Bubble */}
                     <div className={`max-w-[80%] rounded-lg px-4 py-2.5 text-sm ${msg.role === 'user' ? 'bg-chatbox-background-brand-primary text-chatbox-tint-white' : 'bg-chatbox-background-secondary text-chatbox-tint-primary'}`}>
                       <ChatMessage content={msg.content || ''} role={msg.role} onAppLaunch={handleAppLaunch} disabled={streaming}
-                        onSpeak={ttsSupported ? speakText : undefined} />
+                        onSpeak={ttsEnabled ? speakText : undefined} />
                     </div>
                   </div>
                 ))}
@@ -509,7 +511,7 @@ export default function ChatPage() {
           </div>
 
           {/* TTS toolbar */}
-          {ttsSupported && (
+          {ttsEnabled && (
             <div className="flex items-center gap-2 border-t border-chatbox-border-primary bg-chatbox-background-primary px-4 py-1.5">
               <div className="mx-auto flex max-w-2xl items-center gap-2">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-chatbox-tint-tertiary"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
@@ -684,7 +686,7 @@ export default function ChatPage() {
           )}
           <div className={`max-w-[85%] rounded-lg px-3 py-1.5 text-sm ${msg.role === 'user' ? 'bg-chatbox-background-brand-primary text-chatbox-tint-white' : 'bg-chatbox-background-secondary text-chatbox-tint-primary'}`}>
             <ChatMessage content={msg.content || ''} role={msg.role} onAppLaunch={handleAppLaunch} disabled={streaming}
-              onSpeak={ttsSupported ? speakText : undefined} />
+              onSpeak={ttsEnabled ? speakText : undefined} />
           </div>
         </div>
       ))}
@@ -734,7 +736,7 @@ export default function ChatPage() {
   )
 
   // Shared TTS toolbar (used above chat input in app mode)
-  const ttsToolbar = ttsSupported ? (
+  const ttsToolbar = ttsEnabled ? (
     <div className="flex items-center gap-2 py-1">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-chatbox-tint-tertiary"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
       <span className="text-xs text-chatbox-tint-tertiary">Read Aloud</span>

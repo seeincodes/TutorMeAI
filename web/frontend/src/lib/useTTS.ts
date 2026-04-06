@@ -23,12 +23,14 @@ function pickVoice(): SpeechSynthesisVoice | null {
   return english || null
 }
 
-export function useTTS() {
+export function useTTS(defaultOn = false) {
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
-  const [autoRead, setAutoReadState] = useState(() =>
-    supported && localStorage.getItem(STORAGE_AUTOREAD) === 'true'
-  )
+  const [autoRead, setAutoReadState] = useState(() => {
+    const stored = localStorage.getItem(STORAGE_AUTOREAD)
+    if (stored !== null) return supported && stored === 'true'
+    return supported && defaultOn
+  })
   const [speed, setSpeedState] = useState<Speed>(() =>
     (localStorage.getItem(STORAGE_SPEED) as Speed) || 'slow'
   )
