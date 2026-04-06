@@ -17,6 +17,7 @@ from app.conversations.router import router as conversations_router
 from app.oauth.router import router as oauth_router
 from app.teacher.router import router as teacher_router
 from app.classroom.router import router as classroom_router
+from app.classrooms.router import router as classrooms_router
 from app.districts.router import router as districts_router
 from app.marketplace.router import router as marketplace_router
 from app.scaling.router import router as scaling_router
@@ -165,6 +166,7 @@ app.include_router(apps_router)
 app.include_router(oauth_router)
 app.include_router(teacher_router)
 app.include_router(classroom_router)
+app.include_router(classrooms_router)
 app.include_router(districts_router)
 app.include_router(marketplace_router)
 app.include_router(scaling_router)

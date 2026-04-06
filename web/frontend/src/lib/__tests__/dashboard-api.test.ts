@@ -123,4 +123,100 @@ describe('dashboard API client', () => {
     expect(mockFetch).toHaveBeenCalledWith('/api/observability/cost-dashboard', expect.anything())
     expect(result.total_input_tokens).toBe(1000)
   })
+
+  it('browseMarketplace calls GET /api/marketplace/browse', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse([{ app_id: 'chess', name: 'Chess' }]))
+    const result = await api.browseMarketplace()
+    expect(mockFetch).toHaveBeenCalledWith('/api/marketplace/browse', expect.anything())
+    expect(result[0].app_id).toBe('chess')
+  })
+
+  it('fetchAppDetail calls GET /api/marketplace/:appId/detail', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse({ app_id: 'chess', name: 'Chess', tool_schemas: [] }))
+    const result = await api.fetchAppDetail('chess')
+    expect(mockFetch).toHaveBeenCalledWith('/api/marketplace/chess/detail', expect.anything())
+    expect(result.app_id).toBe('chess')
+  })
+
+  it('submitApp calls POST /api/marketplace/submit', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse({ app_id: 'new-app', status: 'pending_review' }, 201))
+    const result = await api.submitApp({
+      app_id: 'new-app', name: 'New App', description: 'Test',
+      iframe_url: 'https://example.com', tool_schemas: [],
+      developer_name: 'Dev', developer_email: 'dev@test.com',
+    })
+    expect(mockFetch).toHaveBeenCalledWith('/api/marketplace/submit', expect.objectContaining({ method: 'POST' }))
+    expect(result.status).toBe('pending_review')
+  })
+
+  it('reviewApp calls POST /api/marketplace/:appId/review', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse({ app_id: 'chess', status: 'active' }))
+    const result = await api.reviewApp('chess', 'approve')
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/marketplace/chess/review',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ action: 'approve' }) })
+    )
+    expect(result.status).toBe('active')
+  })
+
+  it('listClassrooms calls GET /api/classrooms', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse([{ id: '1', name: 'Math' }]))
+    const result = await api.listClassrooms()
+    expect(mockFetch).toHaveBeenCalledWith('/api/classrooms', expect.anything())
+    expect(result[0].name).toBe('Math')
+  })
+
+  it('addAppToClassroom calls POST /api/classrooms/:id/apps', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse({ classroom_id: '1', app_id: 'chess' }, 201))
+    const result = await api.addAppToClassroom('1', 'chess')
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/classrooms/1/apps',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ app_id: 'chess' }) })
+    )
+    expect(result.app_id).toBe('chess')
+  })
+
+  it('listClassroomMembers calls GET /api/classrooms/:id/members', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse([{ student_id: 's1', username: 'student1' }]))
+    const result = await api.listClassroomMembers('c1')
+    expect(mockFetch).toHaveBeenCalledWith('/api/classrooms/c1/members', expect.anything())
+    expect(result[0].username).toBe('student1')
+  })
+
+  it('addClassroomMember calls POST /api/classrooms/:id/members', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse({ classroom_id: 'c1', student_id: 's1' }, 201))
+    const result = await api.addClassroomMember('c1', 's1')
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/classrooms/c1/members',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ student_id: 's1' }) })
+    )
+    expect(result.student_id).toBe('s1')
+  })
+
+  it('removeClassroomMember calls DELETE /api/classrooms/:id/members/:studentId', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse({ removed: true }))
+    const result = await api.removeClassroomMember('c1', 's1')
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/classrooms/c1/members/s1',
+      expect.objectContaining({ method: 'DELETE' })
+    )
+    expect(result.removed).toBe(true)
+  })
+
+  it('fetchReviewQueue calls GET /api/marketplace/review-queue', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse([{ app_id: 'test', status: 'pending_review' }]))
+    const result = await api.fetchReviewQueue()
+    expect(mockFetch).toHaveBeenCalledWith('/api/marketplace/review-queue', expect.anything())
+    expect(result[0].status).toBe('pending_review')
+  })
 })

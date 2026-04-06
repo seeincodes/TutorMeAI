@@ -11,6 +11,10 @@ import MarketplaceSection from '@/pages/dashboard/MarketplaceSection'
 import HealthSection from '@/pages/dashboard/HealthSection'
 import CostsSection from '@/pages/dashboard/CostsSection'
 import TeachersSection from '@/pages/dashboard/TeachersSection'
+import ClassroomsSection from '@/pages/dashboard/ClassroomsSection'
+import MarketplaceBrowsePage from '@/pages/marketplace/MarketplaceBrowsePage'
+import MarketplaceDetailPage from '@/pages/marketplace/MarketplaceDetailPage'
+import MarketplaceSubmitPage from '@/pages/marketplace/MarketplaceSubmitPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -32,6 +36,14 @@ function RequireGuest({ children }: { children: React.ReactNode }) {
   if (loading) return <div className="flex h-screen items-center justify-center text-gray-400">Loading...</div>
   if (user) return <Navigate to="/" replace />
   return <>{children}</>
+}
+
+function DashboardRedirect() {
+  const { user } = useAuth()
+  if (user?.role === 'admin' || user?.role === 'district_admin') {
+    return <Navigate to="/dashboard/teachers" replace />
+  }
+  return <Navigate to="/dashboard/students" replace />
 }
 
 function AppRoutes() {
@@ -61,16 +73,22 @@ function AppRoutes() {
           </RequireRole>
         }
       >
-        <Route index element={<Navigate to="/dashboard/students" replace />} />
-        <Route path="students" element={<StudentsSection />} />
-        <Route path="apps" element={<AppsSection />} />
-        <Route path="flags" element={<FlagsSection />} />
-        <Route path="teachers" element={<TeachersSection />} />
-        <Route path="districts" element={<DistrictsSection />} />
-        <Route path="marketplace" element={<MarketplaceSection />} />
-        <Route path="health" element={<HealthSection />} />
-        <Route path="costs" element={<CostsSection />} />
+        <Route index element={<DashboardRedirect />} />
+        {/* Teacher-only routes */}
+        <Route path="students" element={<RequireRole roles={['teacher']}><StudentsSection /></RequireRole>} />
+        <Route path="apps" element={<RequireRole roles={['teacher']}><AppsSection /></RequireRole>} />
+        <Route path="classrooms" element={<RequireRole roles={['teacher']}><ClassroomsSection /></RequireRole>} />
+        <Route path="flags" element={<RequireRole roles={['teacher']}><FlagsSection /></RequireRole>} />
+        {/* Admin-only routes */}
+        <Route path="teachers" element={<RequireRole roles={['admin', 'district_admin']}><TeachersSection /></RequireRole>} />
+        <Route path="districts" element={<RequireRole roles={['admin', 'district_admin']}><DistrictsSection /></RequireRole>} />
+        <Route path="marketplace" element={<RequireRole roles={['admin', 'district_admin']}><MarketplaceSection /></RequireRole>} />
+        <Route path="health" element={<RequireRole roles={['admin', 'district_admin']}><HealthSection /></RequireRole>} />
+        <Route path="costs" element={<RequireRole roles={['admin', 'district_admin']}><CostsSection /></RequireRole>} />
       </Route>
+      <Route path="/marketplace" element={<RequireAuth><MarketplaceBrowsePage /></RequireAuth>} />
+      <Route path="/marketplace/submit" element={<MarketplaceSubmitPage />} />
+      <Route path="/marketplace/:appId" element={<RequireAuth><MarketplaceDetailPage /></RequireAuth>} />
     </Routes>
   )
 }
