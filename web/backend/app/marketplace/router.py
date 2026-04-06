@@ -11,7 +11,7 @@ from app.auth.dependencies import get_current_user, require_role
 from app.database import get_db
 from app.marketplace.ai_review import review_app_submission, AIReviewResult
 from app.marketplace.rule_checks import check_rules
-from app.models import AppContentScreen, AppRegistration, ToolInvocation, User
+from app.models import AppContentScreen, AppRegistration, ClassroomAppWhitelist, ClassroomMembership, ToolInvocation, User
 
 logger = logging.getLogger("chatbridge.marketplace")
 
@@ -68,6 +68,35 @@ class AnalyticsResponse(BaseModel):
     unique_users: int
     avg_duration_ms: float | None
     error_rate: float
+
+
+class BrowseAppResponse(BaseModel):
+    app_id: str
+    name: str
+    description: str
+    trust_tier: str
+    age_rating: str
+    developer_name: str | None = None
+    logo_url: str | None = None
+    is_active: bool
+    model_config = {"from_attributes": True}
+
+
+class DetailAppResponse(BaseModel):
+    app_id: str
+    name: str
+    description: str
+    trust_tier: str
+    age_rating: str
+    auth_type: str
+    developer_name: str | None = None
+    developer_email: str | None = None
+    website_url: str | None = None
+    privacy_policy_url: str | None = None
+    logo_url: str | None = None
+    tool_schemas: list[dict]
+    is_active: bool
+    model_config = {"from_attributes": True}
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────
@@ -224,6 +253,59 @@ async def submit_app(
             "age_rating": ai_result.age_rating,
             "educational_value": ai_result.educational_value,
         },
+    )
+
+
+@router.get("/browse")
+async def browse_marketplace(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[BrowseAppResponse]:
+    """Browse apps visible to the current user."""
+    if current_user.role in ("teacher", "admin", "district_admin"):
+        result = await db.execute(
+            select(AppRegistration).where(
+                AppRegistration.status == "active",
+                AppRegistration.is_active == True,
+            )
+        )
+        apps = result.scalars().all()
+    else:
+        result = await db.execute(
+            select(AppRegistration)
+            .join(ClassroomAppWhitelist, ClassroomAppWhitelist.app_id == AppRegistration.app_id)
+            .join(ClassroomMembership, ClassroomMembership.classroom_id == ClassroomAppWhitelist.classroom_id)
+            .where(
+                ClassroomMembership.student_id == current_user.id,
+                AppRegistration.status == "active",
+                AppRegistration.is_active == True,
+            )
+        )
+        apps = result.scalars().unique().all()
+
+    return [BrowseAppResponse(
+        app_id=a.app_id, name=a.name, description=a.description,
+        trust_tier=a.trust_tier, age_rating=a.age_rating,
+        developer_name=a.developer_name, logo_url=a.logo_url, is_active=a.is_active,
+    ) for a in apps]
+
+
+@router.get("/{app_id}/detail")
+async def app_detail(
+    app_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DetailAppResponse:
+    result = await db.execute(select(AppRegistration).where(AppRegistration.app_id == app_id))
+    app_reg = result.scalar_one_or_none()
+    if not app_reg:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
+    return DetailAppResponse(
+        app_id=app_reg.app_id, name=app_reg.name, description=app_reg.description,
+        trust_tier=app_reg.trust_tier, age_rating=app_reg.age_rating, auth_type=app_reg.auth_type,
+        developer_name=app_reg.developer_name, developer_email=app_reg.developer_email,
+        website_url=app_reg.website_url, privacy_policy_url=app_reg.privacy_policy_url,
+        logo_url=app_reg.logo_url, tool_schemas=app_reg.tool_schemas, is_active=app_reg.is_active,
     )
 
 
