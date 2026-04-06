@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from app.auth.dependencies import get_current_user, require_role
 from app.database import get_db
 from app.models import AppRegistration, ContentFlag, Conversation, Message, OAuthToken, ToolInvocation, User
+from sqlalchemy import exists
 
 
 class CreateFlagRequest(BaseModel):
@@ -36,16 +37,27 @@ async def dashboard(
     students_result = await db.execute(student_query)
     students = students_result.scalars().all()
 
-    # Get conversation counts per student
+    # Build a subquery of student IDs in scope for efficient filtering
+    student_ids_subquery = (
+        select(User.id)
+        .where(User.role == "student", User.is_active == True)  # noqa: E712
+    )
+    if current_user.district_id is not None:
+        student_ids_subquery = student_ids_subquery.where(User.district_id == current_user.district_id)
+
+    # Get conversation counts per student — scoped to district students only
     conv_counts = await db.execute(
         select(Conversation.user_id, func.count(Conversation.id))
+        .where(Conversation.user_id.in_(student_ids_subquery))
         .group_by(Conversation.user_id)
     )
     conv_map = dict(conv_counts.all())
 
-    # Get app usage stats
+    # Get app usage stats — scoped to district students only via conversation join
     app_usage = await db.execute(
         select(ToolInvocation.app_id, func.count(ToolInvocation.id))
+        .join(Conversation, Conversation.id == ToolInvocation.conversation_id)
+        .where(Conversation.user_id.in_(student_ids_subquery))
         .group_by(ToolInvocation.app_id)
     )
     app_stats = dict(app_usage.all())

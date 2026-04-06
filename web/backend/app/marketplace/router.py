@@ -12,6 +12,7 @@ from app.database import get_db
 from app.marketplace.ai_review import review_app_submission, AIReviewResult
 from app.marketplace.rule_checks import check_rules
 from app.models import AppContentScreen, AppRegistration, ClassroomAppWhitelist, ClassroomMembership, ToolInvocation, User
+from app.pagination import pagination_params
 
 logger = logging.getLogger("chatbridge.marketplace")
 
@@ -279,6 +280,7 @@ async def submit_app(
 async def browse_marketplace(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    params: dict = Depends(pagination_params),
 ) -> list[BrowseAppResponse]:
     """Browse apps visible to the current user."""
     if current_user.role in ("teacher", "admin", "district_admin"):
@@ -286,7 +288,7 @@ async def browse_marketplace(
             select(AppRegistration).where(
                 AppRegistration.status == "active",
                 AppRegistration.is_active == True,
-            )
+            ).limit(params["limit"]).offset(params["offset"])
         )
         apps = result.scalars().all()
     else:
@@ -298,7 +300,7 @@ async def browse_marketplace(
                 ClassroomMembership.student_id == current_user.id,
                 AppRegistration.status == "active",
                 AppRegistration.is_active == True,
-            )
+            ).limit(params["limit"]).offset(params["offset"])
         )
         apps = result.scalars().unique().all()
 
@@ -437,9 +439,10 @@ async def get_analytics(
 async def list_catalog(
     current_user: User = Depends(require_role("admin", "district_admin", "teacher")),
     db: AsyncSession = Depends(get_db),
+    params: dict = Depends(pagination_params),
 ) -> list[CatalogAppResponse]:
     """Browse all apps in the marketplace (including pending_review)."""
-    result = await db.execute(select(AppRegistration))
+    result = await db.execute(select(AppRegistration).limit(params["limit"]).offset(params["offset"]))
     apps = result.scalars().all()
     return [
         CatalogAppResponse(

@@ -6,6 +6,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Text,
     UniqueConstraint,
@@ -83,6 +84,7 @@ class User(Base):
 
     __table_args__ = (
         CheckConstraint("role IN ('student', 'teacher', 'admin', 'district_admin')", name="ck_users_role"),
+        Index("ix_users_district_role", "district_id", "role"),
     )
 
 
@@ -182,6 +184,7 @@ class ToolInvocation(Base):
 
     __table_args__ = (
         CheckConstraint("status IN ('success', 'error', 'timeout')", name="ck_tool_invocations_status"),
+        Index("ix_tool_invocations_app_id", "app_id"),
     )
 
 
@@ -287,6 +290,7 @@ class ClassroomMembership(Base):
 
     __table_args__ = (
         UniqueConstraint("classroom_id", "student_id", name="uq_classroom_memberships_classroom_student"),
+        Index("ix_classroom_memberships_student_id", "student_id"),
     )
 
 
@@ -303,6 +307,7 @@ class ClassroomAppWhitelist(Base):
 
     __table_args__ = (
         UniqueConstraint("classroom_id", "app_id", name="uq_classroom_app_whitelist_classroom_app"),
+        Index("ix_classroom_app_whitelist_app_id", "app_id"),
     )
 
 

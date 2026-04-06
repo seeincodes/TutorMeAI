@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import get_current_user, require_role
 from app.database import get_db
 from app.models import District, DistrictAppApproval, User
+from app.pagination import pagination_params
 
 router = APIRouter(prefix="/api/districts", tags=["districts"])
 
@@ -31,8 +32,9 @@ class DistrictAppApprovalResponse(BaseModel):
 async def list_districts(
     current_user: User = Depends(require_role("admin", "district_admin")),
     db: AsyncSession = Depends(get_db),
+    params: dict = Depends(pagination_params),
 ) -> list[DistrictResponse]:
-    result = await db.execute(select(District))
+    result = await db.execute(select(District).limit(params["limit"]).offset(params["offset"]))
     districts = result.scalars().all()
     return [DistrictResponse(id=str(d.id), name=d.name, state=d.state) for d in districts]
 

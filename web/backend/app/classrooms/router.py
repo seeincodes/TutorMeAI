@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import get_current_user, require_role
 from app.database import get_db
 from app.models import Classroom, ClassroomMembership, ClassroomAppWhitelist, User
+from app.pagination import pagination_params
 
 router = APIRouter(prefix="/api/classrooms", tags=["classrooms"])
 
@@ -108,12 +109,13 @@ async def create_classroom(
 async def list_classrooms(
     current_user: User = Depends(require_role("teacher", "admin")),
     db: AsyncSession = Depends(get_db),
+    params: dict = Depends(pagination_params),
 ) -> List[ClassroomOut]:
     if current_user.role == "admin":
-        result = await db.execute(select(Classroom))
+        result = await db.execute(select(Classroom).limit(params["limit"]).offset(params["offset"]))
     else:
         result = await db.execute(
-            select(Classroom).where(Classroom.teacher_id == current_user.id)
+            select(Classroom).where(Classroom.teacher_id == current_user.id).limit(params["limit"]).offset(params["offset"])
         )
     classrooms = result.scalars().all()
     return [
@@ -169,6 +171,7 @@ async def list_members(
     classroom_id: str,
     current_user: User = Depends(require_role("teacher", "admin")),
     db: AsyncSession = Depends(get_db),
+    params: dict = Depends(pagination_params),
 ) -> List[MemberOut]:
     classroom = await _get_owned_classroom(classroom_id, current_user, db)
 
@@ -176,6 +179,7 @@ async def list_members(
         select(User)
         .join(ClassroomMembership, ClassroomMembership.student_id == User.id)
         .where(ClassroomMembership.classroom_id == classroom.id)
+        .limit(params["limit"]).offset(params["offset"])
     )
     students = result.scalars().all()
     return [
