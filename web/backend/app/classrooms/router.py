@@ -19,6 +19,7 @@ router = APIRouter(prefix="/api/classrooms", tags=["classrooms"])
 
 class ClassroomCreate(BaseModel):
     name: str
+    school_id: str | None = None
 
 
 class ClassroomOut(BaseModel):
@@ -86,7 +87,13 @@ async def create_classroom(
     current_user: User = Depends(require_role("teacher", "admin")),
     db: AsyncSession = Depends(get_db),
 ) -> ClassroomOut:
-    classroom = Classroom(name=body.name, teacher_id=current_user.id)
+    school_id = None
+    if body.school_id:
+        school_id = uuid.UUID(body.school_id)
+    elif current_user.school_id:
+        school_id = current_user.school_id
+
+    classroom = Classroom(name=body.name, teacher_id=current_user.id, school_id=school_id)
     db.add(classroom)
     await db.commit()
     await db.refresh(classroom)
@@ -137,6 +144,11 @@ async def add_member(
     student = student_result.scalar_one_or_none()
     if student is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    # District isolation check
+    if current_user.district_id and student.district_id:
+        if current_user.district_id != student.district_id:
+            raise HTTPException(status_code=403, detail="Student belongs to a different district")
 
     membership = ClassroomMembership(classroom_id=classroom.id, student_id=student_uuid)
     db.add(membership)
