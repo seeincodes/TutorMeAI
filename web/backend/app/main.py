@@ -213,21 +213,19 @@ for app_name, app_dir in _apps_dirs.items():
     if app_dir.exists():
         app.mount(f"/apps/{app_name}", StaticFiles(directory=str(app_dir), html=True), name=f"app-{app_name}")
 
-# SPA catch-all: serve index.html for any non-API, non-asset path
+# SPA fallback for client-side routing in production
+# In dev, Vite handles this; in production, we need to serve index.html for SPA routes
 if _frontend_dist.exists():
     from fastapi.responses import FileResponse
 
-    # Serve static assets (JS, CSS, images) from dist/assets
-    _assets_dir = _frontend_dist / "assets"
-    if _assets_dir.exists():
-        app.mount("/assets", StaticFiles(directory=str(_assets_dir)), name="frontend-assets")
+    _index_html = str(_frontend_dist / "index.html")
 
-    # Serve other static files at root (favicon, etc.)
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        # If the file exists in dist, serve it directly
-        file_path = _frontend_dist / full_path
-        if full_path and file_path.exists() and file_path.is_file():
-            return FileResponse(str(file_path))
-        # Otherwise serve index.html for client-side routing
-        return FileResponse(str(_frontend_dist / "index.html"))
+    # Explicit SPA routes — serve index.html for known frontend paths
+    # This avoids conflicting with /api/* and /apps/* mounts
+    for _spa_path in ["/login", "/dashboard", "/dashboard/{rest:path}", "/marketplace", "/marketplace/{rest:path}"]:
+        @app.get(_spa_path, include_in_schema=False)
+        async def _serve_spa(rest: str = ""):
+            return FileResponse(_index_html)
+
+    # Mount frontend static files last (serves JS/CSS/images and / → index.html)
+    app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="frontend")
