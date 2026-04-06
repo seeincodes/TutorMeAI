@@ -21,6 +21,7 @@ from app.classrooms.router import router as classrooms_router
 from app.districts.router import router as districts_router
 from app.marketplace.router import router as marketplace_router
 from app.scaling.router import router as scaling_router
+from app.nasa.router import router as nasa_router
 from app.observability.router import router as observability_router
 from app.rate_limit import limiter
 
@@ -170,6 +171,7 @@ app.include_router(classrooms_router)
 app.include_router(districts_router)
 app.include_router(marketplace_router)
 app.include_router(scaling_router)
+app.include_router(nasa_router)
 app.include_router(observability_router)
 
 
@@ -204,6 +206,21 @@ for app_name, app_dir in _apps_dirs.items():
     if app_dir.exists():
         app.mount(f"/apps/{app_name}", StaticFiles(directory=str(app_dir), html=True), name=f"app-{app_name}")
 
-# Mount frontend last (catch-all for SPA routing)
+# SPA catch-all: serve index.html for any non-API, non-asset path
 if _frontend_dist.exists():
-    app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="frontend")
+    from fastapi.responses import FileResponse
+
+    # Serve static assets (JS, CSS, images) from dist/assets
+    _assets_dir = _frontend_dist / "assets"
+    if _assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(_assets_dir)), name="frontend-assets")
+
+    # Serve other static files at root (favicon, etc.)
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # If the file exists in dist, serve it directly
+        file_path = _frontend_dist / full_path
+        if full_path and file_path.exists() and file_path.is_file():
+            return FileResponse(str(file_path))
+        # Otherwise serve index.html for client-side routing
+        return FileResponse(str(_frontend_dist / "index.html"))
