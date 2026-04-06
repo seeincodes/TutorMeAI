@@ -244,6 +244,51 @@ class DistrictAppApproval(Base):
     )
 
 
+class Classroom(Base):
+    __tablename__ = "classrooms"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    teacher_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    teacher: Mapped["User"] = relationship()
+    memberships: Mapped[list["ClassroomMembership"]] = relationship(back_populates="classroom", cascade="all, delete-orphan")
+    app_whitelist: Mapped[list["ClassroomAppWhitelist"]] = relationship(back_populates="classroom", cascade="all, delete-orphan")
+
+
+class ClassroomMembership(Base):
+    __tablename__ = "classroom_memberships"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    classroom_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("classrooms.id", ondelete="CASCADE"), nullable=False)
+    student_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    classroom: Mapped["Classroom"] = relationship(back_populates="memberships")
+    student: Mapped["User"] = relationship()
+
+    __table_args__ = (
+        UniqueConstraint("classroom_id", "student_id", name="uq_classroom_memberships_classroom_student"),
+    )
+
+
+class ClassroomAppWhitelist(Base):
+    __tablename__ = "classroom_app_whitelist"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    classroom_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("classrooms.id", ondelete="CASCADE"), nullable=False)
+    app_id: Mapped[str] = mapped_column(Text, nullable=False)
+    added_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    classroom: Mapped["Classroom"] = relationship(back_populates="app_whitelist")
+
+    __table_args__ = (
+        UniqueConstraint("classroom_id", "app_id", name="uq_classroom_app_whitelist_classroom_app"),
+    )
+
+
 class AppContentScreen(Base):
     __tablename__ = "app_content_screens"
 
