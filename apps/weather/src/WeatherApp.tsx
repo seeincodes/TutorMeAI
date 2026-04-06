@@ -151,7 +151,11 @@ interface GeoResult {
 }
 
 async function geocodeCity(city: string): Promise<GeoResult> {
-  const results = await geocodeSearch(city)
+  let results = await geocodeSearch(city)
+  // If "Springfield Illinois" returns nothing, try just "Springfield"
+  if (!results.length && city.includes(' ')) {
+    results = await geocodeSearch(city.split(' ')[0])
+  }
   if (!results.length) throw new Error('City not found')
   return results[0]
 }
@@ -493,7 +497,7 @@ export default function WeatherApp() {
     setQuery(value)
     setHighlightIdx(-1)
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (value.trim().length < 2) {
+    if (value.trim().length < 3) {
       setSuggestions([])
       setShowSuggestions(false)
       return
