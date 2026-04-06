@@ -142,20 +142,55 @@ function parseOpenMeteo(data: any, cityName: string, isLocal?: boolean): CityWea
   }
 }
 
-async function geocodeCity(city: string): Promise<{ name: string; lat: number; lon: number }> {
-  const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en`)
-  if (!res.ok) throw new Error('City not found')
+interface GeoResult {
+  name: string
+  lat: number
+  lon: number
+  country: string
+  admin1?: string // state/region
+}
+
+async function geocodeCity(city: string): Promise<GeoResult> {
+  let results = await geocodeSearch(city)
+  // If "Springfield Illinois" returns nothing, try just "Springfield"
+  if (!results.length && city.includes(' ')) {
+    results = await geocodeSearch(city.split(' ')[0])
+  }
+  if (!results.length) throw new Error('City not found')
+  return results[0]
+}
+
+async function geocodeSearch(query: string): Promise<GeoResult[]> {
+  const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=8&language=en`)
+  if (!res.ok) return []
   const data = await res.json()
-  if (!data.results?.length) throw new Error('City not found')
-  const r = data.results[0]
-  return { name: r.name, lat: r.latitude, lon: r.longitude }
+  if (!data.results?.length) return []
+  return data.results.map((r: Record<string, unknown>) => ({
+    name: r.name as string,
+    lat: r.latitude as number,
+    lon: r.longitude as number,
+    country: (r.country_code as string) || '',
+    admin1: (r.admin1 as string) || undefined,
+  }))
+}
+
+function formatGeoLabel(g: GeoResult): string {
+  const parts = [g.name]
+  if (g.admin1) parts.push(g.admin1)
+  if (g.country) parts.push(g.country)
+  return parts.join(', ')
+}
+
+async function fetchCityByGeo(geo: GeoResult): Promise<CityWeather> {
+  const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${geo.lat}&longitude=${geo.lon}&${OPEN_METEO_PARAMS}`)
+  if (!res.ok) throw new Error('Weather data unavailable')
+  const label = geo.admin1 ? `${geo.name}, ${geo.admin1}` : geo.name
+  return parseOpenMeteo(await res.json(), label)
 }
 
 async function fetchCity(city: string): Promise<CityWeather> {
   const geo = await geocodeCity(city)
-  const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${geo.lat}&longitude=${geo.lon}&${OPEN_METEO_PARAMS}`)
-  if (!res.ok) throw new Error('Weather data unavailable')
-  return parseOpenMeteo(await res.json(), geo.name)
+  return fetchCityByGeo(geo)
 }
 
 async function fetchCoords(lat: number, lon: number, cityName?: string): Promise<CityWeather> {
@@ -332,10 +367,15 @@ function WeatherCard({ w, onRemove, onRefresh }: {
 export default function WeatherApp() {
   const [cities, setCities] = useState<CityWeather[]>([])
   const [query, setQuery] = useState('')
+  const [suggestions, setSuggestions] = useState<GeoResult[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [highlightIdx, setHighlightIdx] = useState(-1)
   const [loading, setLoading] = useState(false)
   const [geoLoading, setGeoLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { sendToPlatform('ui_ready', '', {}) }, [])
 
@@ -452,6 +492,65 @@ export default function WeatherApp() {
     return () => window.removeEventListener('message', handleMessage)
   }, [cities])
 
+  // Debounced geocode search for autocomplete
+  function handleQueryChange(value: string) {
+    setQuery(value)
+    setHighlightIdx(-1)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (value.trim().length < 3) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+    debounceRef.current = setTimeout(async () => {
+      const results = await geocodeSearch(value.trim())
+      setSuggestions(results)
+      setShowSuggestions(results.length > 0)
+    }, 300)
+  }
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+          inputRef.current && !inputRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  async function selectSuggestion(geo: GeoResult) {
+    setShowSuggestions(false)
+    setSuggestions([])
+    setQuery('')
+    setHighlightIdx(-1)
+
+    const label = geo.admin1 ? `${geo.name}, ${geo.admin1}` : geo.name
+    if (cities.some(c => c.city.toLowerCase() === label.toLowerCase())) {
+      setError(`${label} is already on your list`)
+      setTimeout(() => setError(null), 2000)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    try {
+      const w = await fetchCityByGeo(geo)
+      setCities(prev => {
+        if (prev.some(c => c.city.toLowerCase() === w.city.toLowerCase())) return prev
+        const updated = [...prev, w]
+        sendToPlatform('state_update', '', { type: 'weather_lookup', lastCity: w.city, cities: updated.map(c => c.city) })
+        return updated
+      })
+    } catch {
+      setError(`Could not fetch weather for "${label}"`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function addCity(name: string) {
     if (cities.some(c => c.city.toLowerCase() === name.toLowerCase())) {
       setError(`${name} is already on your list`)
@@ -507,24 +606,79 @@ export default function WeatherApp() {
         </div>
       </div>
 
-      {/* Search bar */}
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Add a city..."
-          style={{ flex: 1, padding: '10px 14px', fontSize: 14, border: '1px solid #e2e8f0', borderRadius: 10, outline: 'none', background: 'white', color: '#1e293b' }}
-        />
-        <button
-          type="submit"
-          disabled={loading || !query.trim()}
-          style={{ padding: '10px 18px', background: loading ? '#94a3b8' : '#3b82f6', color: 'white', border: 'none', borderRadius: 10, cursor: loading ? 'default' : 'pointer', fontSize: 14, fontWeight: 600 }}
-        >
-          {loading ? '...' : '+ Add'}
-        </button>
-      </form>
+      {/* Search bar with autocomplete */}
+      <div style={{ position: 'relative', marginBottom: 16 }}>
+        <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8 }}>
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={e => handleQueryChange(e.target.value)}
+            onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true) }}
+            onKeyDown={e => {
+              if (!showSuggestions || suggestions.length === 0) return
+              if (e.key === 'ArrowDown') {
+                e.preventDefault()
+                setHighlightIdx(prev => Math.min(prev + 1, suggestions.length - 1))
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault()
+                setHighlightIdx(prev => Math.max(prev - 1, 0))
+              } else if (e.key === 'Enter' && highlightIdx >= 0) {
+                e.preventDefault()
+                selectSuggestion(suggestions[highlightIdx])
+              } else if (e.key === 'Escape') {
+                setShowSuggestions(false)
+              }
+            }}
+            placeholder="Search for a city..."
+            autoComplete="off"
+            style={{ flex: 1, padding: '10px 14px', fontSize: 14, border: '1px solid #e2e8f0', borderRadius: 10, outline: 'none', background: 'white', color: '#1e293b' }}
+          />
+          <button
+            type="submit"
+            disabled={loading || !query.trim()}
+            style={{ padding: '10px 18px', background: loading ? '#94a3b8' : '#3b82f6', color: 'white', border: 'none', borderRadius: 10, cursor: loading ? 'default' : 'pointer', fontSize: 14, fontWeight: 600 }}
+          >
+            {loading ? '...' : '+ Add'}
+          </button>
+        </form>
+
+        {/* Autocomplete dropdown */}
+        {showSuggestions && suggestions.length > 0 && (
+          <div
+            ref={dropdownRef}
+            style={{
+              position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+              marginTop: 4, background: 'white', border: '1px solid #e2e8f0',
+              borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              maxHeight: 280, overflowY: 'auto',
+            }}
+          >
+            {suggestions.map((geo, i) => (
+              <button
+                key={`${geo.lat}-${geo.lon}`}
+                onClick={() => selectSuggestion(geo)}
+                onMouseEnter={() => setHighlightIdx(i)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  width: '100%', padding: '10px 14px', border: 'none',
+                  background: i === highlightIdx ? '#f1f5f9' : 'transparent',
+                  cursor: 'pointer', textAlign: 'left', fontSize: 14, color: '#1e293b',
+                  borderBottom: i < suggestions.length - 1 ? '1px solid #f1f5f9' : 'none',
+                }}
+              >
+                <span style={{ fontSize: 16 }}>📍</span>
+                <div>
+                  <div style={{ fontWeight: 500 }}>{geo.name}</div>
+                  <div style={{ fontSize: 12, color: '#94a3b8' }}>
+                    {[geo.admin1, geo.country].filter(Boolean).join(', ')}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {error && (
         <div style={{ color: '#dc2626', fontSize: 13, padding: '8px 12px', background: '#fee2e2', borderRadius: 8, marginBottom: 12 }}>{error}</div>

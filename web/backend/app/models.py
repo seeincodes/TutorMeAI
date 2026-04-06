@@ -6,6 +6,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Text,
     UniqueConstraint,
@@ -30,6 +31,19 @@ class District(Base):
 
     users: Mapped[list["User"]] = relationship(back_populates="district")
     app_approvals: Mapped[list["DistrictAppApproval"]] = relationship(back_populates="district", cascade="all, delete-orphan")
+    schools: Mapped[list["School"]] = relationship(back_populates="district", cascade="all, delete-orphan")
+
+
+class School(Base):
+    __tablename__ = "schools"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    district_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("districts.id", ondelete="CASCADE"), nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    district: Mapped["District"] = relationship(back_populates="schools")
+    classrooms: Mapped[list["Classroom"]] = relationship(back_populates="school")
 
 
 class User(Base):
@@ -43,11 +57,13 @@ class User(Base):
     grade: Mapped[int | None] = mapped_column(Integer)
     allowed_levels: Mapped[list | None] = mapped_column(JSONB)  # e.g. ["K-2", "3-5"]
     district_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("districts.id"), nullable=True)
+    school_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("schools.id"), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     capability_tier_override: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     district: Mapped["District | None"] = relationship(back_populates="users")
+    school: Mapped["School | None"] = relationship()
     conversations: Mapped[list["Conversation"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     oauth_tokens: Mapped[list["OAuthToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
@@ -68,6 +84,7 @@ class User(Base):
 
     __table_args__ = (
         CheckConstraint("role IN ('student', 'teacher', 'admin', 'district_admin')", name="ck_users_role"),
+        Index("ix_users_district_role", "district_id", "role"),
     )
 
 
@@ -167,6 +184,7 @@ class ToolInvocation(Base):
 
     __table_args__ = (
         CheckConstraint("status IN ('success', 'error', 'timeout')", name="ck_tool_invocations_status"),
+        Index("ix_tool_invocations_app_id", "app_id"),
     )
 
 
@@ -250,9 +268,11 @@ class Classroom(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     teacher_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    school_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("schools.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     teacher: Mapped["User"] = relationship()
+    school: Mapped["School | None"] = relationship(back_populates="classrooms")
     memberships: Mapped[list["ClassroomMembership"]] = relationship(back_populates="classroom", cascade="all, delete-orphan")
     app_whitelist: Mapped[list["ClassroomAppWhitelist"]] = relationship(back_populates="classroom", cascade="all, delete-orphan")
 
@@ -270,6 +290,7 @@ class ClassroomMembership(Base):
 
     __table_args__ = (
         UniqueConstraint("classroom_id", "student_id", name="uq_classroom_memberships_classroom_student"),
+        Index("ix_classroom_memberships_student_id", "student_id"),
     )
 
 
@@ -286,6 +307,7 @@ class ClassroomAppWhitelist(Base):
 
     __table_args__ = (
         UniqueConstraint("classroom_id", "app_id", name="uq_classroom_app_whitelist_classroom_app"),
+        Index("ix_classroom_app_whitelist_app_id", "app_id"),
     )
 
 

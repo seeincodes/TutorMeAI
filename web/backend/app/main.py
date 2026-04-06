@@ -2,6 +2,13 @@ import os
 import uuid
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+# Load .env into os.environ so OAuth router can read env vars directly
+_env_path = Path(__file__).parent.parent.parent.parent / ".env"
+if _env_path.exists():
+    load_dotenv(_env_path)
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -21,6 +28,7 @@ from app.classrooms.router import router as classrooms_router
 from app.districts.router import router as districts_router
 from app.marketplace.router import router as marketplace_router
 from app.scaling.router import router as scaling_router
+from app.nasa.router import router as nasa_router
 from app.observability.router import router as observability_router
 from app.rate_limit import limiter
 
@@ -53,8 +61,10 @@ class SecurityHeadersMiddleware:
                 if path.startswith("/apps/"):
                     csp = (
                         b"default-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-                        b"connect-src 'self' https://api.dictionaryapi.dev https://wttr.in; "
-                        b"img-src 'self' data:; "
+                        b"connect-src 'self' https://api.dictionaryapi.dev https://wttr.in "
+                        b"https://api.open-meteo.com https://geocoding-api.open-meteo.com "
+                        b"https://ipwho.is https://api.nasa.gov https://openlibrary.org; "
+                        b"img-src 'self' data: https://apod.nasa.gov https://covers.openlibrary.org; "
                         b"script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
                         b"style-src 'self' 'unsafe-inline'"
                     )
@@ -170,6 +180,7 @@ app.include_router(classrooms_router)
 app.include_router(districts_router)
 app.include_router(marketplace_router)
 app.include_router(scaling_router)
+app.include_router(nasa_router)
 app.include_router(observability_router)
 
 
@@ -204,6 +215,19 @@ for app_name, app_dir in _apps_dirs.items():
     if app_dir.exists():
         app.mount(f"/apps/{app_name}", StaticFiles(directory=str(app_dir), html=True), name=f"app-{app_name}")
 
-# Mount frontend last (catch-all for SPA routing)
+# SPA fallback for client-side routing in production
+# In dev, Vite handles this; in production, we need to serve index.html for SPA routes
 if _frontend_dist.exists():
+    from fastapi.responses import FileResponse
+
+    _index_html = str(_frontend_dist / "index.html")
+
+    # Explicit SPA routes — serve index.html for known frontend paths
+    # This avoids conflicting with /api/* and /apps/* mounts
+    for _spa_path in ["/login", "/dashboard", "/dashboard/{rest:path}", "/marketplace", "/marketplace/{rest:path}"]:
+        @app.get(_spa_path, include_in_schema=False)
+        async def _serve_spa(rest: str = ""):
+            return FileResponse(_index_html)
+
+    # Mount frontend static files last (serves JS/CSS/images and / → index.html)
     app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="frontend")
