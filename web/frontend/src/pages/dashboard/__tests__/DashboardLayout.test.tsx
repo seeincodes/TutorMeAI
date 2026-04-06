@@ -60,13 +60,12 @@ describe('DashboardLayout', () => {
     expect(screen.queryByText('Costs')).not.toBeInTheDocument()
   })
 
-  it('shows both Teaching and Admin sections for admins', async () => {
+  it('shows only Admin section for admins (no Teaching)', async () => {
     await renderWithRouter('/dashboard/students', 'admin')
-    // Teaching
-    expect(screen.getByText('Students')).toBeInTheDocument()
-    expect(screen.getByText('Apps')).toBeInTheDocument()
-    expect(screen.getByText('Flags')).toBeInTheDocument()
-    // Admin
+    // Teaching section hidden for admins
+    expect(screen.queryByText('Students')).not.toBeInTheDocument()
+    expect(screen.queryByText('Flags')).not.toBeInTheDocument()
+    // Admin section visible
     expect(screen.getByText('Districts')).toBeInTheDocument()
     expect(screen.getByText('Marketplace')).toBeInTheDocument()
     expect(screen.getByText('App Health')).toBeInTheDocument()

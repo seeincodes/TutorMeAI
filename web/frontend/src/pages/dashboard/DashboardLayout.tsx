@@ -21,6 +21,7 @@ export default function DashboardLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const isAdmin = user?.role === 'admin' || user?.role === 'district_admin'
+  const isTeacher = user?.role === 'teacher'
 
   return (
     <div className="flex h-screen bg-chatbox-background-primary">
@@ -40,12 +41,16 @@ export default function DashboardLayout() {
           </button>
         </div>
 
-        {/* Teaching section */}
         <nav className="flex-1 overflow-y-auto px-2 pt-3">
-          <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-chatbox-tint-tertiary">Teaching</p>
-          {TEACHING_NAV.map(item => (
-            <SidebarLink key={item.to} {...item} />
-          ))}
+          {/* Teaching section — teachers only */}
+          {isTeacher && (
+            <>
+              <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-chatbox-tint-tertiary">Teaching</p>
+              {TEACHING_NAV.map(item => (
+                <SidebarLink key={item.to} {...item} />
+              ))}
+            </>
+          )}
 
           {/* Admin section */}
           {isAdmin && (
