@@ -11,6 +11,9 @@ import MarketplaceSection from '@/pages/dashboard/MarketplaceSection'
 import HealthSection from '@/pages/dashboard/HealthSection'
 import CostsSection from '@/pages/dashboard/CostsSection'
 import TeachersSection from '@/pages/dashboard/TeachersSection'
+import MarketplaceBrowsePage from '@/pages/marketplace/MarketplaceBrowsePage'
+import MarketplaceDetailPage from '@/pages/marketplace/MarketplaceDetailPage'
+import MarketplaceSubmitPage from '@/pages/marketplace/MarketplaceSubmitPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -71,6 +74,9 @@ function AppRoutes() {
         <Route path="health" element={<HealthSection />} />
         <Route path="costs" element={<CostsSection />} />
       </Route>
+      <Route path="/marketplace" element={<RequireAuth><MarketplaceBrowsePage /></RequireAuth>} />
+      <Route path="/marketplace/submit" element={<MarketplaceSubmitPage />} />
+      <Route path="/marketplace/:appId" element={<RequireAuth><MarketplaceDetailPage /></RequireAuth>} />
     </Routes>
   )
 }
