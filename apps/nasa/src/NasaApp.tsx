@@ -55,10 +55,10 @@ export default function NasaApp() {
     setLoading(true)
     setError(null)
     try {
-      const param = date ? `&date=${date}` : ''
-      const res = await fetch(`https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY${param}`)
+      const param = date ? `?date=${date}` : ''
+      const res = await fetch(`/api/nasa/apod${param}`, { credentials: 'include' })
       if (!res.ok) {
-        if (res.status === 429) throw new Error('Rate limited! NASA DEMO_KEY allows 30 requests per hour. Please wait a moment and try again.')
+        if (res.status === 429) throw new Error('Rate limited! Please wait a moment and try again.')
         throw new Error(`NASA API error: ${res.status}`)
       }
       const data: ApodData = await res.json()
@@ -93,7 +93,7 @@ export default function NasaApp() {
         sendToPlatform('tool_result', correlationId, { tool: 'restore_state', message: 'Restored' })
       } else if (tool === 'get_apod') {
         const date = args?.date
-        fetch(`https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY${date ? `&date=${date}` : ''}`)
+        fetch(`/api/nasa/apod${date ? `?date=${date}` : ''}`, { credentials: 'include' })
           .then(r => r.json())
           .then(data => {
             sendToPlatform('tool_result', correlationId, {

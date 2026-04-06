@@ -21,6 +21,7 @@ class Settings(BaseSettings):
 
     # External APIs
     openweathermap_api_key: str = ""
+    nasa_api_key: str = "DEMO_KEY"
 
     # Google Classroom OAuth
     google_classroom_client_id: str = ""
