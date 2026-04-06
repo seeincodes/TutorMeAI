@@ -11,6 +11,7 @@ import MarketplaceSection from '@/pages/dashboard/MarketplaceSection'
 import HealthSection from '@/pages/dashboard/HealthSection'
 import CostsSection from '@/pages/dashboard/CostsSection'
 import TeachersSection from '@/pages/dashboard/TeachersSection'
+import ClassroomsSection from '@/pages/dashboard/ClassroomsSection'
 import MarketplaceBrowsePage from '@/pages/marketplace/MarketplaceBrowsePage'
 import MarketplaceDetailPage from '@/pages/marketplace/MarketplaceDetailPage'
 import MarketplaceSubmitPage from '@/pages/marketplace/MarketplaceSubmitPage'
@@ -67,6 +68,7 @@ function AppRoutes() {
         <Route index element={<Navigate to="/dashboard/students" replace />} />
         <Route path="students" element={<StudentsSection />} />
         <Route path="apps" element={<AppsSection />} />
+        <Route path="classrooms" element={<ClassroomsSection />} />
         <Route path="flags" element={<FlagsSection />} />
         <Route path="teachers" element={<TeachersSection />} />
         <Route path="districts" element={<DistrictsSection />} />

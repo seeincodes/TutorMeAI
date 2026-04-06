@@ -149,6 +149,12 @@ export interface ClassroomInfo {
   created_at: string
 }
 
+export interface ClassroomMember {
+  student_id: string
+  username: string
+  display_name: string | null
+}
+
 export interface ReviewQueueApp {
   app_id: string
   name: string
@@ -324,6 +330,20 @@ export const api = {
     request<ClassroomInfo>('/classrooms', {
       method: 'POST',
       body: JSON.stringify({ name }),
+    }),
+
+  listClassroomMembers: (classroomId: string) =>
+    request<ClassroomMember[]>(`/classrooms/${classroomId}/members`),
+
+  addClassroomMember: (classroomId: string, studentId: string) =>
+    request<{ classroom_id: string; student_id: string }>(`/classrooms/${classroomId}/members`, {
+      method: 'POST',
+      body: JSON.stringify({ student_id: studentId }),
+    }),
+
+  removeClassroomMember: (classroomId: string, studentId: string) =>
+    request<{ removed: boolean }>(`/classrooms/${classroomId}/members/${studentId}`, {
+      method: 'DELETE',
     }),
 
   addAppToClassroom: (classroomId: string, appId: string) =>

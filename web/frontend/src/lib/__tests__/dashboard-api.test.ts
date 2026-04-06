@@ -182,6 +182,36 @@ describe('dashboard API client', () => {
     expect(result.app_id).toBe('chess')
   })
 
+  it('listClassroomMembers calls GET /api/classrooms/:id/members', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse([{ student_id: 's1', username: 'student1' }]))
+    const result = await api.listClassroomMembers('c1')
+    expect(mockFetch).toHaveBeenCalledWith('/api/classrooms/c1/members', expect.anything())
+    expect(result[0].username).toBe('student1')
+  })
+
+  it('addClassroomMember calls POST /api/classrooms/:id/members', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse({ classroom_id: 'c1', student_id: 's1' }, 201))
+    const result = await api.addClassroomMember('c1', 's1')
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/classrooms/c1/members',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ student_id: 's1' }) })
+    )
+    expect(result.student_id).toBe('s1')
+  })
+
+  it('removeClassroomMember calls DELETE /api/classrooms/:id/members/:studentId', async () => {
+    const { api } = await import('@/lib/api')
+    mockFetch.mockResolvedValueOnce(mockJsonResponse({ removed: true }))
+    const result = await api.removeClassroomMember('c1', 's1')
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/classrooms/c1/members/s1',
+      expect.objectContaining({ method: 'DELETE' })
+    )
+    expect(result.removed).toBe(true)
+  })
+
   it('fetchReviewQueue calls GET /api/marketplace/review-queue', async () => {
     const { api } = await import('@/lib/api')
     mockFetch.mockResolvedValueOnce(mockJsonResponse([{ app_id: 'test', status: 'pending_review' }]))
