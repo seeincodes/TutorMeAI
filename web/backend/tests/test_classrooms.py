@@ -126,3 +126,94 @@ async def test_classroom_app_whitelist_unique_constraint():
             await s.flush()
 
         await s.rollback()
+
+
+# ── API Tests: Classroom CRUD ────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_teacher_creates_classroom(teacher_client):
+    resp = await teacher_client.post("/api/classrooms", json={"name": "Period 2 Math"})
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["name"] == "Period 2 Math"
+    assert "id" in data
+
+
+@pytest.mark.asyncio
+async def test_teacher_lists_own_classrooms(teacher_client):
+    await teacher_client.post("/api/classrooms", json={"name": "Room A"})
+    await teacher_client.post("/api/classrooms", json={"name": "Room B"})
+
+    resp = await teacher_client.get("/api/classrooms")
+    assert resp.status_code == 200
+    names = [c["name"] for c in resp.json()]
+    assert "Room A" in names
+    assert "Room B" in names
+
+
+@pytest.mark.asyncio
+async def test_student_cannot_create_classroom(student1_client):
+    resp = await student1_client.post("/api/classrooms", json={"name": "Nope"})
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_add_student_to_classroom(teacher_client):
+    from app.models import User
+    from app.database import get_session_factory
+    from sqlalchemy import select
+
+    sf = get_session_factory()
+    async with sf() as s:
+        student = (await s.execute(select(User).where(User.username == "student1"))).scalar_one()
+        student_id = str(student.id)
+
+    cr = await teacher_client.post("/api/classrooms", json={"name": "Add Test"})
+    classroom_id = cr.json()["id"]
+
+    resp = await teacher_client.post(f"/api/classrooms/{classroom_id}/members", json={"student_id": student_id})
+    assert resp.status_code == 201
+
+
+@pytest.mark.asyncio
+async def test_list_classroom_members(teacher_client):
+    from app.models import User
+    from app.database import get_session_factory
+    from sqlalchemy import select
+
+    sf = get_session_factory()
+    async with sf() as s:
+        student = (await s.execute(select(User).where(User.username == "student1"))).scalar_one()
+        student_id = str(student.id)
+
+    cr = await teacher_client.post("/api/classrooms", json={"name": "Members Test"})
+    classroom_id = cr.json()["id"]
+    await teacher_client.post(f"/api/classrooms/{classroom_id}/members", json={"student_id": student_id})
+
+    resp = await teacher_client.get(f"/api/classrooms/{classroom_id}/members")
+    assert resp.status_code == 200
+    assert len(resp.json()) == 1
+    assert resp.json()[0]["username"] == "student1"
+
+
+@pytest.mark.asyncio
+async def test_remove_student_from_classroom(teacher_client):
+    from app.models import User
+    from app.database import get_session_factory
+    from sqlalchemy import select
+
+    sf = get_session_factory()
+    async with sf() as s:
+        student = (await s.execute(select(User).where(User.username == "student1"))).scalar_one()
+        student_id = str(student.id)
+
+    cr = await teacher_client.post("/api/classrooms", json={"name": "Remove Test"})
+    classroom_id = cr.json()["id"]
+    await teacher_client.post(f"/api/classrooms/{classroom_id}/members", json={"student_id": student_id})
+
+    resp = await teacher_client.delete(f"/api/classrooms/{classroom_id}/members/{student_id}")
+    assert resp.status_code == 200
+
+    members = await teacher_client.get(f"/api/classrooms/{classroom_id}/members")
+    assert len(members.json()) == 0
