@@ -101,6 +101,67 @@ export interface ScreeningQueueEntry {
   is_active: boolean
 }
 
+export interface BrowseApp {
+  app_id: string
+  name: string
+  description: string
+  trust_tier: string
+  age_rating: string
+  developer_name: string | null
+  logo_url: string | null
+  is_active: boolean
+}
+
+export interface AppDetail {
+  app_id: string
+  name: string
+  description: string
+  trust_tier: string
+  age_rating: string
+  auth_type: string
+  developer_name: string | null
+  developer_email: string | null
+  website_url: string | null
+  privacy_policy_url: string | null
+  logo_url: string | null
+  tool_schemas: { name: string; description: string; parameters: unknown[] }[]
+  is_active: boolean
+}
+
+export interface SubmitAppPayload {
+  app_id: string
+  name: string
+  description: string
+  iframe_url: string
+  tool_schemas: { name: string; description: string; parameters: unknown[] }[]
+  developer_name: string
+  developer_email: string
+  website_url?: string
+  privacy_policy_url?: string
+  logo_url?: string
+  age_rating?: string
+}
+
+export interface ClassroomInfo {
+  id: string
+  name: string
+  teacher_id: string
+  created_at: string
+}
+
+export interface ReviewQueueApp {
+  app_id: string
+  name: string
+  description: string
+  developer_name: string | null
+  developer_email: string | null
+  status: string
+  trust_tier: string
+  tool_count: number
+  created_at: string
+  screening_results: { screen_type: string; result: string; flagged: boolean }[]
+}
+
 export const api = {
   login: (username: string, password: string) =>
     request<{ user: User }>('/auth/login', {
@@ -240,6 +301,43 @@ export const api = {
     request<{ app_id: string; flag_count: number; is_active: boolean }>(`/marketplace/${appId}/clear-flags`, {
       method: 'POST',
     }),
+
+  browseMarketplace: () => request<BrowseApp[]>('/marketplace/browse'),
+
+  fetchAppDetail: (appId: string) => request<AppDetail>(`/marketplace/${appId}/detail`),
+
+  submitApp: (payload: SubmitAppPayload) =>
+    request<{ app_id: string; name: string; status: string; trust_tier: string }>('/marketplace/submit', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  reviewApp: (appId: string, action: string, note?: string) =>
+    request<{ app_id: string; status: string; is_active: boolean }>(`/marketplace/${appId}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ action, ...(note ? { note } : {}) }),
+    }),
+
+  listClassrooms: () => request<ClassroomInfo[]>('/classrooms'),
+
+  createClassroom: (name: string) =>
+    request<ClassroomInfo>('/classrooms', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+
+  addAppToClassroom: (classroomId: string, appId: string) =>
+    request<{ classroom_id: string; app_id: string }>(`/classrooms/${classroomId}/apps`, {
+      method: 'POST',
+      body: JSON.stringify({ app_id: appId }),
+    }),
+
+  removeAppFromClassroom: (classroomId: string, appId: string) =>
+    request<{ removed: boolean }>(`/classrooms/${classroomId}/apps/${appId}`, {
+      method: 'DELETE',
+    }),
+
+  fetchReviewQueue: () => request<ReviewQueueApp[]>('/marketplace/review-queue'),
 
   fetchAppHealth: () => request<AppHealthEntry[]>('/observability/app-health'),
 
