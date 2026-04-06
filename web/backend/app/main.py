@@ -61,8 +61,10 @@ class SecurityHeadersMiddleware:
                 if path.startswith("/apps/"):
                     csp = (
                         b"default-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-                        b"connect-src 'self' https://api.dictionaryapi.dev https://wttr.in; "
-                        b"img-src 'self' data:; "
+                        b"connect-src 'self' https://api.dictionaryapi.dev https://wttr.in "
+                        b"https://api.open-meteo.com https://geocoding-api.open-meteo.com "
+                        b"https://ipwho.is https://api.nasa.gov https://openlibrary.org; "
+                        b"img-src 'self' data: https://apod.nasa.gov https://covers.openlibrary.org; "
                         b"script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
                         b"style-src 'self' 'unsafe-inline'"
                     )
