@@ -82,6 +82,25 @@ class BrowseAppResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ReviewQueueResponse(BaseModel):
+    app_id: str
+    name: str
+    description: str
+    developer_name: str | None = None
+    developer_email: str | None = None
+    status: str
+    trust_tier: str
+    tool_count: int
+    created_at: str
+    screening_results: list[dict]
+    model_config = {"from_attributes": True}
+
+
+class ReviewActionRequest(BaseModel):
+    action: str  # "approve", "reject", "request_changes"
+    note: str | None = None
+
+
 class DetailAppResponse(BaseModel):
     app_id: str
     name: str
@@ -290,6 +309,37 @@ async def browse_marketplace(
     ) for a in apps]
 
 
+@router.get("/review-queue")
+async def review_queue_endpoint(
+    current_user: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+) -> list[ReviewQueueResponse]:
+    """List apps pending manual review."""
+    result = await db.execute(
+        select(AppRegistration).where(AppRegistration.status == "pending_review")
+    )
+    apps = result.scalars().all()
+
+    response = []
+    for app_reg in apps:
+        screens_result = await db.execute(
+            select(AppContentScreen).where(AppContentScreen.app_id == app_reg.app_id)
+        )
+        screens = screens_result.scalars().all()
+        screening_results = [
+            {"screen_type": sc.screen_type, "result": sc.result, "flagged": sc.flagged}
+            for sc in screens
+        ]
+        response.append(ReviewQueueResponse(
+            app_id=app_reg.app_id, name=app_reg.name, description=app_reg.description,
+            developer_name=app_reg.developer_name, developer_email=app_reg.developer_email,
+            status=app_reg.status, trust_tier=app_reg.trust_tier,
+            tool_count=len(app_reg.tool_schemas) if app_reg.tool_schemas else 0,
+            created_at=str(app_reg.created_at), screening_results=screening_results,
+        ))
+    return response
+
+
 @router.get("/{app_id}/detail")
 async def app_detail(
     app_id: str,
@@ -449,6 +499,50 @@ async def get_ai_review(
         "flagged": screen.flagged,
         "details": screen.details,
         "reviewed_at": str(screen.created_at),
+    }
+
+
+@router.post("/{app_id}/review")
+async def review_app(
+    app_id: str,
+    body: ReviewActionRequest,
+    current_user: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Admin approves, rejects, or requests changes on an app."""
+    valid_actions = ("approve", "reject", "request_changes")
+    if body.action not in valid_actions:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid action. Must be one of: {valid_actions}",
+        )
+
+    result = await db.execute(
+        select(AppRegistration).where(AppRegistration.app_id == app_id)
+    )
+    app_reg = result.scalar_one_or_none()
+    if not app_reg:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
+
+    if body.action == "approve":
+        app_reg.status = "active"
+        app_reg.is_active = True
+        app_reg.approved_at = func.now()
+        app_reg.approved_by = current_user.id
+    elif body.action == "reject":
+        app_reg.status = "rejected"
+        app_reg.is_active = False
+    elif body.action == "request_changes":
+        app_reg.status = "changes_requested"
+        app_reg.is_active = False
+
+    await db.commit()
+    await db.refresh(app_reg)
+
+    return {
+        "app_id": app_reg.app_id,
+        "status": app_reg.status,
+        "is_active": app_reg.is_active,
     }
 
 
